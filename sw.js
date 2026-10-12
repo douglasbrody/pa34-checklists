@@ -1,9 +1,14 @@
 // Bump VERSION whenever any app file changes so iPads pick up the update.
-const VERSION = 'checklists-v7';
+const VERSION = 'checklists-v8';
 const FILES = ['./', './index.html', './manifest.webmanifest', './defaults.js', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
-  e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
+  // cache: 'reload' skips the browser's HTTP cache, so an update never stores stale copies of old files.
+  e.waitUntil(
+    caches.open(VERSION)
+      .then(c => c.addAll(FILES.map(f => new Request(f, { cache: 'reload' }))))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', e => {
