@@ -139,6 +139,7 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .wx b { color: var(--next); }
+  .wx.empty { border-style: dashed; border-color: var(--next); color: var(--next); }
   .home .wx { margin: 14px 0 0; }
   .tabs { display: flex; margin: 0 0 14px; }
   .tabs > * + * { margin-left: 10px; }
@@ -388,11 +389,22 @@ const fillTokens = html => html.replace(TOKEN, (m, k) => {
 });
 const rowKeys = text => { const ks = []; text.replace(TOKEN, (m, k) => { tokenFields(k).forEach(x => ks.includes(x) || ks.push(x)); }); return ks; };
 
-// The wind line shown at the bottom of screens: the ATIS entered or viewed most recently.
-function wxLine() {
+// Which ATIS a checklist's wind line shows: departure up to and including Takeoff, arrival for
+// every normal checklist after it. Emergencies (any phase) and other screens: the most recent one.
+function phaseSide(l) {
+  if (!l || isEmergency(l.group)) return null;
+  const t = lists.findIndex(x => x.title.trim().toLowerCase() === 'takeoff');
+  if (t < 0) return null;
+  return lists.indexOf(l) > t ? 'arr' : 'dep';
+}
+// The wind line at the bottom of screens. After takeoff it always shows the arrival ATIS,
+// and when that is still blank it offers to enter it.
+function wxLine(forced) {
   const has = sd => ['rwy', 'wdir', 'wspd', 'alt'].some(f => fd[sd + '.' + f] !== undefined);
-  let side = fd._active || 'dep';
-  if (!has(side)) side = side === 'dep' ? 'arr' : 'dep';   // fall back to the other ATIS until this one is entered
+  if (forced === 'arr' && !has('arr'))
+    return `<button class="wx empty" data-act="padall" data-tab="arr"><b>ARR</b> · Tap to enter arrival ATIS</button>`;
+  let side = forced || fd._active || 'dep';
+  if (!forced && !has(side)) side = side === 'dep' ? 'arr' : 'dep';   // fall back to the other ATIS until this one is entered
   const sum = [fd[side + '.info'] ? fd[side + '.info'] : '', fd[side + '.rwy'] ? 'RWY ' + fd[side + '.rwy'] : '',
     windText(side), components(side), fmt(side + '.alt')].filter(Boolean);
   if (!sum.length) return '';
@@ -622,7 +634,7 @@ function renderList(id) {
     <h2 class="list-title">${esc(l.title)}</h2>
     <div class="fit"><div class="sheet">${body || '<div class="empty">This checklist is empty.</div>'}</div></div>
     ${choiceHtml ? `<div class="choices">${choiceHtml}</div>` : ''}
-    ${wxLine()}
+    ${wxLine(phaseSide(l))}
   </div>`;
   layout();
 }
