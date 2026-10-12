@@ -211,10 +211,7 @@ Questions? ... BEFORE WE START ENGINES"""
 # The {tokens} show values entered on the ATIS & Takeoff Data screen; tapping the line enters them.
 CREW="""# Today
 Runway / length ... RWY {dep.rwy} / {tob.len} FT
-Wind / components ... {dep.comp}
-Field elevation ... {tob.elev} FT
-Density altitude (calculated) ... {da} FT
-Takeoff weight (max 4,200) ... {tob.wt} LB
+Wind (headwind / tailwind) ... {dep.hw} KT
 Takeoff distance over 50 ft ... {tob.todist} FT
 Accelerate-stop distance ... {tob.asd} FT
 Single-engine rate of climb ... {tob.seroc} FPM
@@ -263,7 +260,7 @@ for l in emer:
     cat=EMER_CAT[l['title']]
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=10
+DEFAULTS_VERSION=11
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

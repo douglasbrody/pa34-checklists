@@ -332,8 +332,6 @@ const atisFields = side => [
   { k: side + '.alt', label: 'Altimeter', max: 4, unit: 'IN HG' }];
 const TOB_FIELDS = [
   { k: 'tob.len', label: 'Runway length', max: 5, unit: 'FT' },
-  { k: 'tob.elev', label: 'Field elevation', max: 5, unit: 'FT' },
-  { k: 'tob.wt', label: 'Takeoff weight', max: 4, unit: 'LB' },
   { k: 'tob.todist', label: 'Takeoff distance over 50 ft', max: 4, unit: 'FT' },
   { k: 'tob.asd', label: 'Accelerate-stop distance', max: 4, unit: 'FT' },
   { k: 'tob.seroc', label: 'Single-engine rate of climb', max: 3, unit: 'FPM' },
@@ -350,7 +348,7 @@ function fmt(k) {
   if (f === 'ceil') return v === 'CLR' ? 'CLR' : thousands(+v * 100);
   if (f === 'temp' || f === 'dew') return v.replace('-', '−');
   if (f === 'wdir') return v === 'VRB' ? 'VRB' : v.padStart(3, '0') + '°';
-  if (/^(len|elev|secl|todist|asd|wt)$/.test(f)) return thousands(v);
+  if (/^(len|secl|todist|asd)$/.test(f)) return thousands(v);
   return v;
 }
 function windText(side) {
@@ -360,7 +358,7 @@ function windText(side) {
   return (d ? fmt(side + '.wdir') : '—') + '@' + (sp || '—') + (g ? 'G' + g : '');
 }
 // Headwind / crosswind for the entered runway (runway number × 10 = magnetic heading).
-function components(side) {
+function components(side, headOnly) {
   const r = parseInt(fd[side + '.rwy'], 10), d = fd[side + '.wdir'], sp = +fd[side + '.wspd'], g = +fd[side + '.gust'] || 0;
   if (!r || !d || fd[side + '.wspd'] === undefined) return '';
   if (sp === 0) return 'CALM';
@@ -370,14 +368,8 @@ function components(side) {
   const h = hw(sp), hg = g ? hw(g) : null;
   const rng = (a, b) => (b === null || b === a ? String(a) : a + '–' + b);   // "10–15", or just "10"
   const head = h < 0 ? 'TW ' + rng(-h, g ? -hg : null) : 'HW ' + rng(h, g ? hg : null);
+  if (headOnly) return head;
   return 'XW ' + rng(xw(sp), g ? xw(g) : null) + side2 + ' · ' + head;
-}
-// Density altitude ≈ pressure altitude + 120 ft per °C above standard.
-function densityAlt() {
-  const e = +fd['tob.elev'], t = fd['dep.temp'], al = fd['dep.alt'];
-  if (fd['tob.elev'] === undefined || t === undefined || !al || al.length !== 4) return '';
-  const pa = e + (29.92 - +al / 100) * 1000, isa = 15 - 2 * e / 1000;
-  return thousands(Math.round((pa + 120 * (+t - isa)) / 50) * 50);
 }
 function atisSummary(side) {
   const parts = [fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', fd[side + '.rwy'] ? 'RWY ' + fd[side + '.rwy'] : '',
@@ -387,16 +379,15 @@ function atisSummary(side) {
 // Values for {tokens} in checklist text, and which fields to edit when the line is tapped.
 function tokenValue(key) {
   const [side, f] = key.split('.');
-  if (key === 'da') return densityAlt();
+  if (f === 'hw') return components(side, true);
   if (f === 'sum') return atisSummary(side) || 'TAP TO ENTER';
   if (f === 'comp') return [windText(side), components(side)].filter(Boolean).join(' · ');
   return FIELD[key] ? fmt(key) : '';
 }
 function tokenFields(key) {
   const [side, f] = key.split('.');
-  if (key === 'da') return ['tob.elev', 'dep.temp', 'dep.alt'];
   if (f === 'sum') return atisFields(side).map(x => x.k);
-  if (f === 'comp') return [side + '.rwy', side + '.wdir', side + '.wspd', side + '.gust'];
+  if (f === 'comp' || f === 'hw') return [side + '.rwy', side + '.wdir', side + '.wspd', side + '.gust'];
   return FIELD[key] ? [key] : [];
 }
 const TOKEN = /\{([a-z]+(?:\.[a-z]+)?)\}/g;
@@ -516,7 +507,7 @@ function renderData(tab) {
   if (tab !== 'tob' && fd._active !== tab) { fd._active = tab; saveFd(); }
   const fields = tab === 'tob' ? TOB_FIELDS : atisFields(tab);
   const calc = tab === 'tob'
-    ? `<div class="calc"><small>Density altitude (calculated from elevation, departure temp & altimeter)</small>${densityAlt() ? densityAlt() + ' FT' : '—'}</div>`
+    ? `<div class="calc"><small>Departure runway ${esc(fd['dep.rwy'] || '—')} · headwind / tailwind</small>${esc(components('dep', true) || '—')}</div>`
     : `<div class="calc"><small>Wind · components for RWY ${esc(fd[tab + '.rwy'] || '—')}</small>${esc([windText(tab), components(tab)].filter(Boolean).join(' · ') || '—')}</div>`;
   $app.innerHTML = `<div class="wrap">
     <div class="home-head">
@@ -761,7 +752,7 @@ function renderEditor(id) {
       <code>* HOBBS/TACH Times ... RECORDED</code> highlighted line<br>
       <code># Engine</code> section heading<br>
       <code>! Caution text</code> highlighted caution note<br>
-      <code>Wind ... {dep.comp}</code> shows flight data (e.g. {dep.sum}, {arr.sum}, {tob.len}, {da}); tap the line to enter it<br>
+      <code>Wind ... {dep.comp}</code> shows flight data (e.g. {dep.sum}, {arr.sum}, {dep.hw}, {tob.len}); tap the line to enter it<br>
       <code>-> FEATHER | Feathering procedure : Feathering Procedure</code> big button at the bottom (label | subtitle : title of the checklist to open)
     </div>
     <div class="actions">
