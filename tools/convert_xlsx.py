@@ -113,6 +113,20 @@ by_title['Left Wing']['lines']=lw
 # The spreadsheet's single-engine fuel management LANDING section ends with three lines copied
 # from Go Around (gear up, flaps retract, cowl flaps). The Avia PA-34-200 emergency checklist
 # ends that section at the electric fuel pump, so drop the copied lines.
+# Memory items follow the Avia PA-34-200 emergency checklist, one control per line,
+# and end with a decision: try to restore power, or feather.
+by_title['Engine Failure — Memory Items']['lines'] = [
+    'Maintain Direction and Airspeed ... BLUE LINE / 105 MPH',
+    'Mixture Controls ... RICH',
+    'Propeller Controls ... FULL FORWARD',
+    'Throttle Controls ... FULL FORWARD',
+    'Flaps ... UP',
+    'Landing Gear ... UP',
+    'Fuel Pumps ... ON',
+    'Identify INOP Engine ... DEAD FOOT, DEAD ENGINE',
+    'Verify INOP Engine ... RETARD THROTTLE TO VERIFY',
+    "-> FIX | Restore power (if altitude permits) : Engine Failure — If Altitude Permits (3,500')",
+    "-> FEATHER | Feathering procedure : Feathering Procedure"]
 fm=by_title['Single-Engine Fuel Management']['lines']
 fm[:]=fm[:fm.index('Electric Fuel Pump Operating Engine ... ON')+1]
 
@@ -200,7 +214,7 @@ for l in emer:
     cat=EMER_CAT[l['title']]
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=4
+DEFAULTS_VERSION=5
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

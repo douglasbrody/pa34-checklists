@@ -91,7 +91,7 @@
   .fit.scroll { overflow-y: auto; }
   .sheet { column-gap: 1.4em; column-rule: 2px solid var(--line); }
   .row {
-    display: flex; align-items: baseline; padding: .28em .4em; border-radius: .25em;
+    display: flex; align-items: baseline; padding: var(--rp, .22em) .4em; border-radius: .25em;
     break-inside: avoid; font-weight: 600;
   }
   .row:nth-child(even of .row) { background: var(--card); }
@@ -108,9 +108,22 @@
   [data-theme="red"] .row.hl, [data-theme="red"] .row.hl:nth-child(even of .row) { background: #3a0000; color: var(--fg); }
   .sec {
     font-size: .72em; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
-    padding: .7em .55em .25em; break-after: avoid; break-inside: avoid;
+    padding: calc(.5em + var(--rp, .22em)) .55em .25em; break-after: avoid; break-inside: avoid;
   }
   .sec:first-child { padding-top: 0; }
+  .choices { flex: none; display: flex; padding: 0 16px 16px; }
+  .choices > * + * { margin-left: 14px; }
+  .choice {
+    flex: 1; min-height: 110px; border-radius: 20px; padding: 10px 16px; color: #fff;
+    font-size: 36px; font-weight: 850; letter-spacing: 1px; line-height: 1.1;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    filter: var(--tile-filter); box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  }
+  .choice:active { transform: scale(.97); }
+  .choice small { font-size: 16px; font-weight: 600; letter-spacing: 0; opacity: .9; margin-top: 6px; }
+  .choice.c0 { background: #1e5bd8; } .choice.c1 { background: #b45309; } .choice.c2 { background: #138a4a; }
+  .choice.missing { background: var(--card); color: var(--muted); border: 2px dashed var(--line); }
+  [data-theme="red"] .choice { background: #1a0000 !important; color: var(--fg); border: 2px solid #5a0d08; box-shadow: none; }
   .note {
     margin: .2em 0 .35em; padding: .35em .5em; border-radius: .3em; background: var(--warn-bg); color: var(--warn-fg);
     font-size: .8em; font-weight: 700; break-inside: avoid;
@@ -196,13 +209,18 @@ const brk = s => esc(s).replace(/\//g, '/<wbr>');   // allow wrapping after slas
 const find = id => lists.find(l => l.id === id);
 const ICON_HOME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>';
 
-// Text format: "# Section", "! Caution", "Challenge ... Response", "* highlighted line", or plain text.
+// Text format: "# Section", "! Caution", "Challenge ... Response", "* highlighted line", plain text,
+// or "-> Label | optional subtitle : Checklist title" for a big button at the bottom that opens that checklist.
 function parse(text) {
   const out = []; let n = 0;
   for (const raw of String(text || '').split('\n')) {
     const line = raw.trim();
     if (!line) continue;
-    if (line.startsWith('#')) out.push({ type: 'section', text: line.replace(/^#+\s*/, '') });
+    if (line.startsWith('->')) {
+      const m = line.slice(2).split(':'), lab = m[0].split('|');
+      out.push({ type: 'choice', label: lab[0].trim(), sub: (lab[1] || '').trim(), target: m.slice(1).join(':').trim() });
+    }
+    else if (line.startsWith('#')) out.push({ type: 'section', text: line.replace(/^#+\s*/, '') });
     else if (line.startsWith('!')) out.push({ type: 'note', text: line.replace(/^!+\s*/, '') });
     else {
       const hl = line.startsWith('*'), body = hl ? line.replace(/^\*+\s*/, '') : line;
@@ -319,13 +337,19 @@ function layoutTiles() {
 function renderList(id) {
   const l = find(id);
   if (!l) return go('#/');
-  const body = parse(l.text).map(b => {
+  const blocks = parse(l.text), choices = blocks.filter(b => b.type === 'choice');
+  const body = blocks.filter(b => b.type !== 'choice').map(b => {
     if (b.type === 'section') return `<div class="sec">${esc(b.text)}</div>`;
     if (b.type === 'note') return `<div class="note">⚠︎ ${esc(b.text)}</div>`;
     if (b.type === 'text') return `<div class="row text${b.hl ? ' hl' : ''}"><span class="c">${esc(b.text)}</span></div>`;
     return `<div class="row${b.hl ? ' hl' : ''}"><span class="c">${brk(b.c)}</span><span class="lead"></span><span class="r">${brk(b.r)}</span></div>`;
   }).join('');
-  const next = nextOf(l), g = cleanGroup(l.group);
+  const next = choices.length ? null : nextOf(l), g = cleanGroup(l.group);
+  const choiceHtml = choices.map((c, i) => {
+    const t = lists.find(x => x.title.trim().toLowerCase() === c.target.toLowerCase());
+    return t ? `<button class="choice c${i % 3}" data-go="#/list/${t.id}">${esc(c.label)}<small>${esc(c.sub || t.title)}</small></button>`
+             : `<button class="choice missing" disabled>${esc(c.label)}<small>Not found: ${esc(c.target)}</small></button>`;
+  }).join('');
   $app.innerHTML = `<div class="page${isEmergency(g) ? ' emer' : ''}">
     <div class="bar">
       <button class="home-tile" data-go="#/">${ICON_HOME}<span>HOME</span></button>
@@ -335,26 +359,33 @@ function renderList(id) {
     </div>
     <h2 class="list-title">${esc(l.title)}</h2>
     <div class="fit"><div class="sheet">${body || '<div class="empty">This checklist is empty.</div>'}</div></div>
+    ${choiceHtml ? `<div class="choices">${choiceHtml}</div>` : ''}
   </div>`;
   layout();
 }
 
-// Find the largest font size at which the whole checklist fits on screen with no scrolling.
-// Tries one and two columns (two only if clearly bigger), and lets long lines wrap
-// only when that makes the text clearly bigger than keeping every line on one row.
+// Size the checklist so it fits on one screen without scrolling:
+//  1. Largest font up to a comfortable maximum with every item on one line (one or two columns).
+//  2. Only if that would be too small, let long items wrap (when it is clearly bigger).
+//  3. Any spare height becomes spacing between lines rather than bigger text.
 function layoutList() {
   const fit = $app.querySelector('.fit'), sheet = $app.querySelector('.sheet'); if (!fit) return;
   fit.classList.remove('scroll');
   const cs = getComputedStyle(fit);
   const H = fit.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   const W = fit.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const MIN = 16, MAX = 60, WRAP_BELOW = 26;
-  const set = (cols, px, wrap) => {
-    sheet.style.columnCount = cols; sheet.style.fontSize = px + 'px'; sheet.classList.toggle('wrapr', wrap);
+  const MIN = 16, MAX = 34, WRAP_BELOW = 21, PAD = 0.22, PAD_MAX = 0.9;
+  const set = (cols, px, wrap, pad) => {
+    sheet.style.columnCount = cols; sheet.style.fontSize = px + 'px';
+    sheet.style.setProperty('--rp', pad + 'em'); sheet.classList.toggle('wrapr', wrap);
   };
-  const fits = (cols, px, wrap) => {
-    set(cols, px, wrap);
+  // When wrapping is allowed, only a few items (at most 1 in 5) may actually wrap.
+  const items = [...sheet.querySelectorAll('.row:not(.text)')];
+  const allowWrapped = Math.max(1, Math.floor(items.length / 5));
+  const fits = (cols, px, wrap, pad = PAD) => {
+    set(cols, px, wrap, pad);
     if (sheet.scrollHeight > H + 1 || sheet.scrollWidth > W + 1) return false;
+    if (wrap && items.filter(r => [...r.children].some(x => x.offsetHeight > px * 1.95)).length > allowWrapped) return false;
     return ![...sheet.querySelectorAll('.row')].some(r => {
       const end = r.getBoundingClientRect().right - parseFloat(getComputedStyle(r).paddingRight);
       return r.lastElementChild.getBoundingClientRect().right > end + 0.5;
@@ -362,6 +393,7 @@ function layoutList() {
   };
   const best = (cols, wrap) => {
     if (!fits(cols, MIN, wrap)) return 0;
+    if (fits(cols, MAX, wrap)) return MAX;
     let lo = MIN, hi = MAX;
     while (hi - lo > 0.5) { const mid = (lo + hi) / 2; fits(cols, mid, wrap) ? lo = mid : hi = mid; }
     return lo;
@@ -370,11 +402,17 @@ function layoutList() {
     const one = best(1, wrap), two = W >= 600 ? best(2, wrap) : 0;
     return two > one * 1.2 ? { cols: 2, px: two, wrap } : { cols: 1, px: one, wrap };
   };
-  let choice = pick(false);
-  const w = pick(true);
-  if (w.px >= choice.px * 1.25 || (choice.px < WRAP_BELOW && w.px > choice.px * 1.1)) choice = w;
-  if (choice.px) set(choice.cols, Math.floor(choice.px), choice.wrap);
-  else { set(1, MIN, true); fit.classList.add('scroll'); }
+  let c = pick(false);
+  if (c.px < WRAP_BELOW) { const w = pick(true); if (w.px > c.px * 1.15) c = w; }
+  if (!c.px) {   // nothing fits even small: wrap freely, and scroll only as a last resort
+    items.length = 0; c = { cols: 1, px: best(1, true), wrap: true };
+    if (!c.px) { set(1, MIN, true, PAD); fit.classList.add('scroll'); return; }
+  }
+  const px = Math.floor(c.px);
+  let lo = PAD, hi = PAD_MAX;
+  if (fits(c.cols, px, c.wrap, hi)) lo = hi;
+  else while (hi - lo > 0.02) { const mid = (lo + hi) / 2; fits(c.cols, px, c.wrap, mid) ? lo = mid : hi = mid; }
+  set(c.cols, px, c.wrap, lo);
 }
 
 function layout() { layoutTiles(); layoutList(); }
@@ -428,7 +466,8 @@ function renderEditor(id) {
       <code>Seat belts</code> line with no response (wraps if long)<br>
       <code>* HOBBS/TACH Times ... RECORDED</code> highlighted line<br>
       <code># Engine</code> section heading<br>
-      <code>! Caution text</code> highlighted caution note
+      <code>! Caution text</code> highlighted caution note<br>
+      <code>-> FEATHER | Feathering procedure : Feathering Procedure</code> big button at the bottom (label | subtitle : title of the checklist to open)
     </div>
     <div class="actions">
       <button class="small-btn grow" data-act="cancel">Cancel</button>
