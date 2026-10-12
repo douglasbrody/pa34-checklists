@@ -846,9 +846,7 @@ $app.addEventListener('click', e => {
     }
     case 'clearfd': {
       const pre = t.dataset.tab + '.';
-      if (confirm('Clear all ' + (t.dataset.tab === 'tob' ? 'takeoff data' : SIDE_NAME[t.dataset.tab] + ' ATIS') + '?')) {
-        Object.keys(fd).forEach(k => k.startsWith(pre) && delete fd[k]); saveFd(); route();
-      }
+      Object.keys(fd).forEach(k => k.startsWith(pre) && delete fd[k]); saveFd(); route();
       break;
     }
     case 'newflight':
