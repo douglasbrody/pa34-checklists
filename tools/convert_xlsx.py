@@ -94,6 +94,22 @@ for l in lists:
     if k in seen: continue
     seen.add(k); dedup.append(l)
 lists=dedup
+# The spreadsheet says the left nacelle and left wing are "same as right"; write them out in full
+# so they can be read without flipping pages. The left wing also carries the squat switch,
+# the stall warning detectors and the pitot static mast.
+by_title={l['title']:l for l in lists}
+by_title['Left Engine Nacelle']['lines']=list(by_title['Right Engine Nacelle']['lines'])
+rw=by_title['Right Wing']['lines']
+lw=[]
+for line in rw:
+    lw.append(line)
+    if line.startswith('Leading Edge'):
+        lw.append('Stall Warning Detectors (inboard & outboard) ... NO DAMAGE / FREE MOVEMENT')
+        lw.append('Pitot Static Mast ... UNOBSTRUCTED')
+    if line.startswith('Main Gear'):
+        lw.append('Squat Switch ... CHECKED / NO DAMAGE')
+by_title['Left Wing']['lines']=lw
+
 emer=sorted([l for l in lists if l['group']=='Emergency'], key=lambda l: EMER_ORDER.index(l['title']))
 normal=[l for l in lists if l['group']!='Emergency']
 
@@ -163,5 +179,8 @@ for l in normal:
     if l['title']=='Before Starting Engine': add('Passenger Briefing','Start & Taxi',PAX)
     if l['title']=='Before Takeoff': add('Crew Takeoff Briefing','Start & Taxi',CREW)
 for l in emer: add(l['title'], 'Emergency', '\n'.join(l['lines']))
-open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
+# Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
+DEFAULTS_VERSION=2
+open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
+  +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

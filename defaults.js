@@ -1,4 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
+const DEFAULTS_VERSION = 2;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -34,13 +35,13 @@ const DEFAULTS = [
   "title": "Left Engine Nacelle",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "Same as right engine nacelle."
+  "text": "Engine Compartment ... CHECK FOR LEAKS\nOil Quantity ... 6–8 QTS\nCowling ... CLOSE & SECURE\nLanding Gear Mirror ... NO DAMAGE\nCowl Flaps ... NO DAMAGE / CHECK HINGES\nPropeller & Spinner ... NO DAMAGE / LEAKS\nGovernor ... NO LEAKS\nAir Vent ... UNOBSTRUCTED\nGas Sump ... DRAINED"
  },
  {
   "title": "Left Wing",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "Left Wing ... SAME AS RIGHT WING\nSquat Switch ... CHECKED / NO DAMAGE\nPitot Static Mast ... UNOBSTRUCTED"
+  "text": "Flaps ... NO DAMAGE / CHECK HINGES\nAileron Travel ... NO DAMAGE / CHECK HINGES\nWingtip ... NO DAMAGE\nNav, Strobe Lights ... NO DAMAGE\nLeading Edge ... NO DAMAGE\nStall Warning Detectors (inboard & outboard) ... NO DAMAGE / FREE MOVEMENT\nPitot Static Mast ... UNOBSTRUCTED\nFuel Quantity ... VISUAL CHECK; FUEL CAP SECURED\nFuel Sump Drains ... DRAINED\nFuel Vents & Fresh Air Inlet ... UNOBSTRUCTED\nMain Gear ... NO FLUID LEAKS\nSquat Switch ... CHECKED / NO DAMAGE\nLimit Switches ... CHECKED / NO DAMAGE\nBrakes ... NO EXCESSIVE WEAR\nStrut ... 3.5\" EXPOSED (static load)\nTire Pressure/Wear ... 53 PSI / CHECKED"
  },
  {
   "title": "Empennage",

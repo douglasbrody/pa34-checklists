@@ -157,11 +157,25 @@ function read(k, fallback) { try { const v = JSON.parse(localStorage.getItem(k))
 function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
 const freshDefaults = () => DEFAULTS.map(s => ({ id: uid(), ...s }));
 
+// Checklist content updates: an iPad whose checklists were never edited picks up new defaults
+// automatically. Edited checklists are never overwritten; the Edit screen offers a restore instead.
+const VER_KEY = 'defaults.version', EDITED_KEY = 'edited';
+const fnv = s => { let h = 0x811c9dc5; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193); } return (h >>> 0).toString(16); };
+const sig = ls => fnv(ls.map(l => [l.title, l.group || '', l.color, l.text].join('\u0001')).join('\u0002'));
+const V1_SIG = '16c8b9d0';   // the first published checklist set, before versioning existed
+
 let lists = read(KEY, null);
-if (!Array.isArray(lists)) { lists = freshDefaults(); write(KEY, lists); }
+let edited = read(EDITED_KEY, null);
+if (Array.isArray(lists) && edited === null) edited = sig(lists) !== V1_SIG;
+if (!Array.isArray(lists) || (!edited && read(VER_KEY, 1) !== DEFAULTS_VERSION)) {
+  lists = freshDefaults(); edited = false;
+  write(KEY, lists); write(VER_KEY, DEFAULTS_VERSION);
+}
+write(EDITED_KEY, edited);
+const markEdited = () => { edited = true; write(EDITED_KEY, true); };
 let theme = read(THEME_KEY, 'day');
 
-function saveLists() { if (!write(KEY, lists)) alert('Could not save. Storage may be full or disabled.'); }
+function saveLists() { if (!write(KEY, lists)) alert('Could not save. Storage may be full or disabled.'); markEdited(); }
 
 /* ---------- Helpers ---------- */
 const $app = document.getElementById('app');
@@ -358,6 +372,7 @@ function renderManage() {
       <button class="home-tile" style="min-height:70px;min-width:150px;font-size:24px" data-go="#/">${ICON_HOME}<span>Done</span></button>
       <h1>Edit Checklists</h1>
     </div>
+    ${read(VER_KEY, 1) !== DEFAULTS_VERSION ? `<div class="note">Updated PA-34 checklists are available. Your edited checklists were kept. To get the update, export a backup, then tap <b>Restore PA-34 defaults</b> at the bottom.</div>` : ''}
     <div class="actions"><button class="small-btn grow" data-act="new">+ New checklist</button></div>
     ${rows}
     <div class="actions" style="margin-top:28px">
@@ -450,7 +465,8 @@ $app.addEventListener('click', e => {
       break;
     case 'samples':
       if (confirm('Replace ALL your checklists with the original PA-34-200 set? Export a backup first if you want to keep your edits.')) {
-        lists = freshDefaults(); saveLists(); renderManage();
+        lists = freshDefaults(); saveLists();
+        edited = false; write(EDITED_KEY, false); write(VER_KEY, DEFAULTS_VERSION); renderManage();
       }
       break;
     case 'export': exportBackup(); break;
