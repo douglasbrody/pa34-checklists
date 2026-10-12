@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Checklists">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Checklists</title>
+<style>
+  :root {
+    --bg: #eceef1; --fg: #111; --card: #fff; --muted: #5f6670; --line: #d4d8de;
+    --accent: #1e5bd8; --accent-fg: #fff; --done: #9aa0a8; --next: #1e5bd8;
+    --warn-bg: #fff4d6; --warn-fg: #6b4a00; --tile-filter: none;
+  }
+  [data-theme="night"] {
+    --bg: #000; --fg: #d6d6d6; --card: #141414; --muted: #8a8a8a; --line: #2a2a2a;
+    --accent: #2c5fbf; --accent-fg: #e8e8e8; --done: #555; --next: #4d8dff;
+    --warn-bg: #2a2100; --warn-fg: #e0b84a; --tile-filter: brightness(.62);
+  }
+  [data-theme="red"] {
+    --bg: #000; --fg: #ff3b2f; --card: #120000; --muted: #a8221a; --line: #3a0805;
+    --accent: #4a0000; --accent-fg: #ff4a3d; --done: #5c1410; --next: #ff3b2f;
+    --warn-bg: #2a0000; --warn-fg: #ff6b5f; --tile-filter: none;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--fg); }
+  body {
+    font: 20px/1.3 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+    -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+    touch-action: manipulation; -webkit-text-size-adjust: 100%;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+  button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; touch-action: manipulation; }
+  input, textarea { font: inherit; -webkit-user-select: text; user-select: text; }
+  .wrap { padding: 16px; max-width: 1100px; margin: 0 auto; }
+
+  /* ---------- Home ---------- */
+  .home { height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding: 14px 16px 16px; }
+  .home-head { display: flex; align-items: center; gap: 12px; margin: 0 0 14px; flex: none; }
+  .home-head h1 { flex: 1; margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
+  .small-btn {
+    min-height: 56px; padding: 0 20px; border-radius: 14px; font-size: 19px; font-weight: 700;
+    background: var(--card); border: 1px solid var(--line); color: var(--fg);
+  }
+  .tiles { flex: 1; min-height: 0; display: grid; gap: 14px; overflow-y: auto; }
+  .tile {
+    min-height: 0; border-radius: 22px; padding: 10px 14px; text-align: center;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 800; line-height: 1.12; overflow-wrap: anywhere;
+    filter: var(--tile-filter); box-shadow: 0 2px 6px rgba(0,0,0,.15);
+    transition: transform .08s;
+  }
+  .tile:active, .home-tile:active, .next-tile:active { transform: scale(.97); }
+  [data-theme="red"] .tile { background: #1a0000 !important; color: var(--fg); border: 2px solid #5a0d08; box-shadow: none; }
+  .empty { padding: 40px 10px; text-align: center; color: var(--muted); }
+
+  /* ---------- Checklist ---------- */
+  .page { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+  .bar { flex: none; display: flex; gap: 12px; padding: 12px 16px; border-bottom: 2px solid var(--line); }
+  .home-tile, .next-tile {
+    min-height: 92px; border-radius: 20px; padding: 0 22px; font-size: 30px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .home-tile { min-width: 190px; background: var(--accent); color: var(--accent-fg); }
+  .home-tile svg { width: 36px; height: 36px; flex: none; }
+  .next-tile {
+    min-width: 150px; max-width: 34%; background: var(--card); border: 2px solid var(--line);
+    font-size: 22px; flex-direction: column; gap: 0; line-height: 1.15;
+  }
+  .next-tile small { font-size: 15px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .next-tile span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: center; }
+  .bar .spacer { flex: 1; }
+  .list-title {
+    flex: none; margin: 0; padding: 10px 16px 0; text-align: center;
+    font-size: 30px; font-weight: 850; line-height: 1.15;
+  }
+  .emer .list-title { color: #c62828; }
+  [data-theme="night"] .emer .list-title { color: #e0554d; }
+  [data-theme="red"] .emer .list-title { color: var(--fg); }
+  .group-title { font-size: 34px !important; }
+  .home-head .home-tile { min-height: 76px; min-width: 170px; font-size: 26px; }
+  .fit { flex: 1; min-height: 0; overflow: hidden; padding: 10px 16px 14px; }
+  .fit.scroll { overflow-y: auto; }
+  .sheet { column-gap: 1.4em; column-rule: 2px solid var(--line); }
+  .row {
+    display: flex; align-items: baseline; gap: .35em; padding: .28em .4em; border-radius: .25em;
+    break-inside: avoid; font-weight: 600;
+  }
+  .row:nth-child(even of .row) { background: var(--card); }
+  .row .c { flex: none; white-space: nowrap; }
+  .row .lead { flex: 1 1 .8em; min-width: .8em; border-bottom: .12em dotted var(--muted); opacity: .6; transform: translateY(-.25em); }
+  .row .r { flex: none; white-space: nowrap; font-weight: 850; text-align: right; }
+  /* When lines are too long for one row, both sides shrink in proportion and wrap evenly. */
+  .sheet.wrapr .row .c, .sheet.wrapr .row .r { flex: 0 1 auto; white-space: normal; }
+  .sheet.wrapr .row { align-items: center; }
+  .sheet.wrapr .row .lead { transform: none; }
+  .row.text .c { flex: 1 1 auto; white-space: normal; font-weight: 500; }
+  .row.hl, .row.hl:nth-child(even of .row) { background: #fff19a; color: #111; }
+  [data-theme="night"] .row.hl, [data-theme="night"] .row.hl:nth-child(even of .row) { background: #3d3500; color: #f2e27a; }
+  [data-theme="red"] .row.hl, [data-theme="red"] .row.hl:nth-child(even of .row) { background: #3a0000; color: var(--fg); }
+  .sec {
+    font-size: .72em; font-weight: 850; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    padding: .7em .55em .25em; break-after: avoid; break-inside: avoid;
+  }
+  .sec:first-child { padding-top: 0; }
+  .note {
+    margin: .2em 0 .35em; padding: .35em .5em; border-radius: .3em; background: var(--warn-bg); color: var(--warn-fg);
+    font-size: .8em; font-weight: 700; break-inside: avoid;
+  }
+
+  /* ---------- Edit ---------- */
+  .edit-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin: 8px 0;
+    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  }
+  .edit-row .swatch { width: 20px; height: 44px; border-radius: 6px; flex: none; }
+  .edit-row .name { flex: 1; font-weight: 700; }
+  .edit-row .name small { display: block; font-weight: 500; color: var(--muted); font-size: 15px; }
+  .icon-btn { width: 52px; height: 52px; border-radius: 12px; border: 1px solid var(--line); font-size: 22px; }
+  .icon-btn:disabled { opacity: .25; }
+  label.f { display: block; font-weight: 700; margin: 18px 0 8px; }
+  input[type=text], textarea {
+    width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--line);
+    background: var(--card); color: var(--fg);
+  }
+  textarea { min-height: 46vh; font: 18px/1.45 ui-monospace, Menlo, monospace; }
+  .colors { display: flex; flex-wrap: wrap; gap: 10px; }
+  .colors button { width: 56px; height: 56px; border-radius: 14px; border: 3px solid transparent; }
+  .colors button.sel { border-color: var(--fg); }
+  .help { color: var(--muted); font-size: 16px; line-height: 1.5; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-top: 10px; }
+  .help code { font-family: ui-monospace, Menlo, monospace; color: var(--fg); }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+  .actions .grow { flex: 1; }
+  .danger { color: #d93025 !important; }
+  [data-theme="red"] .danger { color: var(--fg) !important; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<input type="file" id="importFile" accept=".json,application/json" hidden>
+
+<script src="defaults.js"></script>
+<script>
+'use strict';
+
+const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
+
+/* ---------- Storage ---------- */
+const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
+const uid = () => 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+function read(k, fallback) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? fallback; } catch (e) { return fallback; } }
+function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+const freshDefaults = () => DEFAULTS.map(s => ({ id: uid(), ...s }));
+
+let lists = read(KEY, null);
+if (!Array.isArray(lists)) { lists = freshDefaults(); write(KEY, lists); }
+let theme = read(THEME_KEY, 'day');
+
+function saveLists() { if (!write(KEY, lists)) alert('Could not save. Storage may be full or disabled.'); }
+
+/* ---------- Helpers ---------- */
+const $app = document.getElementById('app');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const brk = s => esc(s).replace(/\//g, '/<wbr>');   // allow wrapping after slashes, e.g. Mixture/Prop/Throttle
+const find = id => lists.find(l => l.id === id);
+const ICON_HOME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>';
+
+// Text format: "# Section", "! Caution", "Challenge ... Response", "* highlighted line", or plain text.
+function parse(text) {
+  const out = []; let n = 0;
+  for (const raw of String(text || '').split('\n')) {
+    const line = raw.trim();
+    if (!line) continue;
+    if (line.startsWith('#')) out.push({ type: 'section', text: line.replace(/^#+\s*/, '') });
+    else if (line.startsWith('!')) out.push({ type: 'note', text: line.replace(/^!+\s*/, '') });
+    else {
+      const hl = line.startsWith('*'), body = hl ? line.replace(/^\*+\s*/, '') : line;
+      const m = body.split(/\s*(?:\.{3,}|…+)\s*/);
+      if (m.length > 1) out.push({ type: 'item', idx: n++, c: m[0], r: m.slice(1).join(' '), hl });
+      else out.push({ type: 'text', text: body, hl });
+    }
+  }
+  return out;
+}
+
+function applyTheme() {
+  document.documentElement.dataset.theme = theme;
+  document.querySelector('meta[name=theme-color]').content = theme === 'day' ? '#eceef1' : '#000000';
+}
+const THEME_LABEL = { day: '☀︎ Day', night: '☾ Night', red: '● Red' };
+
+/* ---------- Screen wake lock (keeps screen on while a checklist is open) ---------- */
+let wakeLock = null, wantWake = false;
+async function setWake(on) {
+  wantWake = on;
+  try {
+    if (on && !wakeLock && 'wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } else if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; }
+  } catch (e) { /* not supported or denied; ignore */ }
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) setWake(true); });
+
+/* ---------- Groups ---------- */
+// Checklists with the same "group" are shown together behind one tile on the home screen.
+function groups() {
+  const out = [], by = {};
+  for (const l of lists) {
+    const g = (l.group || '').trim();
+    if (!g) { out.push({ list: l }); continue; }
+    if (!by[g]) { by[g] = { name: g, color: l.color, lists: [] }; out.push(by[g]); }
+    by[g].lists.push(l);
+  }
+  return out;
+}
+const groupHash = g => '#/g/' + encodeURIComponent(g);
+const isEmergency = g => /emerg/i.test(g || '');
+
+// Never chain from normal procedures into emergencies (or out of them) with the Next tile.
+function nextOf(l) {
+  const n = lists[lists.indexOf(l) + 1];
+  if (!n) return null;
+  return (n.group || '') === (l.group || '') || (!isEmergency(n.group) && !isEmergency(l.group)) ? n : null;
+}
+
+/* ---------- Screens ---------- */
+const tileHtml = (label, color, hash) =>
+  `<button class="tile" style="background:${esc(color)}" data-go="${hash}">${esc(label)}</button>`;
+
+function renderHome() {
+  const tiles = groups().map(g => g.list
+    ? tileHtml(g.list.title, g.list.color, `#/list/${g.list.id}`)
+    : tileHtml(g.name, g.color, groupHash(g.name))).join('');
+  $app.innerHTML = `<div class="home">
+    <div class="home-head">
+      <h1>Checklists</h1>
+      <button class="small-btn" data-act="theme">${THEME_LABEL[theme]}</button>
+      <button class="small-btn" data-go="#/edit">Edit</button>
+    </div>
+    ${lists.length ? `<div class="tiles">${tiles}</div>` : `<div class="empty">No checklists yet. Tap <b>Edit</b> to add one.</div>`}
+  </div>`;
+  layout();
+}
+
+function renderGroup(name) {
+  const g = groups().find(x => x.name === name);
+  if (!g) return go('#/');
+  $app.innerHTML = `<div class="home">
+    <div class="home-head">
+      <button class="home-tile" data-go="#/">${ICON_HOME}<span>HOME</span></button>
+      <h1 class="group-title">${esc(g.name)}</h1>
+    </div>
+    <div class="tiles">${g.lists.map(l => tileHtml(l.title, l.color, `#/list/${l.id}`)).join('')}</div>
+  </div>`;
+  layout();
+}
+
+// Size tiles to fill the screen, then pick the biggest font at which every label fits its tile.
+function layoutTiles() {
+  const grid = $app.querySelector('.tiles'); if (!grid) return;
+  const tiles = [...grid.children], n = tiles.length, W = grid.clientWidth, H = grid.clientHeight, gap = 14;
+  let cols = W >= 900 ? 3 : 2;
+  if (n > 12) cols = W >= 900 ? 4 : 3;
+  if (n <= 3 && W < 900) cols = 1;
+  const rows = Math.ceil(n / cols);
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  // Stretch the last tile across any empty cells so the bottom row is filled.
+  tiles.forEach(t => t.style.gridColumn = '');
+  if (n % cols) tiles[n - 1].style.gridColumn = `span ${cols - (n - 1) % cols}`;
+  grid.style.gridAutoRows = Math.max(96, Math.floor((H - gap * (rows - 1)) / rows)) + 'px';
+  for (let px = 46; px >= 16; px -= 1) {
+    grid.style.fontSize = px + 'px';
+    if (!tiles.some(t => t.scrollHeight > t.clientHeight + 1 || t.scrollWidth > t.clientWidth + 1)) break;
+  }
+}
+
+function renderList(id) {
+  const l = find(id);
+  if (!l) return go('#/');
+  const body = parse(l.text).map(b => {
+    if (b.type === 'section') return `<div class="sec">${esc(b.text)}</div>`;
+    if (b.type === 'note') return `<div class="note">⚠︎ ${esc(b.text)}</div>`;
+    if (b.type === 'text') return `<div class="row text${b.hl ? ' hl' : ''}"><span class="c">${esc(b.text)}</span></div>`;
+    return `<div class="row${b.hl ? ' hl' : ''}"><span class="c">${brk(b.c)}</span><span class="lead"></span><span class="r">${brk(b.r)}</span></div>`;
+  }).join('');
+  const next = nextOf(l), g = (l.group || '').trim();
+  $app.innerHTML = `<div class="page${isEmergency(g) ? ' emer' : ''}">
+    <div class="bar">
+      <button class="home-tile" data-go="#/">${ICON_HOME}<span>HOME</span></button>
+      ${g ? `<button class="next-tile" data-go="${groupHash(g)}"><small>← Back to</small><span>${esc(g)}</span></button>` : ''}
+      <span class="spacer"></span>
+      ${next ? `<button class="next-tile" data-go="#/list/${next.id}"><small>Next →</small><span>${esc(next.title)}</span></button>` : ''}
+    </div>
+    <h2 class="list-title">${esc(l.title)}</h2>
+    <div class="fit"><div class="sheet">${body || '<div class="empty">This checklist is empty.</div>'}</div></div>
+  </div>`;
+  layout();
+}
+
+// Find the largest font size at which the whole checklist fits on screen with no scrolling.
+// Tries one and two columns (two only if clearly bigger), and lets long lines wrap
+// only when that makes the text clearly bigger than keeping every line on one row.
+function layoutList() {
+  const fit = $app.querySelector('.fit'), sheet = $app.querySelector('.sheet'); if (!fit) return;
+  fit.classList.remove('scroll');
+  const cs = getComputedStyle(fit);
+  const H = fit.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+  const W = fit.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const MIN = 16, MAX = 60, WRAP_BELOW = 26;
+  const set = (cols, px, wrap) => {
+    sheet.style.columnCount = cols; sheet.style.fontSize = px + 'px'; sheet.classList.toggle('wrapr', wrap);
+  };
+  const fits = (cols, px, wrap) => {
+    set(cols, px, wrap);
+    if (sheet.scrollHeight > H + 1 || sheet.scrollWidth > W + 1) return false;
+    return ![...sheet.querySelectorAll('.row')].some(r => {
+      const end = r.getBoundingClientRect().right - parseFloat(getComputedStyle(r).paddingRight);
+      return r.lastElementChild.getBoundingClientRect().right > end + 0.5;
+    });
+  };
+  const best = (cols, wrap) => {
+    if (!fits(cols, MIN, wrap)) return 0;
+    let lo = MIN, hi = MAX;
+    while (hi - lo > 0.5) { const mid = (lo + hi) / 2; fits(cols, mid, wrap) ? lo = mid : hi = mid; }
+    return lo;
+  };
+  const pick = wrap => {
+    const one = best(1, wrap), two = W >= 600 ? best(2, wrap) : 0;
+    return two > one * 1.2 ? { cols: 2, px: two, wrap } : { cols: 1, px: one, wrap };
+  };
+  let choice = pick(false);
+  const w = pick(true);
+  if (w.px >= choice.px * 1.25 || (choice.px < WRAP_BELOW && w.px > choice.px * 1.1)) choice = w;
+  if (choice.px) set(choice.cols, Math.floor(choice.px), choice.wrap);
+  else { set(1, MIN, true); fit.classList.add('scroll'); }
+}
+
+function layout() { layoutTiles(); layoutList(); }
+let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 60); });
+
+function renderManage() {
+  const rows = lists.map((l, i) => `
+    <div class="edit-row">
+      <span class="swatch" style="background:${esc(l.color)}"></span>
+      <span class="name">${esc(l.title)}${l.group ? `<small>${esc(l.group)}</small>` : ''}</span>
+      <button class="icon-btn" data-act="up" data-id="${l.id}" ${i === 0 ? 'disabled' : ''} aria-label="Move up">▲</button>
+      <button class="icon-btn" data-act="down" data-id="${l.id}" ${i === lists.length - 1 ? 'disabled' : ''} aria-label="Move down">▼</button>
+      <button class="small-btn" data-go="#/edit/${l.id}">Edit</button>
+    </div>`).join('');
+  $app.innerHTML = `<div class="wrap">
+    <div class="home-head">
+      <button class="home-tile" style="min-height:70px;min-width:150px;font-size:24px" data-go="#/">${ICON_HOME}<span>Done</span></button>
+      <h1>Edit Checklists</h1>
+    </div>
+    <div class="actions"><button class="small-btn grow" data-act="new">+ New checklist</button></div>
+    ${rows}
+    <div class="actions" style="margin-top:28px">
+      <button class="small-btn" data-act="export">Export backup</button>
+      <button class="small-btn" data-act="import">Import backup</button>
+      <button class="small-btn danger" data-act="samples">Restore PA-34 defaults</button>
+    </div>
+  </div>`;
+}
+
+let draft = null;
+function renderEditor(id) {
+  if (!draft || draft.id !== id) {
+    const l = id === 'new' ? { id: 'new', title: '', color: COLORS[lists.length % COLORS.length], text: '' } : find(id);
+    if (!l) return go('#/edit');
+    draft = { ...l };
+  }
+  $app.innerHTML = `<div class="wrap">
+    <div class="home-head"><h1>${id === 'new' ? 'New Checklist' : 'Edit Checklist'}</h1></div>
+    <label class="f" for="t">Title</label>
+    <input type="text" id="t" value="${esc(draft.title)}" placeholder="e.g. Before Takeoff">
+    <label class="f" for="g">Group <span style="font-weight:400;color:var(--muted)">(checklists in the same group share one home-screen tile; leave blank for its own tile)</span></label>
+    <input type="text" id="g" list="groups" value="${esc(draft.group || '')}" placeholder="e.g. Emergency">
+    <datalist id="groups">${[...new Set(lists.map(l => l.group).filter(Boolean))].map(g => `<option value="${esc(g)}">`).join('')}</datalist>
+    <label class="f">Tile color</label>
+    <div class="colors">${COLORS.map(c => `<button data-act="color" data-c="${c}" style="background:${c}" class="${c === draft.color ? 'sel' : ''}" aria-label="Color"></button>`).join('')}</div>
+    <label class="f" for="x">Items (one per line)</label>
+    <textarea id="x" spellcheck="false" autocapitalize="sentences" placeholder="Fuel selector ... BOTH">${esc(draft.text)}</textarea>
+    <div class="help">
+      <code>Fuel selector ... BOTH</code> item with a response (3+ dots between)<br>
+      <code>Seat belts</code> line with no response (wraps if long)<br>
+      <code>* HOBBS/TACH Times ... RECORDED</code> highlighted line<br>
+      <code># Engine</code> section heading<br>
+      <code>! Caution text</code> highlighted caution note
+    </div>
+    <div class="actions">
+      <button class="small-btn grow" data-act="cancel">Cancel</button>
+      <button class="home-tile grow" style="min-height:60px;font-size:22px" data-act="save">Save</button>
+    </div>
+    ${id !== 'new' ? `<div class="actions"><button class="small-btn danger" data-act="delete">Delete this checklist</button></div>` : ''}
+  </div>`;
+}
+
+/* ---------- Routing ---------- */
+function go(hash) { if (location.hash === hash) route(); else location.hash = hash; }
+function route() {
+  const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  if (p[0] !== 'edit') draft = null;
+  if (p[0] === 'list') renderList(p[1]);
+  else if (p[0] === 'g') renderGroup(decodeURIComponent(p[1] || ''));
+  else if (p[0] === 'edit') p[1] ? renderEditor(p[1]) : renderManage();
+  else renderHome();
+  setWake(p[0] === 'list');
+  window.scrollTo(0, 0);
+  document.body.style.overflow = p[0] === 'edit' ? '' : 'hidden';
+}
+addEventListener('hashchange', route);
+
+/* ---------- Events ---------- */
+$app.addEventListener('click', e => {
+  const t = e.target.closest('button'); if (!t) return;
+  if (t.dataset.go) return go(t.dataset.go);
+
+  const id = t.dataset.id, i = lists.findIndex(l => l.id === id);
+  switch (t.dataset.act) {
+    case 'theme':
+      theme = { day: 'night', night: 'red', red: 'day' }[theme]; write(THEME_KEY, theme); applyTheme(); renderHome(); break;
+    case 'up': case 'down': {
+      const j = t.dataset.act === 'up' ? i - 1 : i + 1;
+      [lists[i], lists[j]] = [lists[j], lists[i]]; saveLists(); renderManage(); break;
+    }
+    case 'new': go('#/edit/new'); break;
+    case 'color':
+      draft.color = t.dataset.c;
+      $app.querySelectorAll('.colors button').forEach(b => b.classList.toggle('sel', b === t)); break;
+    case 'cancel': draft = null; go('#/edit'); break;
+    case 'save': {
+      draft.title = document.getElementById('t').value.trim() || 'Untitled';
+      draft.text = document.getElementById('x').value;
+      draft.group = document.getElementById('g').value.trim();
+      if (draft.id === 'new') lists.push({ ...draft, id: uid() });
+      else lists[lists.findIndex(l => l.id === draft.id)] = { ...draft };
+      saveLists(); draft = null; go('#/edit'); break;
+    }
+    case 'delete':
+      if (confirm(`Delete "${draft.title}"? This cannot be undone.`)) {
+        lists = lists.filter(l => l.id !== draft.id);
+        saveLists(); draft = null; go('#/edit');
+      }
+      break;
+    case 'samples':
+      if (confirm('Replace ALL your checklists with the original PA-34-200 set? Export a backup first if you want to keep your edits.')) {
+        lists = freshDefaults(); saveLists(); renderManage();
+      }
+      break;
+    case 'export': exportBackup(); break;
+    case 'import': document.getElementById('importFile').click(); break;
+  }
+});
+
+// Keep the draft in sync so a re-render (e.g. rotation) never loses typing.
+$app.addEventListener('input', e => {
+  if (!draft) return;
+  if (e.target.id === 't') draft.title = e.target.value;
+  if (e.target.id === 'x') draft.text = e.target.value;
+  if (e.target.id === 'g') draft.group = e.target.value;
+});
+
+async function exportBackup() {
+  const data = JSON.stringify({ app: 'checklists', version: 1, lists: lists.map(({ title, group, color, text }) => ({ title, group, color, text })) }, null, 2);
+  const name = `checklists-backup-${new Date().toISOString().slice(0, 10)}.json`;
+  const file = new File([data], name, { type: 'application/json' });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return; }
+  } catch (e) { if (e.name === 'AbortError') return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+document.getElementById('importFile').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = '';
+  if (!f) return;
+  try {
+    const d = JSON.parse(await f.text());
+    const arr = Array.isArray(d) ? d : d.lists;
+    if (!Array.isArray(arr) || !arr.every(x => x && typeof x.title === 'string' && typeof x.text === 'string')) throw new Error('bad');
+    if (!confirm(`Import ${arr.length} checklists? This replaces your current ones.`)) return;
+    lists = arr.map(x => ({ id: uid(), title: x.title, group: typeof x.group === 'string' ? x.group : '', color: COLORS.includes(x.color) ? x.color : COLORS[0], text: x.text }));
+    saveLists(); renderManage();
+  } catch (err) { alert('That file is not a valid checklist backup.'); }
+});
+
+/* ---------- Start ---------- */
+applyTheme();
+route();
+if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>
