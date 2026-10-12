@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 11;
+const DEFAULTS_VERSION = 12;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -59,7 +59,7 @@ const DEFAULTS = [
   "title": "Passenger Briefing",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "# S — Seat belts & shoulder harness\nFasten / unfasten ... DEMONSTRATE\nWorn for ... TAXI, TAKEOFF, LANDING — AND KEEP ON\nFront seats ... SHOULDER HARNESS (INERTIA REEL)\nEmpty seats ... BELTS SNUGLY FASTENED\n# A — Air vents & Action in an emergency\nOverhead fresh-air vents ... TWIST RIM: CW LESS · CCW MORE\nIn an emergency I will tell you what is happening and what to do. Stay belted until the airplane has stopped.\n# F — Fire extinguisher & Follow instructions\nFire extinguisher ... SEAT BEHIND PILOT\nSmoking ... NONE\n# E — Exits & Equipment\nExits ... FRONT CABIN DOOR · REAR DOOR (L)\nLatches ... UPPER + SIDE — SHOW BOTH\nUpper latch ... ENGAGED BEFORE FLIGHT\nRight front seat ... CATCH ON TOP — SLIDES FWD\nDoor opens in flight ... NOISY, NOT DANGEROUS — WE RETURN & LAND\nEvacuation ... UNLATCH WHEN TOLD, EXIT, MOVE WELL AWAY\nHeadsets / intercom ... VOLUME & MIC CHECK\nBaggage ... SECURED — NOTHING HEAVY ON SHELF\n# T — Traffic & Talking\nTraffic ... POINT IT OUT — CLOCK POSITION\nQuiet cockpit ... TAXI · TAKEOFF · LANDING · ATC\nControls, switches, pedals ... HANDS AND FEET CLEAR\nExpect ... STALL HORN · GEAR HORN · SIMULATED ENGINE FAILURES\nA propeller may be feathered (stopped) on purpose at altitude. The airplane is designed to fly on one engine.\n# Y — Your questions\nFeeling unwell or worried? ... TELL ME ANY TIME\nQuestions? ... BEFORE WE START ENGINES"
+  "text": "# S — Seat belts & shoulder harness\nFasten / unfasten ... DEMONSTRATE\nWorn for ... TAXI, TAKEOFF, LANDING — AND KEEP ON\nFront seats ... SHOULDER HARNESS (INERTIA REEL)\n# A — Air vents & Action in an emergency\nOverhead fresh-air vents ... TWIST RIM: CW LESS · CCW MORE\nIn an emergency I will tell you what is happening and what to do. Stay belted until the airplane has stopped.\n# F — Fire extinguisher & Follow instructions\nFire extinguisher ... SEAT BEHIND PILOT\nSmoking ... NONE\n# E — Exits & Equipment\nExits ... FRONT CABIN DOOR · REAR DOOR (L)\nLatches ... UPPER + SIDE — SHOW BOTH\nUpper latch ... ENGAGED BEFORE FLIGHT\nRight front seat ... CATCH ON TOP — SLIDES FWD\nDoor opens in flight ... NOISY, NOT DANGEROUS — WE RETURN & LAND\nEvacuation ... UNLATCH WHEN TOLD, EXIT, MOVE WELL AWAY\nHeadsets / intercom ... VOLUME & MIC CHECK\n# T — Traffic & Talking\nTraffic ... POINT IT OUT — CLOCK POSITION\nQuiet cockpit ... TAXI · TAKEOFF · LANDING · ATC\nControls, switches, pedals ... HANDS AND FEET CLEAR\nExpect ... STALL HORN · GEAR HORN · SIMULATED ENGINE FAILURES\nA propeller may be feathered (stopped) on purpose at altitude. The airplane is designed to fly on one engine.\n# Y — Your questions\nFeeling unwell or worried? ... TELL ME ANY TIME\nQuestions? ... BEFORE WE START ENGINES"
  },
  {
   "title": "Starting Engine",
