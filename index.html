@@ -129,6 +129,49 @@
     font-size: .8em; font-weight: 700; break-inside: avoid;
   }
 
+  /* ---------- Flight data (ATIS, takeoff data) ---------- */
+  .fv { border-bottom: .09em solid currentColor; padding: 0 .08em; }
+  .fv.empty { opacity: .5; }
+  .row.tap:active { opacity: .6; }
+  .wx {
+    flex: none; display: block; width: auto; margin: 0 16px 12px; padding: 10px 14px; border-radius: 14px;
+    background: var(--card); border: 2px solid var(--line); font-size: 19px; font-weight: 700; text-align: left;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .wx b { color: var(--next); }
+  .home .wx { margin: 14px 0 0; }
+  .tabs { display: flex; margin: 0 0 14px; }
+  .tabs > * + * { margin-left: 10px; }
+  .tab { flex: 1; min-height: 66px; border-radius: 14px; font-size: 19px; font-weight: 800; background: var(--card); border: 2px solid var(--line); line-height: 1.15; }
+  .tab.on { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+  .calc { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 12px 16px; font-size: 28px; font-weight: 850; margin: 0 0 12px; text-align: center; line-height: 1.25; }
+  .calc small { display: block; font-size: 15px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+  .fields { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px; }
+  .field { min-height: 84px; border-radius: 14px; background: var(--card); border: 2px solid var(--line); text-align: left; padding: 8px 14px; }
+  .field small { display: block; font-size: 14px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
+  .field span { font-size: 30px; font-weight: 850; }
+  .field span.empty { color: var(--muted); font-weight: 600; font-size: 22px; }
+  .big-go { width: 100%; min-height: 76px; border-radius: 16px; background: var(--accent); color: var(--accent-fg); font-size: 26px; font-weight: 850; margin: 0 0 12px; }
+  #pad { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 50; background: rgba(0,0,0,.5); display: flex; flex-direction: column; justify-content: flex-end; }
+  #pad .sheet2 { background: var(--bg); border-radius: 22px 22px 0 0; padding: 14px 16px calc(16px + env(safe-area-inset-bottom)); }
+  .pad-top { display: flex; align-items: baseline; font-size: 22px; font-weight: 800; }
+  .pad-top span { flex: 1; }
+  .pad-top small { font-size: 16px; color: var(--muted); font-weight: 700; }
+  .pad-val { font-size: 56px; font-weight: 850; text-align: center; min-height: 76px; line-height: 76px; }
+  .pad-val .was { color: var(--muted); font-weight: 600; font-size: 40px; }
+  .pad-val .unit { font-size: 26px; color: var(--muted); margin-left: 8px; }
+  .keys { display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 10px; }
+  .keys.letters { grid-template-columns: repeat(7, 1fr); }
+  .key { min-height: 74px; border-radius: 16px; background: var(--card); border: 2px solid var(--line); font-size: 34px; font-weight: 800; }
+  .keys.letters .key { min-height: 62px; font-size: 28px; }
+  .key:active, .pad-act button:active { transform: scale(.96); }
+  .pad-act { display: flex; margin-top: 12px; }
+  .pad-act > * + * { margin-left: 10px; }
+  .pad-act button { flex: 1; min-height: 74px; border-radius: 16px; font-size: 26px; font-weight: 850; background: var(--card); border: 2px solid var(--line); }
+  .pad-act .go { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+  .shake { animation: shake .3s; }
+  @keyframes shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
   /* ---------- Edit ---------- */
   .edit-row {
     display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin: 8px 0;
@@ -251,6 +294,224 @@ async function setWake(on) {
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) setWake(true); });
 
+/* ---------- Flight data: ATIS and takeoff data ---------- */
+// Entered with a big keypad and kept on this iPad. Checklist text can show a value with a
+// token like {dep.wspd}; tapping that line opens the keypad for it.
+const FD_KEY = 'flightdata.v1';
+let fd = read(FD_KEY, {});
+if (!fd || typeof fd !== 'object') fd = {};
+const saveFd = () => write(FD_KEY, fd);
+const SIDE_NAME = { dep: 'Departure', arr: 'Arrival' };
+const atisFields = side => [
+  { k: side + '.info', label: 'ATIS information', kind: 'letter' },
+  { k: side + '.rwy', label: 'Runway', kind: 'rwy' },
+  { k: side + '.wdir', label: 'Wind direction', max: 3, unit: '°', extra: 'VRB' },
+  { k: side + '.wspd', label: 'Wind speed', max: 2, unit: 'KT' },
+  { k: side + '.gust', label: 'Gusts (Next if none)', max: 2, unit: 'KT' },
+  { k: side + '.vis', label: 'Visibility', max: 2, unit: 'SM' },
+  { k: side + '.ceil', label: 'Ceiling (hundreds of feet)', max: 3, unit: '00 FT', extra: 'CLR' },
+  { k: side + '.temp', label: 'Temperature', max: 2, unit: '°C', extra: '−' },
+  { k: side + '.dew', label: 'Dew point', max: 2, unit: '°C', extra: '−' },
+  { k: side + '.alt', label: 'Altimeter', max: 4, unit: 'IN HG' }];
+const TOB_FIELDS = [
+  { k: 'tob.len', label: 'Runway length', max: 5, unit: 'FT' },
+  { k: 'tob.elev', label: 'Field elevation', max: 5, unit: 'FT' },
+  { k: 'tob.wt', label: 'Takeoff weight', max: 4, unit: 'LB' },
+  { k: 'tob.todist', label: 'Takeoff distance over 50 ft', max: 4, unit: 'FT' },
+  { k: 'tob.asd', label: 'Accelerate-stop distance', max: 4, unit: 'FT' },
+  { k: 'tob.seroc', label: 'Single-engine rate of climb', max: 3, unit: 'FPM' },
+  { k: 'tob.secl', label: 'Single-engine service ceiling', max: 5, unit: 'FT' }];
+const FIELD = {};
+atisFields('dep').concat(atisFields('arr'), TOB_FIELDS).forEach(f => FIELD[f.k] = f);
+
+const thousands = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+function fmt(k) {
+  const v = fd[k];
+  if (v === undefined || v === '') return '';
+  const f = k.split('.')[1];
+  if (f === 'alt') return v.length === 4 ? v.slice(0, 2) + '.' + v.slice(2) : v;
+  if (f === 'ceil') return v === 'CLR' ? 'CLR' : thousands(+v * 100);
+  if (f === 'temp' || f === 'dew') return v.replace('-', '−');
+  if (f === 'wdir') return v === 'VRB' ? 'VRB' : v.padStart(3, '0') + '°';
+  if (/^(len|elev|secl|todist|asd|wt)$/.test(f)) return thousands(v);
+  return v;
+}
+function windText(side) {
+  const d = fd[side + '.wdir'], sp = fd[side + '.wspd'], g = fd[side + '.gust'];
+  if (!d && !sp) return '';
+  if (sp === '0' || sp === '00') return 'CALM';
+  return (d ? fmt(side + '.wdir') : '—') + '@' + (sp || '—') + (g ? 'G' + g : '');
+}
+// Headwind / crosswind for the entered runway (runway number × 10 = magnetic heading).
+function components(side) {
+  const r = parseInt(fd[side + '.rwy'], 10), d = fd[side + '.wdir'], sp = +fd[side + '.wspd'], g = +fd[side + '.gust'] || 0;
+  if (!r || !d || fd[side + '.wspd'] === undefined) return '';
+  if (sp === 0) return 'CALM';
+  if (d === 'VRB') return 'VRB';
+  const a = (+d - r * 10) * Math.PI / 180, hw = s2 => Math.round(s2 * Math.cos(a)), xw = s2 => Math.round(Math.abs(s2 * Math.sin(a)));
+  const side2 = Math.sin(a) > 0.01 ? 'R' : Math.sin(a) < -0.01 ? 'L' : '';
+  const h = hw(sp), hg = g ? hw(g) : null;
+  const head = (h < 0 ? 'TW ' + -h + (g ? '–' + -hg : '') : 'HW ' + h + (g ? '–' + hg : ''));
+  return head + ' · XW ' + xw(sp) + (g ? '–' + xw(g) : '') + side2;
+}
+// Density altitude ≈ pressure altitude + 120 ft per °C above standard.
+function densityAlt() {
+  const e = +fd['tob.elev'], t = fd['dep.temp'], al = fd['dep.alt'];
+  if (fd['tob.elev'] === undefined || t === undefined || !al || al.length !== 4) return '';
+  const pa = e + (29.92 - +al / 100) * 1000, isa = 15 - 2 * e / 1000;
+  return thousands(Math.round((pa + 120 * (+t - isa)) / 50) * 50);
+}
+function atisSummary(side) {
+  const parts = [fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', fd[side + '.rwy'] ? 'RWY ' + fd[side + '.rwy'] : '',
+    windText(side), fmt(side + '.alt')].filter(Boolean);
+  return parts.join(' · ');
+}
+// Values for {tokens} in checklist text, and which fields to edit when the line is tapped.
+function tokenValue(key) {
+  const [side, f] = key.split('.');
+  if (key === 'da') return densityAlt();
+  if (f === 'sum') return atisSummary(side) || 'TAP TO ENTER';
+  if (f === 'comp') return [windText(side), components(side)].filter(Boolean).join(' · ');
+  return FIELD[key] ? fmt(key) : '';
+}
+function tokenFields(key) {
+  const [side, f] = key.split('.');
+  if (key === 'da') return ['tob.elev', 'dep.temp', 'dep.alt'];
+  if (f === 'sum') return atisFields(side).map(x => x.k);
+  if (f === 'comp') return [side + '.rwy', side + '.wdir', side + '.wspd', side + '.gust'];
+  return FIELD[key] ? [key] : [];
+}
+const TOKEN = /\{([a-z]+(?:\.[a-z]+)?)\}/g;
+const fillTokens = html => html.replace(TOKEN, (m, k) => {
+  const v = tokenValue(k);
+  return `<span class="fv${v ? '' : ' empty'}">${v ? esc(v) : '____'}</span>`;
+});
+const rowKeys = text => { const ks = []; text.replace(TOKEN, (m, k) => { tokenFields(k).forEach(x => ks.includes(x) || ks.push(x)); }); return ks; };
+
+// The wind line shown at the bottom of screens: the ATIS entered or viewed most recently.
+function wxLine() {
+  const has = sd => ['rwy', 'wdir', 'wspd', 'alt'].some(f => fd[sd + '.' + f] !== undefined);
+  let side = fd._active || 'dep';
+  if (!has(side)) side = side === 'dep' ? 'arr' : 'dep';   // fall back to the other ATIS until this one is entered
+  const sum = [fd[side + '.info'] ? fd[side + '.info'] : '', fd[side + '.rwy'] ? 'RWY ' + fd[side + '.rwy'] : '',
+    windText(side), components(side), fmt(side + '.alt')].filter(Boolean);
+  if (!sum.length) return '';
+  return `<button class="wx" data-go="#/data/${side}"><b>${side.toUpperCase()}</b> · ${esc(sum.join(' · '))}</button>`;
+}
+
+/* ---------- Keypad ---------- */
+let pad = null;   // { keys, i, buf }
+function openPad(keys, start) {
+  if (!keys.length) return;
+  pad = { keys, i: start || 0, buf: '' };
+  renderPad();
+}
+function closePad() {
+  pad = null;
+  const el = document.getElementById('pad'); if (el) el.remove();
+  route();
+}
+function commitPad() {
+  if (!pad || pad.buf === '') return true;
+  const k = pad.keys[pad.i], f = FIELD[k], b = pad.buf;
+  const bad = (f.k.endsWith('.wdir') && b !== 'VRB' && +b > 360) || (f.kind === 'rwy' && !(parseInt(b, 10) >= 1 && parseInt(b, 10) <= 36))
+    || (f.k.endsWith('.alt') && b.length !== 4);
+  if (bad) { const v = document.querySelector('.pad-val'); v.classList.remove('shake'); void v.offsetWidth; v.classList.add('shake'); return false; }
+  fd[k] = b;
+  const side = k.split('.')[0];
+  if (side === 'dep' || side === 'arr') fd._active = side;
+  saveFd();
+  return true;
+}
+function advancePad() {
+  if (!commitPad()) return;
+  pad.i++; pad.buf = '';
+  if (pad.i >= pad.keys.length) closePad(); else renderPad();
+}
+function renderPad() {
+  const k = pad.keys[pad.i], f = FIELD[k], side = k.split('.')[0];
+  const group = side === 'tob' ? 'Takeoff data' : SIDE_NAME[side] + ' ATIS';
+  let keys;
+  if (f.kind === 'letter') keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => `<button class="key" data-pad="L${c}">${c}</button>`).join('') + `<button class="key" data-pad="back">⌫</button>`;
+  else {
+    const extra = f.kind === 'rwy' ? ['L', 'C', 'R'] : f.extra ? [f.extra] : [];
+    const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    keys = digits.map(d => `<button class="key" data-pad="${d}">${d}</button>`).join('');
+    const bottom = [extra[0] || '', '0', '⌫'];
+    if (f.kind === 'rwy') keys = keys + `<button class="key" data-pad="X${extra[0]}">${extra[0]}</button><button class="key" data-pad="0">0</button><button class="key" data-pad="X${extra[2]}">${extra[2]}</button><button class="key" data-pad="X${extra[1]}">${extra[1]}</button><button class="key" data-pad="back" style="grid-column:span 2">⌫</button>`;
+    else keys = keys + (bottom[0] ? `<button class="key" data-pad="X${bottom[0]}">${bottom[0]}</button>` : '<span></span>') + `<button class="key" data-pad="0">0</button><button class="key" data-pad="back">⌫</button>`;
+  }
+  const shown = pad.buf !== '' ? esc(pad.buf.replace('-', '−') + (f.kind === 'rwy' || f.k.endsWith('.info') ? '' : ''))
+    : (fd[k] !== undefined ? `<span class="was">${esc(fmt(k))}</span>` : '<span class="was">—</span>');
+  const last = pad.i === pad.keys.length - 1;
+  let el = document.getElementById('pad');
+  if (!el) { el = document.createElement('div'); el.id = 'pad'; document.body.appendChild(el); }
+  el.innerHTML = `<div class="sheet2">
+    <div class="pad-top"><span>${esc(f.label)}</span><small>${esc(group)} · ${pad.i + 1} of ${pad.keys.length}</small></div>
+    <div class="pad-val">${shown}${f.unit && f.kind !== 'letter' && !(pad.buf === '' && fmt(k).includes('°')) ? `<span class="unit">${esc(f.unit)}</span>` : ''}</div>
+    <div class="keys${f.kind === 'letter' ? ' letters' : ''}">${keys}</div>
+    <div class="pad-act"><button data-pad="done">Done</button><button class="go" data-pad="next">${last ? 'Save' : 'Next →'}</button></div>
+  </div>`;
+}
+document.addEventListener('click', e => {
+  if (!pad) return;
+  if (e.target.id === 'pad') { if (commitPad()) closePad(); return; }   // tap outside the keypad
+  const b = e.target.closest('[data-pad]'); if (!b) return;
+  const a = b.dataset.pad, f = FIELD[pad.keys[pad.i]];
+  if (a === 'next') return advancePad();
+  if (a === 'done') { if (commitPad()) closePad(); return; }
+  if (a === 'back') {
+    if (pad.buf) pad.buf = pad.buf.slice(0, -1);
+    else { delete fd[pad.keys[pad.i]]; saveFd(); }
+    return renderPad();
+  }
+  if (a[0] === 'L') { pad.buf = a.slice(1); return advancePad(); }        // ATIS letter
+  if (a[0] === 'X') {
+    const x = a.slice(1);
+    if (x === '−') { pad.buf = pad.buf.startsWith('-') ? pad.buf.slice(1) : '-' + pad.buf; return renderPad(); }
+    if (f.kind === 'rwy') { if (!pad.buf) return; pad.buf += x; return advancePad(); }
+    pad.buf = x; return advancePad();                                       // VRB, CLR
+  }
+  if (f.kind === 'rwy' && /[LCR]$/.test(pad.buf)) return;
+  const digits = pad.buf.replace('-', '');
+  if (digits.length >= (f.max || 2) || pad.buf === 'VRB' || pad.buf === 'CLR') return;
+  pad.buf += a;
+  if (pad.buf.replace('-', '').length >= (f.max || 2) && f.kind !== 'rwy') { renderPad(); setTimeout(advancePad, 120); return; }
+  renderPad();
+});
+
+function renderData(tab) {
+  if (!/^(dep|tob|arr)$/.test(tab)) tab = 'dep';
+  if (tab !== 'tob' && fd._active !== tab) { fd._active = tab; saveFd(); }
+  const fields = tab === 'tob' ? TOB_FIELDS : atisFields(tab);
+  const calc = tab === 'tob'
+    ? `<div class="calc"><small>Density altitude (calculated from elevation, departure temp & altimeter)</small>${densityAlt() ? densityAlt() + ' FT' : '—'}</div>`
+    : `<div class="calc"><small>Wind · components for RWY ${esc(fd[tab + '.rwy'] || '—')}</small>${esc([windText(tab), components(tab)].filter(Boolean).join(' · ') || '—')}</div>`;
+  $app.innerHTML = `<div class="wrap">
+    <div class="home-head">
+      <button class="home-tile" data-go="#/">${ICON_HOME}<span>HOME</span></button>
+      <button class="next-tile" data-act="back"><small>← Back</small><span>Previous</span></button>
+      <h1 class="group-title">Flight Data</h1>
+    </div>
+    <div class="tabs">
+      <button class="tab${tab === 'dep' ? ' on' : ''}" data-go="#/data/dep">Departure<br>ATIS</button>
+      <button class="tab${tab === 'tob' ? ' on' : ''}" data-go="#/data/tob">Takeoff<br>Data</button>
+      <button class="tab${tab === 'arr' ? ' on' : ''}" data-go="#/data/arr">Arrival<br>ATIS</button>
+    </div>
+    <button class="big-go" data-act="padall" data-tab="${tab}">${tab === 'tob' ? 'Enter takeoff data' : 'Enter ' + SIDE_NAME[tab].toLowerCase() + ' ATIS'}</button>
+    ${calc}
+    <div class="fields">${fields.map((f, i) => {
+      const v = fmt(f.k);
+      return `<button class="field" data-act="padfrom" data-tab="${tab}" data-i="${i}"><small>${esc(f.label.replace(' (Next if none)', ''))}</small><span class="${v ? '' : 'empty'}">${v ? esc(v) + (f.unit && !/°/.test(v) ? ' <small style="display:inline">' + esc(f.unit === '00 FT' ? 'FT' : f.unit) + '</small>' : '') : 'tap to enter'}</span></button>`;
+    }).join('')}</div>
+    <div class="actions" style="margin-top:16px">
+      <button class="small-btn" data-act="clearfd" data-tab="${tab}">Clear ${tab === 'tob' ? 'takeoff data' : SIDE_NAME[tab].toLowerCase() + ' ATIS'}</button>
+      <button class="small-btn danger" data-act="newflight">New flight (clear all)</button>
+    </div>
+    ${tab !== 'tob' ? `<p style="color:var(--muted);font-size:16px">This ATIS is shown in the wind line at the bottom of the checklists.</p>` : ''}
+  </div>`;
+}
+
 /* ---------- Groups ---------- */
 // A checklist's "group" is a path like "Emergency/Electrical". Each level is a tile screen:
 // the home screen shows top-level groups, a group screen shows its sub-groups and its own checklists.
@@ -285,7 +546,7 @@ const tileHtml = (label, color, hash) =>
 const groupTile = g => g.list ? tileHtml(g.list.title, g.list.color, `#/list/${g.list.id}`) : tileHtml(g.name, g.color, groupHash(g.path));
 
 function renderHome() {
-  const tiles = groups('').map(groupTile).join('');
+  const tiles = groups('').map(groupTile).join('') + tileHtml('ATIS & Takeoff Data', '#0f7f8a', '#/data/' + (fd._active || 'dep'));
   $app.innerHTML = `<div class="home">
     <div class="home-head">
       <h1>Checklists</h1>
@@ -293,6 +554,7 @@ function renderHome() {
       <button class="small-btn" data-go="#/edit">Edit</button>
     </div>
     ${lists.length ? `<div class="tiles">${tiles}</div>` : `<div class="empty">No checklists yet. Tap <b>Edit</b> to add one.</div>`}
+    ${wxLine()}
   </div>`;
   layout();
 }
@@ -309,6 +571,7 @@ function renderGroup(path) {
       <h1 class="group-title">${esc(lastPart(path))}</h1>
     </div>
     <div class="tiles">${items.map(groupTile).join('')}</div>
+    ${wxLine()}
   </div>`;
   layout();
 }
@@ -340,7 +603,8 @@ function renderList(id) {
     if (b.type === 'section') return `<div class="sec">${esc(b.text)}</div>`;
     if (b.type === 'note') return `<div class="note">⚠︎ ${esc(b.text)}</div>`;
     if (b.type === 'text') return `<div class="row text${b.hl ? ' hl' : ''}"><span class="c">${esc(b.text)}</span></div>`;
-    return `<div class="row${b.hl ? ' hl' : ''}"><span class="c">${brk(b.c)}</span><span class="lead"></span><span class="r">${brk(b.r)}</span></div>`;
+    const ks = rowKeys(b.c + ' ' + b.r);
+    return `<div class="row${b.hl ? ' hl' : ''}${ks.length ? ' tap' : ''}"${ks.length ? ` data-keys="${ks.join(' ')}"` : ''}><span class="c">${fillTokens(brk(b.c))}</span><span class="lead"></span><span class="r">${fillTokens(brk(b.r))}</span></div>`;
   }).join('');
   const next = choices.length ? null : nextOf(l), g = cleanGroup(l.group);
   const choiceHtml = choices.map((c, i) => {
@@ -358,6 +622,7 @@ function renderList(id) {
     <h2 class="list-title">${esc(l.title)}</h2>
     <div class="fit"><div class="sheet">${body || '<div class="empty">This checklist is empty.</div>'}</div></div>
     ${choiceHtml ? `<div class="choices">${choiceHtml}</div>` : ''}
+    ${wxLine()}
   </div>`;
   layout();
 }
@@ -465,6 +730,7 @@ function renderEditor(id) {
       <code>* HOBBS/TACH Times ... RECORDED</code> highlighted line<br>
       <code># Engine</code> section heading<br>
       <code>! Caution text</code> highlighted caution note<br>
+      <code>Wind ... {dep.comp}</code> shows flight data (e.g. {dep.sum}, {arr.sum}, {tob.len}, {da}); tap the line to enter it<br>
       <code>-> FEATHER | Feathering procedure : Feathering Procedure</code> big button at the bottom (label | subtitle : title of the checklist to open)
     </div>
     <div class="actions">
@@ -481,17 +747,20 @@ function route() {
   const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if (p[0] !== 'edit') draft = null;
   if (p[0] === 'list') renderList(p[1]);
+  else if (p[0] === 'data') renderData(p[1] || fd._active || 'dep');
   else if (p[0] === 'g') renderGroup(decodeURIComponent(p.slice(1).join('/')));
   else if (p[0] === 'edit') p[1] ? renderEditor(p[1]) : renderManage();
   else renderHome();
   setWake(p[0] === 'list');
   window.scrollTo(0, 0);
-  document.body.style.overflow = p[0] === 'edit' ? '' : 'hidden';
+  document.body.style.overflow = p[0] === 'edit' || p[0] === 'data' ? '' : 'hidden';
 }
 addEventListener('hashchange', route);
 
 /* ---------- Events ---------- */
 $app.addEventListener('click', e => {
+  const row = e.target.closest('.row.tap');
+  if (row) return openPad(row.dataset.keys.split(' '));
   const t = e.target.closest('button'); if (!t) return;
   if (t.dataset.go) return go(t.dataset.go);
 
@@ -529,6 +798,21 @@ $app.addEventListener('click', e => {
       }
       break;
     case 'export': exportBackup(); break;
+    case 'back': history.length > 1 ? history.back() : go('#/'); break;
+    case 'padall': case 'padfrom': {
+      const keys = (t.dataset.tab === 'tob' ? TOB_FIELDS : atisFields(t.dataset.tab)).map(f => f.k);
+      openPad(keys, t.dataset.act === 'padfrom' ? +t.dataset.i : 0); break;
+    }
+    case 'clearfd': {
+      const pre = t.dataset.tab + '.';
+      if (confirm('Clear all ' + (t.dataset.tab === 'tob' ? 'takeoff data' : SIDE_NAME[t.dataset.tab] + ' ATIS') + '?')) {
+        Object.keys(fd).forEach(k => k.startsWith(pre) && delete fd[k]); saveFd(); route();
+      }
+      break;
+    }
+    case 'newflight':
+      if (confirm('Clear both ATIS entries and all takeoff data for a new flight?')) { fd = {}; saveFd(); go('#/data/dep'); }
+      break;
     case 'import': document.getElementById('importFile').click(); break;
   }
 });

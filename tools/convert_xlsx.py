@@ -169,6 +169,9 @@ by_title['Engine Failure — Memory Items']['lines'] = [
     "-> FEATHER | Feathering procedure : Feathering Procedure"]
 by_title["Engine Failure — If Altitude Permits (3,500')"]['lines'] += [
     "-> FEATHER | If the engine doesn't start : Feathering Procedure"]
+# ATIS lines show the entered ATIS (tap to enter it): departure before taxi, arrival in the descent.
+replace('Before Taxi','ATIS ... OBTAIN',['ATIS ... {dep.sum}'])
+replace('Descent','ATIS ... OBTAIN',['ATIS ... {arr.sum}'])
 fm=by_title['Single-Engine Fuel Management']['lines']
 fm[:]=fm[:fm.index('Electric Fuel Pump Operating Engine ... ON')+1]
 
@@ -205,14 +208,17 @@ A propeller may be feathered (stopped) on purpose at altitude. The airplane is d
 Feeling unwell or worried? ... TELL ME ANY TIME
 Questions? ... BEFORE WE START ENGINES"""
 
+# The {tokens} show values entered on the ATIS & Takeoff Data screen; tapping the line enters them.
 CREW="""# Today
-Runway / length ... ____ / ____ FT
-Density altitude ... ____ FT
-Takeoff weight (max 4,200) ... ____ LB
-Takeoff distance over 50 ft ... ____ FT
-Accelerate-stop distance ... ____ FT
-Single-engine rate of climb ... ____ FPM
-Single-engine service ceiling ... ____ FT
+Runway / length ... RWY {dep.rwy} / {tob.len} FT
+Wind / components ... {dep.comp}
+Field elevation ... {tob.elev} FT
+Density altitude (calculated) ... {da} FT
+Takeoff weight (max 4,200) ... {tob.wt} LB
+Takeoff distance over 50 ft ... {tob.todist} FT
+Accelerate-stop distance ... {tob.asd} FT
+Single-engine rate of climb ... {tob.seroc} FPM
+Single-engine service ceiling ... {tob.secl} FT
 # Speeds (MPH CAS)
 Vr (short: 75 flaps 0° · 70 flaps 25°) ... 80–85
 Vx / Vy ... 90 / 105
@@ -257,7 +263,7 @@ for l in emer:
     cat=EMER_CAT[l['title']]
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=9
+DEFAULTS_VERSION=10
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")
