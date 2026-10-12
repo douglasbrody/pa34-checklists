@@ -1,11 +1,11 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 6;
+const DEFAULTS_VERSION = 7;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "Baggage Door ... OPEN\nAirworthiness & Registration Certificates ... CHECK\nBaggage Door, Windows, Seats ... CLOSE, CLEAN, EMPTY & SECURE\nOperating Limitations, W&B & CG ... CHECK\nVOR Accuracy every 30 days (IFR only) ... CHECK\nELT (battery/expiration date) ... CHECK\nCompass Deviation Card & Fluid ... CHECK\n* HOBBS/TACH Times ... RECORDED"
+  "text": "Baggage Door ... OPEN\nAirworthiness & Registration Certificates ... CHECK\nBaggage Door, Windows, Seats ... CLOSE, CLEAN, EMPTY & SECURE\nOperating Limitations, W&B & CG ... CHECK\nRadio License (international flights only) ... CHECK\nVOR Accuracy every 30 days (IFR only) ... CHECK\nELT (battery/expiration date) ... CHECK\nCompass Deviation Card & Fluid ... CHECK\n* HOBBS/TACH Times ... RECORDED"
  },
  {
   "title": "Inside Cockpit",
@@ -17,31 +17,31 @@ const DEFAULTS = [
   "title": "Right Wing",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "Flaps ... NO DAMAGE / CHECK HINGES\nAileron Travel ... NO DAMAGE / CHECK HINGES\nWingtip ... NO DAMAGE\nNav, Strobe Lights ... NO DAMAGE\nLeading Edge ... NO DAMAGE\nFuel Quantity ... VISUAL CHECK; FUEL CAP SECURED\nFuel Sump Drains ... DRAINED\nFuel Vents & Fresh Air Inlet ... UNOBSTRUCTED\nMain Gear ... NO FLUID LEAKS\nLimit Switches ... CHECKED / NO DAMAGE\nBrakes ... NO EXCESSIVE WEAR\nStrut ... 3.5\" EXPOSED (static load)\nTire Pressure/Wear ... 53 PSI / CHECKED"
+  "text": "General Condition ... CHECKED\nFlaps ... NO DAMAGE / CHECK HINGES\nAileron Travel ... NO DAMAGE / CHECK HINGES\nWingtip ... NO DAMAGE\nNav, Strobe Lights ... NO DAMAGE\nLeading Edge ... NO DAMAGE\nFuel Quantity ... VISUAL CHECK; FUEL CAP SECURED\nFuel Sump Drains ... DRAINED\nFuel Vents & Fresh Air Inlet ... UNOBSTRUCTED\nMain Gear ... NO FLUID LEAKS\nLimit Switches ... CHECKED / NO DAMAGE\nBrakes ... NO EXCESSIVE WEAR\nStrut ... 3.5\" EXPOSED (static load)\nTire Pressure/Wear ... 53 PSI / CHECKED"
  },
  {
   "title": "Right Engine Nacelle",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "Engine Compartment ... CHECK FOR LEAKS\nOil Quantity ... 6–8 QTS\nCowling ... CLOSE & SECURE\nLanding Gear Mirror ... NO DAMAGE\nCowl Flaps ... NO DAMAGE / CHECK HINGES\nPropeller & Spinner ... NO DAMAGE / LEAKS\nGovernor ... NO LEAKS\nAir Vent ... UNOBSTRUCTED\nGas Sump ... DRAINED"
+  "text": "General Condition ... CHECK\nCowling ... OPEN\nEngine Compartment ... CHECK FOR LEAKS\nOil Quantity ... 6–8 QTS\nCowling ... CLOSE & SECURE\nLanding Gear Mirror ... NO DAMAGE\nCowl Flaps ... NO DAMAGE / CHECK HINGES\nPropeller & Spinner ... NO DAMAGE / LEAKS\nGovernor ... NO LEAKS\nAir Vent ... UNOBSTRUCTED\nGas Sump ... DRAINED"
  },
  {
   "title": "Nose Section",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "Nose Gear ... NO FLUID LEAKS\nStrut ... 2.5\" EXPOSED (static load)\nTire Pressure/Wear ... 31 PSI / CHECKED\nBattery Drains ... UNOBSTRUCTED\nLanding Lights ... NO DAMAGE\nExternal Power Source Plug ... CHECKED\nBrake Fluid (nose compartment) ... ADEQUATE LEVEL\nForward Baggage Door ... LOCKED\nWindshield ... NO DAMAGE / CLEAN\nChocks ... REMOVED"
+  "text": "General Condition ... CHECKED\nNose Gear ... NO FLUID LEAKS\nStrut ... 2.5\" EXPOSED (static load)\nTire Pressure/Wear ... 31 PSI / CHECKED\nBattery Drains ... UNOBSTRUCTED\nLanding Lights ... NO DAMAGE\nExternal Power Source Plug ... CHECKED\nBrake Fluid (nose compartment) ... ADEQUATE LEVEL\nForward Baggage Door ... LOCKED\nWindshield ... NO DAMAGE / CLEAN\nChocks ... REMOVED"
  },
  {
   "title": "Left Engine Nacelle",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "Engine Compartment ... CHECK FOR LEAKS\nOil Quantity ... 6–8 QTS\nCowling ... CLOSE & SECURE\nLanding Gear Mirror ... NO DAMAGE\nCowl Flaps ... NO DAMAGE / CHECK HINGES\nPropeller & Spinner ... NO DAMAGE / LEAKS\nGovernor ... NO LEAKS\nAir Vent ... UNOBSTRUCTED\nGas Sump ... DRAINED"
+  "text": "General Condition ... CHECK\nCowling ... OPEN\nEngine Compartment ... CHECK FOR LEAKS\nOil Quantity ... 6–8 QTS\nCowling ... CLOSE & SECURE\nLanding Gear Mirror ... NO DAMAGE\nCowl Flaps ... NO DAMAGE / CHECK HINGES\nPropeller & Spinner ... NO DAMAGE / LEAKS\nGovernor ... NO LEAKS\nAir Vent ... UNOBSTRUCTED\nGas Sump ... DRAINED"
  },
  {
   "title": "Left Wing",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "Flaps ... NO DAMAGE / CHECK HINGES\nAileron Travel ... NO DAMAGE / CHECK HINGES\nWingtip ... NO DAMAGE\nNav, Strobe Lights ... NO DAMAGE\nLeading Edge ... NO DAMAGE\nStall Warning Detectors (inboard & outboard) ... NO DAMAGE / FREE MOVEMENT\nPitot Static Mast ... UNOBSTRUCTED\nFuel Quantity ... VISUAL CHECK; FUEL CAP SECURED\nFuel Sump Drains ... DRAINED\nFuel Vents & Fresh Air Inlet ... UNOBSTRUCTED\nMain Gear ... NO FLUID LEAKS\nSquat Switch ... CHECKED / NO DAMAGE\nLimit Switches ... CHECKED / NO DAMAGE\nBrakes ... NO EXCESSIVE WEAR\nStrut ... 3.5\" EXPOSED (static load)\nTire Pressure/Wear ... 53 PSI / CHECKED"
+  "text": "General Condition ... CHECKED\nFlaps ... NO DAMAGE / CHECK HINGES\nAileron Travel ... NO DAMAGE / CHECK HINGES\nWingtip ... NO DAMAGE\nNav, Strobe Lights ... NO DAMAGE\nLeading Edge ... NO DAMAGE\nStall Warning Detectors (inboard & outboard) ... NO DAMAGE / FREE MOVEMENT\nPitot Static Mast ... UNOBSTRUCTED\nFuel Quantity ... VISUAL CHECK; FUEL CAP SECURED\nFuel Sump Drains ... DRAINED\nFuel Vents & Fresh Air Inlet ... UNOBSTRUCTED\nMain Gear ... NO FLUID LEAKS\nSquat Switch ... CHECKED / NO DAMAGE\nLimit Switches ... CHECKED / NO DAMAGE\nBrakes ... NO EXCESSIVE WEAR\nStrut ... 3.5\" EXPOSED (static load)\nTire Pressure/Wear ... 53 PSI / CHECKED"
  },
  {
   "title": "Empennage",
@@ -65,7 +65,7 @@ const DEFAULTS = [
   "title": "Starting Engine",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "Fuel Selectors ... ON\nMixture Controls ... IDLE/CUTOFF\nPropeller Controls ... FULL FORWARD\nThrottle Controls ... 1/2\" OPEN\nMaster Switch ... ON\nBeacon ... ON\nIgnition Switches (all) ... ON\n# Start left engine, then right engine\nElectric Fuel Pump ... ON\nMixture Control ... RICH / CHECK FUEL FLOW, THEN CUTOFF (priming)\nElectric Fuel Pump ... OFF\nPropeller ... CLEAR\nStarter ... ENGAGED\nMixture Control ... ADVANCE AS ENGINE STARTS\nThrottle ... ADJUST (1000 RPM)\nOil Pressure ... RISING (within 30 seconds)\nFuel Pressure ... CHECK\nAlternator ... ON / CHARGING\nVacuum Gauge ... 4.5\"–5.2\" Hg"
+  "text": "Fuel Selectors ... ON\nMixture Controls ... IDLE/CUTOFF\nPropeller Controls ... FULL FORWARD\nThrottle Controls ... 1/2\" OPEN\nMaster Switch ... ON\nBeacon ... ON\nIgnition Switches (all) ... ON\n# Start left engine, then right engine\nElectric Fuel Pump ... ON\nMixture Control ... RICH / CHECK FUEL FLOW, THEN CUTOFF (priming)\nElectric Fuel Pump ... OFF\nPropeller ... CLEAR\nStarter ... ENGAGED\nMixture Control ... ADVANCE AS ENGINE STARTS\nThrottle ... ADJUST (1000 RPM)\nOil Pressure ... RISING (within 30 seconds)\nFuel Pressure ... CHECK\nAlternator ... ON / CHARGING\nVacuum Gauge ... 4.5\"–5.2\" Hg\n# Flooded engine / hot start\nRefer to the Quick Reference Handbook or Pilot Operating Handbook."
  },
  {
   "title": "Before Taxi",
@@ -89,7 +89,7 @@ const DEFAULTS = [
   "title": "Before Takeoff",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "Flight Instruments/Nav Aids ... CHECKED / SET\nCowl Flaps ... OPEN\nAlternate Air ... OFF\nFuel Selectors ... ON\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\nQuadrant Friction ... ADJUSTED\nElectric Fuel Pumps ... ON\nPitot Heat ... AS REQUIRED\nStrobe, Landing, Recognition Lights ... ON\nNavigation Lights ... NIGHT ONLY\nTrims ... ELEVATOR T/O, RUDDER AS REQUIRED\nPanel Lights ... AS NEEDED\nDoors, Storm Window ... LOCKED, CLOSED\nSeat Belts & Back ... SECURE & ERECT\nTransponder ... ALT\n* Crew Briefing ... COMPLETED"
+  "text": "Flight Instruments ... CHECK\nFlight Instruments/Nav Aids ... CHECKED / SET\nCowl Flaps ... OPEN\nAlternate Air ... OFF\nFuel Selectors ... ON\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\nQuadrant Friction ... ADJUSTED\nElectric Fuel Pumps ... ON\nPitot Heat ... AS REQUIRED\nStrobe, Landing, Recognition Lights ... ON\nNavigation Lights ... NIGHT ONLY\nElevator Trim ... SET FOR T/O\nRudder Trim ... SET\nPanel Lights ... AS NEEDED\nDoors, Storm Window ... LOCKED, CLOSED\nSeat Belts & Back ... SECURE & ERECT\nTransponder ... ALT\n* Crew Briefing ... COMPLETED"
  },
  {
   "title": "Crew Takeoff Briefing",
@@ -131,7 +131,7 @@ const DEFAULTS = [
   "title": "Approach / GUMPS",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "G — Fuel Selectors & Pumps ... ON\nU — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR\nM — Mixture Controls ... FULL RICH\nP — Propeller Controls ... FULL FORWARD\nS — Seat Belt & Switches ... CHECK\nApproach Speed ... ADJUST AS REQUIRED\nLanding Lights ... ON\nFlaps ... SET AS NEEDED, OEI MAX 25°\nBrakes ... PRESSURE CHECK"
+  "text": "Brakes ... PRESSURE CHECK\nSeat Backs ... ERECT\nSeat Belts and Harness ... FASTENED\nElectric Fuel Pump ... ON\nStrobe Lights ... ON\nNavigation Lights ... NIGHT ONLY\nLanding Light ... ON\nPitot Heat ... AS REQUIRED\nThrottle Control ... SET (as necessary)\nMixture Control ... RICH\nFuel Selectors ... ON\nApproach Speed ... ADJUST AS REQUIRED\nFlaps ... AS REQUIRED\n# GUMPS\nG — Fuel Selectors & Pumps ... ON\nU — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR\nM — Mixture Controls ... FULL RICH\nP — Propeller Controls ... FULL FORWARD\nS — Seat Belt & Switches ... CHECK\nApproach Speed ... ADJUST AS REQUIRED\nLanding Lights ... ON\nFlaps ... SET AS NEEDED, OEI MAX 25°"
  },
  {
   "title": "Go Around",

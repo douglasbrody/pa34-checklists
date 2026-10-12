@@ -98,6 +98,46 @@ lists=dedup
 # so they can be read without flipping pages. The left wing also carries the squat switch,
 # the stall warning detectors and the pitot static mast.
 by_title={l['title']:l for l in lists}
+
+# Bring the normal checklists in line with the Avia PA-34-200 normal checklist.
+# (Done before the left side is copied from the right, so both sides get the changes.)
+def insert(title, anchor, new, after=True):
+    ls=by_title[title]['lines']; i=ls.index(anchor)
+    ls[i+1 if after else i:i+1 if after else i]=new
+def replace(title, old, new):
+    ls=by_title[title]['lines']; i=ls.index(old); ls[i:i+1]=new
+insert('Airplane Status','VOR Accuracy every 30 days (IFR only) ... CHECK',['Radio License (international flights only) ... CHECK'],after=False)
+by_title['Right Wing']['lines'].insert(0,'General Condition ... CHECKED')
+by_title['Right Engine Nacelle']['lines'][0:0]=['General Condition ... CHECK','Cowling ... OPEN']
+by_title['Nose Section']['lines'].insert(0,'General Condition ... CHECKED')
+by_title['Starting Engine']['lines']+=['# Flooded engine / hot start','Refer to the Quick Reference Handbook or Pilot Operating Handbook.']
+by_title['Before Takeoff']['lines'].insert(0,'Flight Instruments ... CHECK')
+replace('Before Takeoff','Trims ... ELEVATOR T/O, RUDDER AS REQUIRED',['Elevator Trim ... SET FOR T/O','Rudder Trim ... SET'])
+# Approach: the full Avia pre-landing check, then GUMPS. Keeps this checklist's own
+# "& Pumps" in G and the OEI 25° flap limit.
+by_title['Approach / GUMPS']['lines']=[
+    'Brakes ... PRESSURE CHECK',
+    'Seat Backs ... ERECT',
+    'Seat Belts and Harness ... FASTENED',
+    'Electric Fuel Pump ... ON',
+    'Strobe Lights ... ON',
+    'Navigation Lights ... NIGHT ONLY',
+    'Landing Light ... ON',
+    'Pitot Heat ... AS REQUIRED',
+    'Throttle Control ... SET (as necessary)',
+    'Mixture Control ... RICH',
+    'Fuel Selectors ... ON',
+    'Approach Speed ... ADJUST AS REQUIRED',
+    'Flaps ... AS REQUIRED',
+    '# GUMPS',
+    'G — Fuel Selectors & Pumps ... ON',
+    'U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR',
+    'M — Mixture Controls ... FULL RICH',
+    'P — Propeller Controls ... FULL FORWARD',
+    'S — Seat Belt & Switches ... CHECK',
+    'Approach Speed ... ADJUST AS REQUIRED',
+    'Landing Lights ... ON',
+    'Flaps ... SET AS NEEDED, OEI MAX 25°']
 by_title['Left Engine Nacelle']['lines']=list(by_title['Right Engine Nacelle']['lines'])
 rw=by_title['Right Wing']['lines']
 lw=[]
@@ -217,7 +257,7 @@ for l in emer:
     cat=EMER_CAT[l['title']]
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=6
+DEFAULTS_VERSION=7
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")
