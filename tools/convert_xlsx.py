@@ -110,6 +110,12 @@ for line in rw:
         lw.append('Squat Switch ... CHECKED / NO DAMAGE')
 by_title['Left Wing']['lines']=lw
 
+# The spreadsheet's single-engine fuel management LANDING section ends with three lines copied
+# from Go Around (gear up, flaps retract, cowl flaps). The Avia PA-34-200 emergency checklist
+# ends that section at the electric fuel pump, so drop the copied lines.
+fm=by_title['Single-Engine Fuel Management']['lines']
+fm[:]=fm[:fm.index('Electric Fuel Pump Operating Engine ... ON')+1]
+
 emer=sorted([l for l in lists if l['group']=='Emergency'], key=lambda l: EMER_ORDER.index(l['title']))
 normal=[l for l in lists if l['group']!='Emergency']
 
@@ -194,7 +200,7 @@ for l in emer:
     cat=EMER_CAT[l['title']]
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=3
+DEFAULTS_VERSION=4
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")
