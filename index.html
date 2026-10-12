@@ -42,8 +42,9 @@
   /* ---------- Home ---------- */
   .home { height: 100vh; height: 100dvh; display: flex; flex-direction: column; padding: 14px 16px 16px; }
   .home-head { display: flex; align-items: center; margin: 0 0 14px; flex: none; }
-  .home-head > * + * { margin-left: 12px; }
-  .home-head h1 { flex: 1; margin: 0; font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
+  .home-head > * + * { margin-left: 14px; }
+  .home-head .next-tile { min-height: 76px; min-width: 130px; }
+  .home-head h1 { flex: 1; margin-top: 0; margin-bottom: 0; font-size: 30px; font-weight: 800; letter-spacing: -.5px; }
   .small-btn {
     min-height: 56px; padding: 0 20px; border-radius: 14px; font-size: 19px; font-weight: 700;
     background: var(--card); border: 1px solid var(--line); color: var(--fg);
@@ -233,35 +234,42 @@ async function setWake(on) {
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) setWake(true); });
 
 /* ---------- Groups ---------- */
-// Checklists with the same "group" are shown together behind one tile on the home screen.
-function groups() {
-  const out = [], by = {};
+// A checklist's "group" is a path like "Emergency/Electrical". Each level is a tile screen:
+// the home screen shows top-level groups, a group screen shows its sub-groups and its own checklists.
+const cleanGroup = g => (g || '').split('/').map(x => x.trim()).filter(Boolean).join('/');
+function groups(path) {
+  const out = [], by = {}, prefix = path ? path + '/' : '';
   for (const l of lists) {
-    const g = (l.group || '').trim();
-    if (!g) { out.push({ list: l }); continue; }
-    if (!by[g]) { by[g] = { name: g, color: l.color, lists: [] }; out.push(by[g]); }
-    by[g].lists.push(l);
+    const g = cleanGroup(l.group);
+    if (g === path) { out.push({ list: l }); continue; }
+    if (path && !g.startsWith(prefix)) continue;
+    const name = g.slice(prefix.length).split('/')[0], full = prefix + name;
+    if (!by[full]) { by[full] = { name, path: full, color: l.color }; out.push(by[full]); }
   }
   return out;
 }
 const groupHash = g => '#/g/' + encodeURIComponent(g);
+const lastPart = g => g.split('/').pop();
+const parentOf = g => g.split('/').slice(0, -1).join('/');
 const isEmergency = g => /emerg/i.test(g || '');
 
-// Never chain from normal procedures into emergencies (or out of them) with the Next tile.
+// Next stays within a group, can step down into a sub-group (e.g. Memory Items -> Engine Failure),
+// and never chains from normal procedures into emergencies (or out of them).
 function nextOf(l) {
   const n = lists[lists.indexOf(l) + 1];
   if (!n) return null;
-  return (n.group || '') === (l.group || '') || (!isEmergency(n.group) && !isEmergency(l.group)) ? n : null;
+  const a = cleanGroup(l.group), b = cleanGroup(n.group);
+  if (a === b || (a && b.startsWith(a + '/'))) return n;
+  return !isEmergency(a) && !isEmergency(b) ? n : null;
 }
 
 /* ---------- Screens ---------- */
 const tileHtml = (label, color, hash) =>
   `<button class="tile" style="background:${esc(color)}" data-go="${hash}">${esc(label)}</button>`;
+const groupTile = g => g.list ? tileHtml(g.list.title, g.list.color, `#/list/${g.list.id}`) : tileHtml(g.name, g.color, groupHash(g.path));
 
 function renderHome() {
-  const tiles = groups().map(g => g.list
-    ? tileHtml(g.list.title, g.list.color, `#/list/${g.list.id}`)
-    : tileHtml(g.name, g.color, groupHash(g.name))).join('');
+  const tiles = groups('').map(groupTile).join('');
   $app.innerHTML = `<div class="home">
     <div class="home-head">
       <h1>Checklists</h1>
@@ -273,15 +281,18 @@ function renderHome() {
   layout();
 }
 
-function renderGroup(name) {
-  const g = groups().find(x => x.name === name);
-  if (!g) return go('#/');
+function renderGroup(path) {
+  path = cleanGroup(path);
+  const items = groups(path);
+  if (!path || !items.length) return go('#/');
+  const parent = parentOf(path);
   $app.innerHTML = `<div class="home">
     <div class="home-head">
       <button class="home-tile" data-go="#/">${ICON_HOME}<span>HOME</span></button>
-      <h1 class="group-title">${esc(g.name)}</h1>
+      ${parent ? `<button class="next-tile" data-go="${groupHash(parent)}"><small>← Back to</small><span>${esc(lastPart(parent))}</span></button>` : ''}
+      <h1 class="group-title">${esc(lastPart(path))}</h1>
     </div>
-    <div class="tiles">${g.lists.map(l => tileHtml(l.title, l.color, `#/list/${l.id}`)).join('')}</div>
+    <div class="tiles">${items.map(groupTile).join('')}</div>
   </div>`;
   layout();
 }
@@ -314,11 +325,11 @@ function renderList(id) {
     if (b.type === 'text') return `<div class="row text${b.hl ? ' hl' : ''}"><span class="c">${esc(b.text)}</span></div>`;
     return `<div class="row${b.hl ? ' hl' : ''}"><span class="c">${brk(b.c)}</span><span class="lead"></span><span class="r">${brk(b.r)}</span></div>`;
   }).join('');
-  const next = nextOf(l), g = (l.group || '').trim();
+  const next = nextOf(l), g = cleanGroup(l.group);
   $app.innerHTML = `<div class="page${isEmergency(g) ? ' emer' : ''}">
     <div class="bar">
       <button class="home-tile" data-go="#/">${ICON_HOME}<span>HOME</span></button>
-      ${g ? `<button class="next-tile" data-go="${groupHash(g)}"><small>← Back to</small><span>${esc(g)}</span></button>` : ''}
+      ${g ? `<button class="next-tile" data-go="${groupHash(g)}"><small>← Back to</small><span>${esc(lastPart(g))}</span></button>` : ''}
       <span class="spacer"></span>
       ${next ? `<button class="next-tile" data-go="#/list/${next.id}"><small>Next →</small><span>${esc(next.title)}</span></button>` : ''}
     </div>
@@ -373,7 +384,7 @@ function renderManage() {
   const rows = lists.map((l, i) => `
     <div class="edit-row">
       <span class="swatch" style="background:${esc(l.color)}"></span>
-      <span class="name">${esc(l.title)}${l.group ? `<small>${esc(l.group)}</small>` : ''}</span>
+      <span class="name">${esc(l.title)}${l.group ? `<small>${esc(cleanGroup(l.group).replace(/\//g, ' › '))}</small>` : ''}</span>
       <button class="icon-btn" data-act="up" data-id="${l.id}" ${i === 0 ? 'disabled' : ''} aria-label="Move up">▲</button>
       <button class="icon-btn" data-act="down" data-id="${l.id}" ${i === lists.length - 1 ? 'disabled' : ''} aria-label="Move down">▼</button>
       <button class="small-btn" data-go="#/edit/${l.id}">Edit</button>
@@ -405,7 +416,7 @@ function renderEditor(id) {
     <div class="home-head"><h1>${id === 'new' ? 'New Checklist' : 'Edit Checklist'}</h1></div>
     <label class="f" for="t">Title</label>
     <input type="text" id="t" value="${esc(draft.title)}" placeholder="e.g. Before Takeoff">
-    <label class="f" for="g">Group <span style="font-weight:400;color:var(--muted)">(checklists in the same group share one home-screen tile; leave blank for its own tile)</span></label>
+    <label class="f" for="g">Group <span style="font-weight:400;color:var(--muted)">(checklists in the same group share one tile; use / for a sub-group, e.g. Emergency/Electrical; blank = its own tile)</span></label>
     <input type="text" id="g" list="groups" value="${esc(draft.group || '')}" placeholder="e.g. Emergency">
     <datalist id="groups">${[...new Set(lists.map(l => l.group).filter(Boolean))].map(g => `<option value="${esc(g)}">`).join('')}</datalist>
     <label class="f">Tile color</label>
@@ -433,7 +444,7 @@ function route() {
   const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if (p[0] !== 'edit') draft = null;
   if (p[0] === 'list') renderList(p[1]);
-  else if (p[0] === 'g') renderGroup(decodeURIComponent(p[1] || ''));
+  else if (p[0] === 'g') renderGroup(decodeURIComponent(p.slice(1).join('/')));
   else if (p[0] === 'edit') p[1] ? renderEditor(p[1]) : renderManage();
   else renderHome();
   setWake(p[0] === 'list');
@@ -463,7 +474,7 @@ $app.addEventListener('click', e => {
     case 'save': {
       draft.title = document.getElementById('t').value.trim() || 'Untitled';
       draft.text = document.getElementById('x').value;
-      draft.group = document.getElementById('g').value.trim();
+      draft.group = cleanGroup(document.getElementById('g').value);
       if (draft.id === 'new') lists.push({ ...draft, id: uid() });
       else lists[lists.findIndex(l => l.id === draft.id)] = { ...draft };
       saveLists(); draft = null; go('#/edit'); break;

@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 2;
+const DEFAULTS_VERSION = 3;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -159,145 +159,145 @@ const DEFAULTS = [
  },
  {
   "title": "Engine Failure — If Altitude Permits (3,500')",
-  "group": "Emergency",
+  "group": "Emergency/Engine Failure",
   "color": "#c62828",
   "text": "Mixture INOP Engine ... AS REQUIRED\nElectric Fuel Pump INOP Engine ... ON\nFuel Selector INOP Engine ... X-FEED\nMagnetos INOP Engine ... LEFT OR RIGHT ONLY\nAlternate Air INOP Engine ... CHECK ON"
  },
  {
   "title": "Feathering Procedure",
-  "group": "Emergency",
+  "group": "Emergency/Engine Failure",
   "color": "#c62828",
   "text": "Propeller INOP Engine ... FEATHER (BFR 800 RPM)\nMixture INOP Engine ... IDLE CUT OFF\nTrim ... AS REQUIRED\nMaintain ... 5° BANK TOWARD GOOD ENGINE\nAdjust Airspeed and Power ... AS NEEDED\nFuel Pump INOP Engine ... OFF\nMagnetos INOP Engine ... OFF\nCowl Flaps INOP Engine ... CLOSE\nAlternator INOP Engine ... OFF\nElectrical Load ... REDUCE BELOW 50 AMPS\nFuel Selector INOP Engine ... OFF\nFuel Pump Operating Engine ... OFF"
  },
  {
   "title": "Air Start / Unfeathering",
-  "group": "Emergency",
+  "group": "Emergency/Engine Failure",
   "color": "#c62828",
   "text": "Fuel Selector INOP Engine ... ON\nFuel Pump INOP Engine ... OFF\nThrottle Controls ... OPEN 1/4 INCH\nPropeller Controls ... FULL FORWARD\nMixture Controls ... RICH\nMagnetos ... ON\nStarter ... ENGAGE TILL PROP WINDMILLS\nThrottle ... REDUCE TILL ENGINE IS WARM\nSet Zero Thrust ... SET MAP / 2000 RPM\nAlternator ... ON\nCowl Flaps ... OPEN WHEN ENGINE IS WARM\nIf engine does'nt start, prime w/ Fuel Pump INOP Engine ON 3 sec, then repeat the steps above."
  },
  {
   "title": "Engine Failure on Takeoff — 100 MPH or Below",
-  "group": "Emergency",
+  "group": "Emergency/Takeoff & Climb",
   "color": "#c62828",
   "text": "# If engine failure occurs during takeoff roll below 100 MPH\nThrottle Controls ... CLOSE BOTH — STOP STRAIGHT\n# If inadequate runway remains to stop\nThrottle Controls ... CLOSED\nBrakes ... APPLY MAX BRAKING\nMaster Switch ... OFF\nFuel Selectors ... OFF\nContinue straight, turning to avoid obstacles as necessary."
  },
  {
   "title": "Engine Failure on Takeoff — 100 MPH or Above",
-  "group": "Emergency",
+  "group": "Emergency/Takeoff & Climb",
   "color": "#c62828",
   "text": "Engine failure occurs during ground roll or after lift-off with gear down and 100 MPH attained:\n# If adequate runway remains to stop\nClose both throttles immediately; land if airborne; stop straight ahead.\n# If inadequate runway remains to stop\nAbort or continue based on: weight / density altitude, obstructions, weather, competency.\n# If decision is made to continue\nMaintain Heading and Airspeed ... 93 or 105 MPH\nRetract Landing Gear ... WHEN CLIMB IS ESTABLISHED\nFeather Inoperative Engine ... SEE FEATHERING PROCEDURE"
  },
  {
   "title": "Engine Failure in Climb — Below 80 MPH",
-  "group": "Emergency",
+  "group": "Emergency/Takeoff & Climb",
   "color": "#c62828",
   "text": "Power on Operative Engine ... REDUCE, MAINTAIN DIRECTIONAL CONTROL\nNose ... LOWER TO ATTAIN Vyse 105 MPH\nInoperative Engine ... FEATHER"
  },
  {
   "title": "Engine Failure in Climb — Above 80 MPH",
-  "group": "Emergency",
+  "group": "Emergency/Takeoff & Climb",
   "color": "#c62828",
   "text": "Directional Control ... MAINTAIN\nMinimum Airspeed ... MAINTAIN Vyse 105 MPH\nInoperative Engine ... FEATHER"
  },
  {
   "title": "Single-Engine Fuel Management",
-  "group": "Emergency",
+  "group": "Emergency/Single Engine",
   "color": "#c62828",
   "text": "# Cruising — using fuel from the tank on the same side as the operating engine\nFuel Selector Operating Engine ... ON\nFuel Selector INOP Engine ... OFF\nElectric Fuel Pumps ... OFF\nIn case of an engine-driven pump failure, electric fuel pump on operating engine side ON.\n# X-Feed operation — using fuel from the tank on the side opposite the operating engine\nFuel Selector Operating Engine ... X-FEED\nFuel Selector INOP Engine ... OFF\nElectric Fuel Pumps ... OFF\nIn case of an engine-driven pump failure, electric fuel pump on operating engine side ON.\n# Landing\nFuel Selector Operating Engine ... ON\nFuel Selector INOP Engine ... OFF\nElectric Fuel Pump Operating Engine ... ON\nLanding Gear ... UP — RETRACT (+ rate of climb on VSI)\nFlaps (below 125 MPH) ... RETRACT\nCowl Flaps ... ADJUST"
  },
  {
   "title": "Single-Engine Landing",
-  "group": "Emergency",
+  "group": "Emergency/Single Engine",
   "color": "#c62828",
   "text": "Feather inoperative engine when certain of making the field.\nGear ... DOWN\nFlaps (max 25°) ... AS REQUIRED\nFinal Approach Speed ... MAINTAIN"
  },
  {
   "title": "Single-Engine Go Around",
-  "group": "Emergency",
+  "group": "Emergency/Single Engine",
   "color": "#c62828",
   "text": "Avoided if at all possible. If a single-engine go-around cannot be avoided, proceed as follows:\nMixture Controls ... RICH\nPropeller Controls ... FULL FWD\nThrottle Controls ... FULL FWD\nFlaps ... UP\nLanding Gear ... UP\nAirspeed ... Vyse 105 MPH\nTrim ... SET\nCowl Flap ... AS REQUIRED"
  },
  {
   "title": "Engine Fire — In Flight",
-  "group": "Emergency",
+  "group": "Emergency/Fire & Descent",
   "color": "#c62828",
   "text": "Fuel Selector (affected engine) ... OFF\nThrottle Control (affected engine) ... CLOSE\nPropeller Control (affected engine) ... FEATHER\nMixture Control (affected engine) ... IDLE CUT OFF\nHeater ... OFF\nDefroster ... OFF\nCowl Flaps ... OPEN\nLand immediately if terrain permits."
  },
  {
   "title": "Engine Fire — On the Ground",
-  "group": "Emergency",
+  "group": "Emergency/Fire & Descent",
   "color": "#c62828",
   "text": "# If engine has not started\nMixture ... IDLE CUT OFF\nThrottle ... FULL OPEN\nStarter ... ENGAGE\nThis is an attempt to pull the fire into the engine.\n# If engine has started, continue operating. If external fire extinguishing is to be applied:\nFuel Selectors ... OFF\nMixture Controls ... IDLE CUT OFF\nEVACUATE."
  },
  {
   "title": "Emergency Descent",
-  "group": "Emergency",
+  "group": "Emergency/Fire & Descent",
   "color": "#c62828",
   "text": "Throttle Controls ... CLOSE\nPropeller Controls ... FULL FWD\nMixture Controls ... AS REQUIRED\nLanding Gear ... DOWN\nAirspeed ... 140 MPH (120 Demo)\nCowl Flaps ... CLOSE"
  },
  {
   "title": "Propeller Overspeed",
-  "group": "Emergency",
+  "group": "Emergency/Fire & Descent",
   "color": "#c62828",
   "text": "Throttle Controls ... CLOSE\nAirspeed ... 105 MPH\nPropeller Controls ... BACK TO LOW RPM\nSlowly increase throttle until propeller governor is engaged.\nSlowly increase propeller and throttle to the desired power setting.\nContinue at reduced speed and power and land.\n! NOTE: If throttle retarded below 15–20 in MP above 105 MPH, propeller may overspeed again upon applying power."
  },
  {
   "title": "Manual Gear Extension",
-  "group": "Emergency",
+  "group": "Emergency/Landing Gear",
   "color": "#c62828",
   "text": "# Check the following before extending the gear manually\nCircuit Breakers ... CHECK / IN\nMaster Switch ... ON\nAlternators ... CHECK / ON\nNavigation Lights ... OFF (DAYTIME)\n# To extend: reposition the clip downward clear of the knob, then\nAirspeed ... REDUCE TO 100 MPH\nGear Selector Switch ... GEAR DOWN, LOCKED POSITION\nEmergency Extension Knob ... PULL\nLanding Gear Indicator Lights ... CHECK 3 GREENS\nLeave emergency gear extension knob OUT."
  },
  {
   "title": "Gear Unsafe Warnings",
-  "group": "Emergency",
+  "group": "Emergency/Landing Gear",
   "color": "#c62828",
   "text": "Red light indicates gear is in transit. Recycle the gear if the red light continues to illuminate.\nRed light illuminates when horn sounds. Horn sounds when MAP drops to 14\" in either or both engines and gear is up, or when gear selector is set UP with airplane on ground."
  },
  {
   "title": "Gear-Up Landing",
-  "group": "Emergency",
+  "group": "Emergency/Landing Gear",
   "color": "#c62828",
   "text": "Approach ... NORMAL AIRSPEED\nFlaps ... UP\nThrottle Controls ... CLOSE BEFORE TOUCHDOWN\nMaster Switch ... OFF\nMagnetos ... OFF\nFuel Selectors ... OFF\nContact surface at minimum airspeed."
  },
  {
   "title": "Overvoltage Lights — Both",
-  "group": "Emergency",
+  "group": "Emergency/Electrical",
   "color": "#c62828",
   "text": "All Electrical Load ... OFF\nMaster Switch ... ON\nAlternators ... OFF / EXTINGUISH LIGHTS\nAlternators ... ON, ONE AT A TIME\nDetermine the alternator with the least output (amperes) and leave its switch on.\nElectrical Equipment ... ON, MAX 50 AMPS"
  },
  {
   "title": "Overvoltage Light — One",
-  "group": "Emergency",
+  "group": "Emergency/Electrical",
   "color": "#c62828",
   "text": "All Electrical Load ... OFF\nMaster Switch ... ON\nAlternator Associated with Light ... OFF\nAlternator Associated with Light ... ON — IF MORE THAN 50 AMPS, OFF\nElectrical Equipment ... NO MORE THAN 50 AMPS"
  },
  {
   "title": "Alternator Off Line — Weak Battery",
-  "group": "Emergency",
+  "group": "Emergency/Electrical",
   "color": "#c62828",
   "text": "Circuit Breakers ... CHECK / RESET IF TRIPPED\nElectrical Load ... REDUCE\nAlternator Switch (operative) ... ON\nMaster Switch (short period) ... OFF\nMaster Switch ... ON\n# If no output indicated on the ammeter\nMaster Switch (longer period) ... OFF\nMaster Switch ... ON\nIf power is established, reduce electrical load not to exceed 50 amperes."
  },
  {
   "title": "Loss of One Alternator",
-  "group": "Emergency",
+  "group": "Emergency/Electrical",
   "color": "#c62828",
   "text": "Electrical Load ... REDUCE TO 50 AMPS\nCircuit Breakers ... CHECK / RESET IF TRIPPED\nCycle INOP Alternator Switch ... OFF / ON\n# If alternator fails to reset\nAlternator ... OFF\nElectrical Load ... REDUCE\n! WARNING: Compass error may exceed 10° with both alternators inoperative."
  },
  {
   "title": "Vacuum Failure",
-  "group": "Emergency",
+  "group": "Emergency/Vacuum · Pitot · Door",
   "color": "#c62828",
   "text": "RPM ... INCREASE 2700\nAltitude ... DESCEND TO MAINTAIN 4.5 in Hg\nUse turn indicator (electric) to monitor the direction indicator and attitude indicator performance."
  },
  {
   "title": "Pitot Static Malfunction",
-  "group": "Emergency",
+  "group": "Emergency/Vacuum · Pitot · Door",
   "color": "#c62828",
   "text": "Pitot Heat ... ON\nAlternate Static Source ... OPEN\nStatic Drain ... CHECK"
  },
  {
   "title": "Open Door",
-  "group": "Emergency",
+  "group": "Emergency/Vacuum · Pitot · Door",
   "color": "#c62828",
   "text": "Airspeed ... SLOW TO 100 MPH\nCabin Vents ... CLOSE\nStorm Window ... OPEN\nUpper Latch Open ... LATCH\nSide Latch Open ... PULL ARMREST / LATCH\nUpper/Side Latch Open ... UNLATCH"
  }
