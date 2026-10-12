@@ -138,7 +138,11 @@
     background: var(--card); border: 2px solid var(--line); font-size: 19px; font-weight: 700; text-align: left;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
+  .wx { display: flex; align-items: baseline; }
   .wx b { color: var(--next); }
+  .wx-key { flex: none; white-space: nowrap; }
+  .wx-xw { font-weight: 850; }
+  .wx-rest { flex: 1 1 auto; min-width: 0; margin-left: .3em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
   .wx.empty { border-style: dashed; border-color: var(--next); color: var(--next); }
   .home .wx { margin: 14px 0 0; }
   .tabs { display: flex; margin: 0 0 14px; }
@@ -172,6 +176,18 @@
   .pad-act .go { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .shake { animation: shake .3s; }
   @keyframes shake { 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
+
+  /* Phone-width screens: let the top tiles share the width instead of running off screen. */
+  @media (max-width: 600px) {
+    .bar { padding: 10px 12px; }
+    .bar > * + * { margin-left: 8px; }
+    .home-tile { min-width: 0; padding: 0 16px; font-size: 24px; }
+    .home-tile svg { width: 28px; height: 28px; margin-right: 8px; }
+    .next-tile { min-width: 0; flex: 1 1 0; max-width: none; font-size: 18px; padding: 0 10px; }
+    .bar .spacer { display: none; }
+    .home-head .home-tile { min-width: 0; }
+    .home-head .next-tile { min-width: 0; flex: none; }
+  }
 
   /* ---------- Edit ---------- */
   .edit-row {
@@ -352,8 +368,9 @@ function components(side) {
   const a = (+d - r * 10) * Math.PI / 180, hw = s2 => Math.round(s2 * Math.cos(a)), xw = s2 => Math.round(Math.abs(s2 * Math.sin(a)));
   const side2 = Math.sin(a) > 0.01 ? 'R' : Math.sin(a) < -0.01 ? 'L' : '';
   const h = hw(sp), hg = g ? hw(g) : null;
-  const head = (h < 0 ? 'TW ' + -h + (g ? '–' + -hg : '') : 'HW ' + h + (g ? '–' + hg : ''));
-  return head + ' · XW ' + xw(sp) + (g ? '–' + xw(g) : '') + side2;
+  const rng = (a, b) => (b === null || b === a ? String(a) : a + '–' + b);   // "10–15", or just "10"
+  const head = h < 0 ? 'TW ' + rng(-h, g ? -hg : null) : 'HW ' + rng(h, g ? hg : null);
+  return 'XW ' + rng(xw(sp), g ? xw(g) : null) + side2 + ' · ' + head;
 }
 // Density altitude ≈ pressure altitude + 120 ft per °C above standard.
 function densityAlt() {
@@ -405,10 +422,12 @@ function wxLine(forced) {
     return `<button class="wx empty" data-act="padall" data-tab="arr"><b>ARR</b> · Tap to enter arrival ATIS</button>`;
   let side = forced || fd._active || 'dep';
   if (!forced && !has(side)) side = side === 'dep' ? 'arr' : 'dep';   // fall back to the other ATIS until this one is entered
-  const sum = [fd[side + '.info'] ? fd[side + '.info'] : '', fd[side + '.rwy'] ? 'RWY ' + fd[side + '.rwy'] : '',
-    windText(side), components(side), fmt(side + '.alt')].filter(Boolean);
-  if (!sum.length) return '';
-  return `<button class="wx" data-go="#/data/${side}"><b>${side.toUpperCase()}</b> · ${esc(sum.join(' · '))}</button>`;
+  if (!has(side)) return '';
+  // Runway and wind components always show in full; wind, ATIS letter and altimeter use the space left.
+  const comp = components(side) || (fd[side + '.rwy'] ? 'XW —' : 'XW — enter runway');
+  const rest = [windText(side), fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', fmt(side + '.alt')].filter(Boolean);
+  return `<button class="wx" data-go="#/data/${side}"><span class="wx-key"><b>${side.toUpperCase()}</b> RWY ${esc(fd[side + '.rwy'] || '—')} · <span class="wx-xw">${esc(comp)}</span></span>`
+    + (rest.length ? `<span class="wx-rest">· ${esc(rest.join(' · '))}</span>` : '') + `</button>`;
 }
 
 /* ---------- Keypad ---------- */
