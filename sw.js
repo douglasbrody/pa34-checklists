@@ -1,5 +1,5 @@
 // Bump VERSION whenever any app file changes so iPads pick up the update.
-const VERSION = 'checklists-v12';
+const VERSION = 'checklists-v13';
 const FILES = ['./', './index.html', './manifest.webmanifest', './defaults.js', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
