@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 8;
+const DEFAULTS_VERSION = 9;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -201,19 +201,19 @@ const DEFAULTS = [
  },
  {
   "title": "Single-Engine Fuel Management",
-  "group": "Emergency/Single Engine",
+  "group": "Emergency/Single Engine Operations",
   "color": "#c62828",
   "text": "# Cruising — using fuel from the tank on the same side as the operating engine\nFuel Selector Operating Engine ... ON\nFuel Selector INOP Engine ... OFF\nElectric Fuel Pumps ... OFF\nIn case of an engine-driven pump failure, electric fuel pump on operating engine side ON.\n# X-Feed operation — using fuel from the tank on the side opposite the operating engine\nFuel Selector Operating Engine ... X-FEED\nFuel Selector INOP Engine ... OFF\nElectric Fuel Pumps ... OFF\nIn case of an engine-driven pump failure, electric fuel pump on operating engine side ON.\n# Landing\nFuel Selector Operating Engine ... ON\nFuel Selector INOP Engine ... OFF\nElectric Fuel Pump Operating Engine ... ON"
  },
  {
   "title": "Single-Engine Landing",
-  "group": "Emergency/Single Engine",
+  "group": "Emergency/Single Engine Operations",
   "color": "#c62828",
   "text": "Feather inoperative engine when certain of making the field.\nGear ... DOWN\nFlaps (max 25°) ... AS REQUIRED\nFinal Approach Speed ... MAINTAIN"
  },
  {
   "title": "Single-Engine Go Around",
-  "group": "Emergency/Single Engine",
+  "group": "Emergency/Single Engine Operations",
   "color": "#c62828",
   "text": "Avoided if at all possible. If a single-engine go-around cannot be avoided, proceed as follows:\nMixture Controls ... RICH\nPropeller Controls ... FULL FWD\nThrottle Controls ... FULL FWD\nFlaps ... UP\nLanding Gear ... UP\nAirspeed ... Vyse 105 MPH\nTrim ... SET\nCowl Flap ... AS REQUIRED"
  },

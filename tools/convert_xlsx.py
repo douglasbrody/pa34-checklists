@@ -247,7 +247,7 @@ EMER_CAT={
  "Engine Failure — If Altitude Permits (3,500')":'Engine Failure','Feathering Procedure':'Engine Failure','Air Start / Unfeathering':'Engine Failure',
  'Engine Failure on Takeoff — 100 MPH or Below':'Takeoff & Climb','Engine Failure on Takeoff — 100 MPH or Above':'Takeoff & Climb',
  'Engine Failure in Climb — Below 80 MPH':'Takeoff & Climb','Engine Failure in Climb — Above 80 MPH':'Takeoff & Climb',
- 'Single-Engine Fuel Management':'Single Engine','Single-Engine Landing':'Single Engine','Single-Engine Go Around':'Single Engine',
+ 'Single-Engine Fuel Management':'Single Engine Operations','Single-Engine Landing':'Single Engine Operations','Single-Engine Go Around':'Single Engine Operations',
  'Engine Fire — In Flight':'Fire & Descent','Engine Fire — On the Ground':'Fire & Descent','Emergency Descent':'Fire & Descent',
  'Manual Gear Extension':'Landing Gear','Gear Unsafe Warnings':'Landing Gear','Gear-Up Landing':'Landing Gear',
  'Overvoltage Lights — Both':'Electrical','Overvoltage Light — One':'Electrical','Alternator Off Line — Weak Battery':'Electrical','Loss of One Alternator':'Electrical',
@@ -257,7 +257,7 @@ for l in emer:
     cat=EMER_CAT[l['title']]
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=8
+DEFAULTS_VERSION=9
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")
