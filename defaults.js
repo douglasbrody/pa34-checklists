@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 5;
+const DEFAULTS_VERSION = 6;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -159,21 +159,27 @@ const DEFAULTS = [
  },
  {
   "title": "Engine Failure — If Altitude Permits (3,500')",
-  "group": "Emergency/Engine Failure",
+  "group": "Emergency/Engine & Prop",
   "color": "#c62828",
-  "text": "Mixture INOP Engine ... AS REQUIRED\nElectric Fuel Pump INOP Engine ... ON\nFuel Selector INOP Engine ... X-FEED\nMagnetos INOP Engine ... LEFT OR RIGHT ONLY\nAlternate Air INOP Engine ... CHECK ON"
+  "text": "Mixture INOP Engine ... AS REQUIRED\nElectric Fuel Pump INOP Engine ... ON\nFuel Selector INOP Engine ... X-FEED\nMagnetos INOP Engine ... LEFT OR RIGHT ONLY\nAlternate Air INOP Engine ... CHECK ON\n-> FEATHER | If the engine doesn't start : Feathering Procedure"
  },
  {
   "title": "Feathering Procedure",
-  "group": "Emergency/Engine Failure",
+  "group": "Emergency/Engine & Prop",
   "color": "#c62828",
   "text": "Propeller INOP Engine ... FEATHER (BFR 800 RPM)\nMixture INOP Engine ... IDLE CUT OFF\nTrim ... AS REQUIRED\nMaintain ... 5° BANK TOWARD GOOD ENGINE\nAdjust Airspeed and Power ... AS NEEDED\nFuel Pump INOP Engine ... OFF\nMagnetos INOP Engine ... OFF\nCowl Flaps INOP Engine ... CLOSE\nAlternator INOP Engine ... OFF\nElectrical Load ... REDUCE BELOW 50 AMPS\nFuel Selector INOP Engine ... OFF\nFuel Pump Operating Engine ... OFF"
  },
  {
   "title": "Air Start / Unfeathering",
-  "group": "Emergency/Engine Failure",
+  "group": "Emergency/Engine & Prop",
   "color": "#c62828",
   "text": "Fuel Selector INOP Engine ... ON\nFuel Pump INOP Engine ... OFF\nThrottle Controls ... OPEN 1/4 INCH\nPropeller Controls ... FULL FORWARD\nMixture Controls ... RICH\nMagnetos ... ON\nStarter ... ENGAGE TILL PROP WINDMILLS\nThrottle ... REDUCE TILL ENGINE IS WARM\nSet Zero Thrust ... SET MAP / 2000 RPM\nAlternator ... ON\nCowl Flaps ... OPEN WHEN ENGINE IS WARM\nIf engine does'nt start, prime w/ Fuel Pump INOP Engine ON 3 sec, then repeat the steps above."
+ },
+ {
+  "title": "Propeller Overspeed",
+  "group": "Emergency/Engine & Prop",
+  "color": "#c62828",
+  "text": "Throttle Controls ... CLOSE\nAirspeed ... 105 MPH\nPropeller Controls ... BACK TO LOW RPM\nSlowly increase throttle until propeller governor is engaged.\nSlowly increase propeller and throttle to the desired power setting.\nContinue at reduced speed and power and land.\n! NOTE: If throttle retarded below 15–20 in MP above 105 MPH, propeller may overspeed again upon applying power."
  },
  {
   "title": "Engine Failure on Takeoff — 100 MPH or Below",
@@ -234,12 +240,6 @@ const DEFAULTS = [
   "group": "Emergency/Fire & Descent",
   "color": "#c62828",
   "text": "Throttle Controls ... CLOSE\nPropeller Controls ... FULL FWD\nMixture Controls ... AS REQUIRED\nLanding Gear ... DOWN\nAirspeed ... 140 MPH (120 Demo)\nCowl Flaps ... CLOSE"
- },
- {
-  "title": "Propeller Overspeed",
-  "group": "Emergency/Fire & Descent",
-  "color": "#c62828",
-  "text": "Throttle Controls ... CLOSE\nAirspeed ... 105 MPH\nPropeller Controls ... BACK TO LOW RPM\nSlowly increase throttle until propeller governor is engaged.\nSlowly increase propeller and throttle to the desired power setting.\nContinue at reduced speed and power and land.\n! NOTE: If throttle retarded below 15–20 in MP above 105 MPH, propeller may overspeed again upon applying power."
  },
  {
   "title": "Manual Gear Extension",

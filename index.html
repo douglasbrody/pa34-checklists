@@ -271,14 +271,12 @@ const lastPart = g => g.split('/').pop();
 const parentOf = g => g.split('/').slice(0, -1).join('/');
 const isEmergency = g => /emerg/i.test(g || '');
 
-// Next stays within a group, can step down into a sub-group (e.g. Memory Items -> Engine Failure),
-// and never chains from normal procedures into emergencies (or out of them).
+// Next follows the order of normal procedures. Emergency checklists stand alone; real
+// emergency sequences use explicit "->" buttons instead (e.g. Memory Items -> FIX / FEATHER).
 function nextOf(l) {
   const n = lists[lists.indexOf(l) + 1];
-  if (!n) return null;
-  const a = cleanGroup(l.group), b = cleanGroup(n.group);
-  if (a === b || (a && b.startsWith(a + '/'))) return n;
-  return !isEmergency(a) && !isEmergency(b) ? n : null;
+  if (!n || isEmergency(l.group) || isEmergency(n.group)) return null;
+  return n;
 }
 
 /* ---------- Screens ---------- */
