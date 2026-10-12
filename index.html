@@ -850,7 +850,7 @@ $app.addEventListener('click', e => {
       break;
     }
     case 'newflight':
-      if (confirm('Clear both ATIS entries and all takeoff data for a new flight?')) { fd = {}; saveFd(); go('#/data/dep'); }
+      fd = {}; saveFd(); go('#/data/dep');
       break;
     case 'import': document.getElementById('importFile').click(); break;
   }
