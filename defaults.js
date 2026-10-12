@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 12;
+const DEFAULTS_VERSION = 13;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -119,7 +119,7 @@ const DEFAULTS = [
   "title": "Cruise",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "Manifold Pressure/RPM ... SET (according to table)\nMixture Controls ... ADJUST (EGT)\nCowl Flaps ... AS REQUIRED\nEngine Instruments ... MONITOR"
+  "text": "Manifold Pressure/RPM ... SET (according to table)\nMixture Controls ... ADJUST (EGT)\nCowl Flaps ... AS REQUIRED\nElectric Fuel Pumps ... OFF (ONE AT A TIME) — CHECK FUEL FLOW\nEngine Instruments ... MONITOR"
  },
  {
   "title": "Descent",

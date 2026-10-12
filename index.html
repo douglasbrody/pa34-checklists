@@ -76,8 +76,11 @@
     font-size: 22px; flex-direction: column; line-height: 1.15;
   }
   .next-tile small { font-size: 15px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
-  .next-tile span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: center; }
-  .bar .spacer { flex: 1; }
+  .next-tile span { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; line-height: 1.1; -webkit-box-orient: vertical; text-align: center; }
+  .bar .spacer { flex: .0001 1 0; }   /* tiles grow first (up to their max); the spacer takes any leftover */
+  .bar .next-tile { flex: 1 1 0; min-width: 0; max-width: 230px; padding: 0 12px; font-size: 20px; }
+  .bar .next-tile small { font-size: 14px; }
+  .bar .home-tile { min-width: 160px; padding: 0 18px; font-size: 27px; }
   .list-title {
     flex: none; margin: 0; padding: 10px 16px 0; text-align: center;
     font-size: 30px; font-weight: 850; line-height: 1.15;
@@ -183,7 +186,11 @@
     .bar > * + * { margin-left: 8px; }
     .home-tile { min-width: 0; padding: 0 16px; font-size: 24px; }
     .home-tile svg { width: 28px; height: 28px; margin-right: 8px; }
-    .next-tile { min-width: 0; flex: 1 1 0; max-width: none; font-size: 18px; padding: 0 10px; }
+    .next-tile, .bar .next-tile { min-width: 0; flex: 1 1 0; max-width: none; font-size: 16px; padding: 0 6px; }
+    .bar .next-tile small { font-size: 12px; letter-spacing: 0; }
+    .bar .home-tile { min-width: 72px; padding: 0 10px; }
+    .bar .home-tile span { display: none; }            /* house icon only on phones */
+    .bar .home-tile svg { width: 38px; height: 38px; margin-right: 0; }
     .bar .spacer { display: none; }
     .home-head .home-tile { min-width: 0; }
     .home-head .next-tile { min-width: 0; flex: none; }
@@ -556,11 +563,12 @@ const isEmergency = g => /emerg/i.test(g || '');
 
 // Next follows the order of normal procedures. Emergency checklists stand alone; real
 // emergency sequences use explicit "->" buttons instead (e.g. Memory Items -> FIX / FEATHER).
-function nextOf(l) {
-  const n = lists[lists.indexOf(l) + 1];
+function nextOf(l, step) {
+  const n = lists[lists.indexOf(l) + (step || 1)];
   if (!n || isEmergency(l.group) || isEmergency(n.group)) return null;
   return n;
 }
+const prevOf = l => nextOf(l, -1);
 
 /* ---------- Screens ---------- */
 const tileHtml = (label, color, hash) =>
@@ -589,7 +597,7 @@ function renderGroup(path) {
   $app.innerHTML = `<div class="home">
     <div class="home-head">
       <button class="home-tile" data-go="#/">${ICON_HOME}<span>HOME</span></button>
-      ${parent ? `<button class="next-tile" data-go="${groupHash(parent)}"><small>← Back to</small><span>${esc(lastPart(parent))}</span></button>` : ''}
+      ${parent ? `<button class="next-tile" data-go="${groupHash(parent)}"><small>↑ Back to</small><span>${esc(lastPart(parent))}</span></button>` : ''}
       <h1 class="group-title">${esc(lastPart(path))}</h1>
     </div>
     <div class="tiles">${items.map(groupTile).join('')}</div>
@@ -628,7 +636,7 @@ function renderList(id) {
     const ks = rowKeys(b.c + ' ' + b.r);
     return `<div class="row${b.hl ? ' hl' : ''}${ks.length ? ' tap' : ''}"${ks.length ? ` data-keys="${ks.join(' ')}"` : ''}><span class="c">${fillTokens(brk(b.c))}</span><span class="lead"></span><span class="r">${fillTokens(brk(b.r))}</span></div>`;
   }).join('');
-  const next = choices.length ? null : nextOf(l), g = cleanGroup(l.group);
+  const next = choices.length ? null : nextOf(l), prev = prevOf(l), g = cleanGroup(l.group);
   const choiceHtml = choices.map((c, i) => {
     const t = lists.find(x => x.title.trim().toLowerCase() === c.target.toLowerCase());
     return t ? `<button class="choice c${i % 3}" data-go="#/list/${t.id}">${esc(c.label)}<small>${esc(c.sub || t.title)}</small></button>`
@@ -637,8 +645,9 @@ function renderList(id) {
   $app.innerHTML = `<div class="page${isEmergency(g) ? ' emer' : ''}">
     <div class="bar">
       <button class="home-tile" data-go="#/">${ICON_HOME}<span>HOME</span></button>
-      ${g ? `<button class="next-tile" data-go="${groupHash(g)}"><small>← Back to</small><span>${esc(lastPart(g))}</span></button>` : ''}
+      ${g ? `<button class="next-tile" data-go="${groupHash(g)}"><small>↑ Back to</small><span>${esc(lastPart(g))}</span></button>` : ''}
       <span class="spacer"></span>
+      ${prev ? `<button class="next-tile" data-go="#/list/${prev.id}"><small>← Previous</small><span>${esc(prev.title)}</span></button>` : ''}
       ${next ? `<button class="next-tile" data-go="#/list/${next.id}"><small>Next →</small><span>${esc(next.title)}</span></button>` : ''}
     </div>
     <h2 class="list-title">${esc(l.title)}</h2>
@@ -659,7 +668,7 @@ function layoutList() {
   const cs = getComputedStyle(fit);
   const H = fit.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   const W = fit.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-  const MIN = 16, MAX = 34, WRAP_BELOW = 21, PAD = 0.22, PAD_MAX = 0.9;
+  const MIN = 16, MAX = 34, WRAP_BELOW = 24, PAD = 0.22, PAD_MAX = 0.9;
   const set = (cols, px, wrap, pad) => {
     sheet.style.columnCount = cols; sheet.style.fontSize = px + 'px';
     sheet.style.setProperty('--rp', pad + 'em'); sheet.classList.toggle('wrapr', wrap);
@@ -700,7 +709,17 @@ function layoutList() {
   set(c.cols, px, c.wrap, lo);
 }
 
-function layout() { layoutTiles(); layoutList(); }
+// Shrink a top-bar tile's label until the whole name fits (three lines at most).
+function layoutBar() {
+  document.querySelectorAll('.next-tile span').forEach(sp => {
+    for (let px = 20; px >= 13; px--) {
+      sp.style.fontSize = px + 'px';
+      if (sp.scrollHeight <= sp.clientHeight + 1 && sp.scrollWidth <= sp.clientWidth + 1) break;
+    }
+  });
+}
+
+function layout() { layoutBar(); layoutTiles(); layoutList(); }
 let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 60); });
 
 function renderManage() {

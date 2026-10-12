@@ -112,6 +112,7 @@ by_title['Right Engine Nacelle']['lines'][0:0]=['General Condition ... CHECK','C
 by_title['Nose Section']['lines'].insert(0,'General Condition ... CHECKED')
 by_title['Starting Engine']['lines']+=['# Flooded engine / hot start','Refer to the Quick Reference Handbook or Pilot Operating Handbook.']
 by_title['Before Takeoff']['lines'].insert(0,'Flight Instruments ... CHECK')
+insert('Cruise','Engine Instruments ... MONITOR',['Electric Fuel Pumps ... OFF (ONE AT A TIME) — CHECK FUEL FLOW'],after=False)
 replace('Before Takeoff','Trims ... ELEVATOR T/O, RUDDER AS REQUIRED',['Elevator Trim ... SET FOR T/O','Rudder Trim ... SET'])
 # Approach: the full Avia pre-landing check, then GUMPS. Keeps this checklist's own
 # "& Pumps" in G and the OEI 25° flap limit.
@@ -258,7 +259,7 @@ for l in emer:
     cat=EMER_CAT[l['title']]
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=12
+DEFAULTS_VERSION=13
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")
