@@ -1,11 +1,11 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 15;
+const DEFAULTS_VERSION = 16;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "Baggage Door ... OPEN\nAirworthiness & Registration Certificates ... CHECK\nBaggage Door, Windows, Seats ... CLOSE, CLEAN, EMPTY & SECURE\nOperating Limitations, W&B & CG ... CHECK\nRadio License (international flights only) ... CHECK\nVOR Accuracy every 30 days (IFR only) ... CHECK\nELT (battery/expiration date) ... CHECK\nCompass Deviation Card & Fluid ... CHECK\n* HOBBS/TACH Times ... RECORDED"
+  "text": "Baggage Door ... OPEN\nAirworthiness & Registration Certificates ... CHECK\nBaggage Door, Windows, Seats ... CLOSE, CLEAN, EMPTY & SECURE\nOperating Limitations, W&B & CG ... CHECK\nRadio License (international flights only) ... CHECK\nVOR Accuracy every 30 days (IFR only) ... CHECK\nELT (battery/expiration date) ... CHECK\nCompass Deviation Card & Fluid ... CHECK\n* HOBBS/TACH Times ... {times.out}"
  },
  {
   "title": "Inside Cockpit",
@@ -149,7 +149,7 @@ const DEFAULTS = [
   "title": "Engine Shut-down",
   "group": "After Landing",
   "color": "#6b3fc7",
-  "text": "Radio Master ... OFF\nThrottle Controls ... IDLE\nMixture Controls ... IDLE/CUTOFF\nIgnition Switches ... OFF\nBeacon ... OFF\nMaster Switch ... OFF\nAlternators ... OFF\nParking Brake ... OFF\nHOBBS/TACH Times ... RECORDED\nControls ... SECURED\nAircraft ... TIED DOWN"
+  "text": "Radio Master ... OFF\nThrottle Controls ... IDLE\nMixture Controls ... IDLE/CUTOFF\nIgnition Switches ... OFF\nBeacon ... OFF\nMaster Switch ... OFF\nAlternators ... OFF\nParking Brake ... OFF\n* HOBBS/TACH Times ... {times.in}\nControls ... SECURED\nAircraft ... TIED DOWN"
  },
  {
   "title": "Engine Failure — Memory Items",
