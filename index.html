@@ -168,7 +168,8 @@
     font-size: 24px; font-weight: 850; letter-spacing: .5px; line-height: 1.15;
     animation: scan 6s ease-in-out 3s infinite;
   }
-  .scan.intitle { background: var(--scan-cover); white-space: nowrap; }
+  .scan.intitle { background: var(--scan-cover); white-space: nowrap; animation-name: scanCover; }
+  @keyframes scanCover { 0% { opacity: 0; } 6% { opacity: 1; } 28% { opacity: 1; } 36% { opacity: 0; } 100% { opacity: 0; } }
   @keyframes scan { 0% { opacity: 0; } 6% { opacity: .85; } 28% { opacity: .85; } 36% { opacity: 0; } 100% { opacity: 0; } }
 
   /* ---------- Flight data tokens, wind line, footer ---------- */
@@ -218,6 +219,7 @@
   .field small { display: block; font-size: 14px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
   .field span { font-size: 30px; font-weight: 850; color: var(--tok); }
   .field span.blank { color: var(--muted); font-weight: 600; font-size: 22px; }
+  .field span.long { font-size: 21px; overflow-wrap: anywhere; }
   .field span small { display: inline; color: var(--muted); font-size: 16px; }
   .big-go { width: 100%; min-height: 76px; border-radius: 16px; background: var(--accent); color: var(--accent-fg); font-size: 26px; font-weight: 850; margin: 0 0 12px; }
   .big-go.alt { background: var(--card); color: var(--fg); border: 2px solid var(--line); font-size: 22px; min-height: 64px; }
@@ -445,8 +447,13 @@
   }
   /* very narrow phones (iPhone SE 1st gen): smaller header so the title fits */
   @media (max-width: 360px) {
-    .home-head h1 { font-size: 19px; }
-    .small-btn { padding: 0 9px; }
+    .home-head h1 { font-size: 17px; }
+    .small-btn { padding: 0 8px; font-size: 14px; }
+    .choice { font-size: 20px; letter-spacing: 0; }
+    .tab { font-size: 12px; }
+    .keys.pairs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .tbl { font-size: .85em; }
+    .tbl th, .tbl td { padding: .2em .12em; }
   }
 
   /* Tall phones: keypad keys at least 44 px (Apple's minimum tap size). */
@@ -567,7 +574,10 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 // Checklist text: wrapping is allowed after slashes in long words (Mixture/Prop/Throttle) but never inside
 // short abbreviations (T/O), at a hyphen (X-FEED) or inside a number range (80–85, 0°–10°).
 const brk = s => esc(s).replace(/(^|[^\w])(\w{1,2})\/(\w{1,2})(?=$|[^\w])/g, '$1$2\u0000$3').replace(/\//g, '/<wbr>').replace(/\u0000/g, '/')
-  .replace(/(\w)-(\w)/g, '$1\u2011$2').replace(/(\d°?)–(\d)/g, '$1\u2060–\u2060$2');
+  .replace(/(\w)-(\w)/g, '$1\u2011$2').replace(/(\d°?)–(\d)/g, '$1\u2060–\u2060$2')
+  .replace(/(\d|\}) (FT|FPM|MPH|KT|KTS|RPM|AGL|MSL|SM|QTS|PSI|SEC|GREENS?|AMPS)\b/g, '$1\u00a0$2');
+const nob = s => esc(s).replace(/(\w)-(\w)/g, '$1\u2011$2').replace(/(\d°?)–(\d)/g, '$1\u2060–\u2060$2')
+  .replace(/(\d|\}) (FT|FPM|MPH|KT|KTS|RPM|AGL|MSL|SM|QTS|PSI|SEC|GREENS?|AMPS|in)\b/g, '$1\u00a0$2');
 function find(id) {
   return lists.find(l => l.id === id) || lists.find(l => l.id === (read(IDMAP_KEY, {}) || {})[id]);
 }
@@ -697,7 +707,7 @@ function setField(k, v) {
   const [side, f] = k.split('.'), now = Date.now(), old = fd[k], atis = side === 'dep' || side === 'arr';
   const sameApt = (a, b) => (aptKey(a) || String(a || '').toUpperCase()) === (aptKey(b) || String(b || '').toUpperCase());
   // a taxi clearance built before any airport was entered belongs to the first airport entered
-  if (side === 'dep' && f === 'apt' && (old === undefined || old === '') && fd.taxi && !fd.taxiApt) fd.taxiApt = aptKey(v);
+  if (side === 'dep' && f === 'apt' && (old === undefined || old === '') && fd.taxi && !fd.taxiApt) fd.taxiApt = aptKey(v) || String(v).toUpperCase();
   if (atis && f === 'apt' && old !== undefined && old !== '' && !sameApt(old, v)) {
     Object.keys(fd).forEach(x => { if (x.startsWith(side + '.') && x !== k) delete fd[x]; });
     if (side === 'dep') {
@@ -710,7 +720,7 @@ function setField(k, v) {
   // a new start time at or past the recorded shutdown time means those shutdown times were from the last flight
   if (side === 'out' && fd['in.' + f] !== undefined && +v >= +fd['in.' + f]) Object.keys(fd).forEach(x => { if (x.startsWith('in.')) delete fd[x]; });
   fd[k] = v;
-  if (k === 'tob.len') fd['tob.lenFor'] = toraCtx(); else rebindLen();
+  if (k === 'tob.len') fd['tob.lenFor'] = toraCtx(); else if (side === 'dep' && f === 'drwy') rebindLen();
   // The ATIS age restarts with a new airport or letter (or new weather where there is no letter, e.g. AWOS),
   // not when one value is corrected.
   if (!atis || f === 'apt' || f === 'info' || !fd[side + '._t'] || (!fd[side + '.info'] && /^(wdir|wspd|alt)$/.test(f))) fd[side + '._t'] = now;
@@ -732,6 +742,7 @@ function timesText(when) {
 }
 
 const thousands = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const SEP = '\u00a0· ';   // a list separator that never starts a line
 // Sky condition: "CLR", or layers like "FEW25 BKN80" (heights in hundreds of feet); older values were just "25".
 function skyLayers(v) {
   if (!v || v === 'CLR') return [];
@@ -740,7 +751,7 @@ function skyLayers(v) {
 }
 function skyText(v) {
   if (v === 'CLR') return 'SKY CLEAR';
-  return skyLayers(v).map(l => l.c + (l.h === null ? '\u00a0…' : '\u00a0' + thousands(l.h * 100))).join(' · ');
+  return skyLayers(v).map(l => l.c + (l.h === null ? '\u00a0…' : '\u00a0' + thousands(l.h * 100))).join(SEP);
 }
 function ceilingOf(v) {
   const c = skyLayers(v).filter(l => (l.c === 'BKN' || l.c === 'OVC') && l.h !== null).sort((a, b) => a.h - b.h)[0];
@@ -761,7 +772,7 @@ function fmt(k) {
 }
 // Approach in use: up to three approaches, stored like "ILS 6 / RNAV 24" or "VISUAL".
 const apprSegs = v => v ? String(v).split(' / ').filter(Boolean) : [];
-const apprText = v => apprSegs(v).map(x => x.replace(/ (\d+[LCR]?)$/, '\u00a0RWY\u00a0$1')).join(' · ');
+const apprText = v => apprSegs(v).map(x => x.replace(/ (\d+[LCR]?)$/, '\u00a0RWY\u00a0$1')).join(SEP);
 const apprRwy = v => { const m = apprSegs(v).map(x => (x.match(/ (\d+[LCR]?)$/) || [])[1]).filter(Boolean); return m[0] || ''; };
 function windText(side) {
   const d = fd[side + '.wdir'], sp = fd[side + '.wspd'], g = fd[side + '.gust'];
@@ -807,7 +818,7 @@ function headText(c) {
 const isTail = c => !!c && !c.calm && !c.vrb && (c.h < 0 || (c.hG !== null && c.hG < 0));
 const xwHigh = c => !!c && !c.calm && !c.vrb && Math.max(c.xw, c.xwG || 0) > XW_LIMIT;
 const xwText = c => 'XW\u00a0' + rng(c.xw, c.xwG) + c.xside;
-function compText(c) { return !c ? '' : (c.calm || c.vrb) ? headText(c) : xwText(c) + ' · ' + headText(c); }
+function compText(c) { return !c ? '' : (c.calm || c.vrb) ? headText(c) : xwText(c) + SEP + headText(c); }
 function compHtml(c) {
   if (!c) return '';
   if (c.calm || c.vrb) return esc(headText(c));
@@ -818,11 +829,11 @@ const ageText = m => m >= 120 ? Math.floor(m / 60) + ' H OLD' : m + ' MIN OLD';
 function atisRwyText(side) {
   const d = fd[side + '.drwy'], l = fd[side + '.rwy'];
   if (side === 'dep') return d ? 'DEP RWY\u00a0' + d : l ? 'RWY\u00a0' + l : fd[side + '.appr'] ? fmt(side + '.appr') : '';
-  return [fd[side + '.appr'] ? fmt(side + '.appr') : '', l ? 'LDG RWY\u00a0' + l : ''].filter(Boolean).join(' · ');
+  return [fd[side + '.appr'] ? fmt(side + '.appr') : '', l ? 'LDG RWY\u00a0' + l : ''].filter(Boolean).join(SEP);
 }
 function atisSummary(side) {
   return [fd[side + '.apt'] || '', fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', atisRwyText(side),
-    windText(side), fmt(side + '.alt'), atisAgeMin(side) > 60 ? ageText(atisAgeMin(side)) : ''].filter(Boolean).join(' · ');
+    windText(side), fmt(side + '.alt'), atisAgeMin(side) > 60 ? ageText(atisAgeMin(side)) : ''].filter(Boolean).join(SEP);
 }
 // Before the ATIS is entered: whatever is known (airport, frequency, letter) and a prompt.
 function atisPending(side) {
@@ -847,7 +858,7 @@ function toraText() {
   if (lenOk()) return label + ' · ' + thousands(fd['tob.len']) + ' FT (entered)';
   if (fd['tob.len']) {
     const was = String(fd['tob.lenFor'] || '').split('|');
-    return label + ' · entered ' + thousands(fd['tob.len']) + ' FT was for RWY ' + (was[1] || '—') + (was[2] ? ' at ' + was[2] : ' full length') + ' — re-enter';
+    return label + SEP + 'entered ' + thousands(fd['tob.len']) + '\u00a0FT was for RWY\u00a0' + (was[1] || '—') + (was[2] ? ' at\u00a0' + was[2] : ' full length') + ' — re\u2011enter';
   }
   if (!rwy) return '';
   const full = aptRunwayLen(apt, rwy);
@@ -1193,6 +1204,7 @@ function closeTaxi() {
     const add = taxiNames(taxiParts()).filter(n => !taxi.before.includes(n) && /^[A-Z]{1,2}\d{0,2}$/.test(n));
     if (add.length) { const c = twCache[key] || {}; twCache[key] = Object.assign({}, c, { learned: [...new Set((c.learned || []).concat(add))] }); write(TW_KEY, twCache); }
   }
+  if (fd.taxi) { rebindLen(); saveFd(); }
   taxi = null; padTimerClear();
   const el = document.getElementById('pad'); if (el) el.remove();
   rerender();
@@ -1201,8 +1213,9 @@ function taxiInput(a) {
   const key = aptKey(fd[taxi.side + '.apt']) || '';
   let parts = taxiParts().slice();
   if (taxi.fresh && a[0] !== 'M') {   // first entry: a clearance left over for another airport is replaced
-    if (fd.taxiApt && key && fd.taxiApt !== key) { parts = []; taxi.before = []; }
-    fd.taxiApt = key; taxi.fresh = false;
+    const own = key || String(fd[taxi.side + '.apt'] || '').toUpperCase();
+    if (fd.taxiApt && own && fd.taxiApt !== own) { parts = []; taxi.before = []; }
+    fd.taxiApt = own; taxi.fresh = false;
   }
   fd.taxi = parts;
   const last = () => parts[parts.length - 1];
@@ -1271,7 +1284,7 @@ function taxiInput(a) {
       else { p.v = p.v.slice(0, -1); if (!p.v) parts.pop(); }
     }
   }
-  fd.taxi = parts; fd._t = Date.now(); rebindLen(); saveFd(); renderTaxi();
+  fd.taxi = parts; fd._t = Date.now(); saveFd(); renderTaxi();
 }
 function renderTaxi() {
   const txt = taxiText(), mode = taxi.mode, parts = taxiParts();
@@ -1373,7 +1386,7 @@ function padTimerClear() { clearTimeout(padTimer); padTimer = 0; }
 function scheduleAdvance() {
   const p = pad, i = pad.i;
   padTimerClear();
-  padTimer = setTimeout(() => { padTimer = 0; if (pad === p && pad.i === i) advancePad(); }, 150);
+  padTimer = setTimeout(() => { padTimer = 0; if (pad === p && pad.i === i) advancePad(false, true); }, 150);
 }
 function openPad(keys, start, after) {
   keys = (keys || []).filter(k => FIELD[k]);
@@ -1420,11 +1433,11 @@ function commitPad() {
   if (f.kind === 'ident') loadTaxiways(aptKey(b));   // fetch its taxiways now, while still online
   return true;
 }
-function advancePad(skipCommit) {
+function advancePad(skipCommit, auto) {
   if (!pad) return;
   padTimerClear();
   if (!skipCommit && !commitPad()) return;
-  pad.i++; pad.buf = ''; pad.allRwy = false;
+  pad.i++; pad.buf = ''; pad.allRwy = false; pad.autoT = auto ? Date.now() : 0;
   if (pad.i >= pad.keys.length) closePad(); else { onFieldShown(); renderPad(); }
 }
 function unitFor(f, v, typing) {
@@ -1522,7 +1535,7 @@ function padKey(a) {
       pad.buf = segs.join(' / ');
     }
     else if (pad.buf) pad.buf = pad.buf.slice(0, -1);
-    else { delete fd[pad.keys[pad.i]]; saveFd(); }
+    else if (f.kind !== 'ident' && f.kind !== 'letter') { delete fd[pad.keys[pad.i]]; saveFd(); }
     return renderPad();
   }
   if (a === 'locate') { geo.failT = 0; locate(true); return renderPad(); }
@@ -1533,7 +1546,7 @@ function padKey(a) {
     const el = document.getElementById('pad'); if (el) el.remove();
     return after ? after() : rerender();
   }
-  if (padTimer) return;   // an automatic advance is about to happen: ignore extra characters
+  if (padTimer) { padTimerClear(); advancePad(false, true); if (!pad) return; return padKey(a); }   // finish the automatic advance first
   if (f.kind === 'appr') return apprKey(a);
   const kind = a[0], val = a.slice(1);
   if (/^\d$/.test(a)) {
@@ -1549,21 +1562,21 @@ function padKey(a) {
     if (f.kind !== 'rwy' && f.kind !== 'decimal' && pad.buf.replace('-', '').length >= (f.max || 2)) scheduleAdvance();
     return;
   }
-  if (kind === 'L' || kind === 'E' || kind === 'A' || kind === 'V') { pad.buf = val; return advancePad(); }
+  if (kind === 'L' || kind === 'E' || kind === 'A' || kind === 'V') { pad.buf = val; return advancePad(false, true); }
   if (kind === 'I') { if (pad.buf.length < 4) pad.buf += val; renderPad(); if (pad.buf.length >= 4) scheduleAdvance(); return; }
   if (kind === 'X') {
     if (val === '−') { pad.buf = pad.buf.startsWith('-') ? pad.buf.slice(1) : '-' + pad.buf; return renderPad(); }
     if (val === '.') { if (!pad.buf.includes('.') && pad.buf.length < (f.max || 8) - 1) pad.buf = (pad.buf || '0') + '.'; return renderPad(); }
-    if (val === 'NONE') { delete fd[pad.keys[pad.i]]; saveFd(); pad.buf = ''; return advancePad(true); }
+    if (val === 'NONE') { delete fd[pad.keys[pad.i]]; saveFd(); pad.buf = ''; return advancePad(true, true); }
     if (f.kind === 'sky') {
-      if (val === 'CLR') { pad.buf = 'CLR'; return advancePad(); }
+      if (val === 'CLR') { pad.buf = 'CLR'; return advancePad(false, true); }
       const segs = pad.buf && pad.buf !== 'CLR' ? pad.buf.split(/\s+/) : [], cur = segs[segs.length - 1] || '';
       if (/^(FEW|SCT|BKN|OVC)$/.test(cur)) segs[segs.length - 1] = val;   // change the coverage just picked
       else if (segs.length < 4) segs.push(val);
       pad.buf = segs.join(' '); return renderPad();
     }
-    if (f.kind === 'rwy') { if (!pad.buf || /[LCR]$/.test(pad.buf)) return; pad.buf += val; return advancePad(); }
-    pad.buf = val; return advancePad();                                       // VRB
+    if (f.kind === 'rwy') { if (!pad.buf || /[LCR]$/.test(pad.buf)) return; pad.buf += val; return advancePad(false, true); }
+    pad.buf = val; return advancePad(false, true);                            // VRB
   }
 }
 document.addEventListener('click', e => {
@@ -1617,7 +1630,7 @@ function typedExact(st, press) {
 }
 function padKeyDown(e, k, retried) {
   const up = k.length === 1 ? k.toUpperCase() : '';
-  const f = FIELD[pad.keys[pad.i]] || {}, press = c => { padKey(c); };
+  const f = FIELD[pad.keys[pad.i]] || {}, side = (pad.keys[pad.i] || '').split('.')[0], press = c => { padKey(c); };
   const has = c => padCodes('pad', c).indexOf('') >= 0;
   const tryCodes = cs => { for (const c of cs) if (c && has(c)) { e.preventDefault(); padKey(c); return true; } return false; };
   const pick = (prefix, eager) => {
@@ -1626,32 +1639,60 @@ function padKeyDown(e, k, retried) {
     if (r === 'retry' && !retried && pad) return padKeyDown(e, k, true);
     return r;
   };
-  if (k === 'Enter') { e.preventDefault(); if (typedExact(pad, press)) return; return padKey('next'); }
-  if (k === 'Escape') { e.preventDefault(); return padKey('done'); }
+  // letters still being typed after a word was recognised from its first letters ("OVC", "RNAV", "VISUAL")
+  if (pad.rest && up && up === pad.rest[0]) { e.preventDefault(); pad.rest = pad.rest.slice(1); return; }
+  pad.rest = '';
+  if (k === 'Enter') {
+    e.preventDefault();
+    if (typedExact(pad, press)) return;
+    if (!pad.buf && pad.autoT && Date.now() - pad.autoT < 1500) { pad.autoT = 0; return; }   // that value already moved on
+    return padKey('next');
+  }
+  if (k === 'Escape') { e.preventDefault(); typedExact(pad, press); if (pad) padKey('done'); return; }
   if (k === 'Backspace') { e.preventDefault(); if (pad.kb) { pad.kb = ''; return; } return padKey('back'); }
   if (k === ' ' || k === ',') { e.preventDefault(); if (f.kind !== 'vis') typedExact(pad, press); return; }
   if (!up) return;
-  if (f.kind === 'sky') return tryCodes([{ F: 'XFEW', S: 'XSCT', B: 'XBKN', O: 'XOVC', C: 'XCLR' }[up], up]);
+  pad.autoT = 0;
+  if (f.kind === 'sky') {
+    const w = { F: ['XFEW', 'EW'], S: ['XSCT', 'CT'], B: ['XBKN', 'KN'], O: ['XOVC', 'VC'], C: ['XCLR', 'LR'] }[up];
+    if (w && has(w[0])) { e.preventDefault(); padKey(w[0]); if (pad) pad.rest = w[1]; return; }
+    return tryCodes([up]);
+  }
   if (f.kind === 'vis') { if (up === '+') { e.preventDefault(); return padKey('V10'); } return pick('V'); }
   if (f.kind === 'rwy' || f.kind === 'appr') {
-    const cur = apprSegs(pad.buf).pop() || '', curR = f.kind === 'appr' ? (cur.split(' ')[1] || '') : pad.buf;
-    const ends = pad.allRwy ? [] : padCodes('pad', 'E');
-    if (/[LCR]/.test(up)) {
-      // a runway suffix only when it makes a real runway (a pending "15" + L at KISP, or "24" + R on the number pad)
-      if (pad.kb && pad.kbP === 'E') { if (typedPick('pad', 'E', up, pad, press) === true) { e.preventDefault(); return; } }
-      if (f.kind === 'rwy' || (curR && !/[LCR]$/.test(curR) && (ends.length ? false : true))) return tryCodes(['X' + up]);
+    const endsShown = !pad.allRwy && aptEnds(aptKey(fd[side + '.apt'])).length > 0;
+    if (f.kind === 'appr') {
+      // an approach name still being typed: the letters so far pick it (V + a digit = VISUAL)
+      if (pad.kb && pad.kbP === 'Q' && !/[A-Z]/.test(up)) {
+        const m = padCodes('pad', 'Q').filter(c => c.indexOf(pad.kb) === 0);
+        pad.kb = '';
+        if (m.length) { padKey('Q' + (m.indexOf('VISUAL') >= 0 ? 'VISUAL' : m[0])); if (!retried && pad) return padKeyDown(e, k, true); }
+      }
+      const cur = apprSegs(pad.buf).pop() || '', curR = cur.split(' ')[1] || '';
+      if (/[LCR]/.test(up) && pad.kb && pad.kbP === 'E' && typedPick('pad', 'E', up, pad, press) === true) { e.preventDefault(); return; }
+      if (/[LCR]/.test(up) && !endsShown && curR && !/[LCR]$/.test(curR)) return tryCodes(['X' + up]);   // number pad: runway suffix
+      if (/[A-Z]/.test(up)) {
+        const before = pad.buf, r = pick('Q', true);
+        if (r === true && pad && pad.buf !== before) {   // a type was chosen: swallow the rest of its name if it is typed
+          const t = (apprSegs(pad.buf).pop() || '').split(' ')[0], typed = (pad.kbTyped || '') + up;
+          pad.rest = t.indexOf(typed) === 0 ? t.slice(typed.length) : ''; pad.kbTyped = '';
+        } else if (pad) pad.kbTyped = r === true ? (pad.kbTyped || '') + up : '';
+        return;
+      }
+      if (endsShown && /\d/.test(up)) { const r = pick('E'); if (r !== false) return; }
+      return tryCodes([up]);
     }
-    if (f.kind === 'appr' && /[A-Z]/.test(up)) return pick('Q', true);
-    if (ends.length && /\d/.test(up)) { const r = pick('E'); if (r !== false) return; }
+    if (endsShown) { if (/[\dLCR]/.test(up)) { const r = pick('E'); if (r !== false) return; } return; }
     return tryCodes([up, 'X' + up]);
   }
-  return tryCodes([up, 'I' + up, 'L' + up, f.k && /wdir$/.test(f.k) && up === 'V' ? 'XVRB' : '', f.k && /gust$/.test(f.k) && up === 'N' ? 'XNONE' : '',
-    'X' + up, k === '-' ? 'X−' : '', k === '.' ? 'X.' : '']);
+  if (f.k && /wdir$/.test(f.k) && up === 'V') { e.preventDefault(); padKey('XVRB'); if (pad) pad.rest = 'RB'; return; }
+  if (f.k && /gust$/.test(f.k) && up === 'N') { e.preventDefault(); padKey('XNONE'); if (pad) pad.rest = 'ONE'; return; }
+  return tryCodes([up, 'I' + up, 'L' + up, 'X' + up, k === '-' ? 'X−' : '', k === '.' ? 'X.' : '']);
 }
 function taxiKeyDown(e, k, retried) {
   const up = k.length === 1 ? k.toUpperCase() : '', press = c => taxiInput(c);
   if (k === 'Enter') { e.preventDefault(); if (typedExact(taxi, press)) return; return closeTaxi(); }
-  if (k === 'Escape') { e.preventDefault(); return closeTaxi(); }
+  if (k === 'Escape') { e.preventDefault(); typedExact(taxi, press); return closeTaxi(); }
   if (k === 'Backspace') { e.preventDefault(); if (taxi.kb) { taxi.kb = ''; return; } return taxiInput('back'); }
   if (k === ' ' || k === ',') { e.preventDefault(); typedExact(taxi, press); return; }
   if (!up) return;
@@ -1663,17 +1704,19 @@ function taxiKeyDown(e, k, retried) {
   };
   e.preventDefault();
   const parts = taxiParts(), last = parts[parts.length - 1];
-  const lastTw = last && (last.k === 'via' ? last.v[last.v.length - 1] : last.k === 'hs' ? last.v : last.k === 'at' ? last.v : '');
+  const lastTw = last && (last.k === 'via' ? last.v[last.v.length - 1] : last.k === 'hs' || last.k === 'at' ? last.v : '');
+  const lastRwy = last && (last.k === 'cross' ? last.v : last.k === 'hs' && /^RWY /.test(last.v) ? last.v : last.k === 'via' && /^RWY /.test(lastTw) ? lastTw : '');
+  // a pending runway number followed by L / C / R completes a parallel runway (15 + L = 15L/33R)
+  if (/[LCR]/.test(up) && taxi.kb && (taxi.kbP === 'P' || taxi.kbP === 'N') && pick(taxi.kbP) === true) return;
   if (taxi.mode === 'rwy') {
-    if (/[LCR]/.test(up) && !(taxi.kb && taxi.kbP === 'N') && has('S' + up)) return taxiInput('S' + up);
-    if (padCodes('taxi', 'N').length && pick('N')) return;
+    if (/[LCR]/.test(up) && has('S' + up)) { taxi.kb = ''; return taxiInput('S' + up); }
+    if (padCodes('taxi', 'N').length) pick('N');
     return;
   }
-  if (taxi.mode === 'cross') {
-    if (/[LCR]/.test(up) && !taxi.kb && has('S' + up)) return taxiInput('S' + up);
-    pick('P'); return;
-  }
-  // AT / VIA / HOLD SHORT: taxiway names (or letters + digits), runway pairs for digits after a runway
+  // L / C / R right after a runway without a suffix makes it a parallel runway
+  if (/[LCR]/.test(up) && lastRwy && !/[LCR]\b/.test(lastRwy.replace(/^RWY /, '')) && has('S' + up)) { taxi.kb = ''; return taxiInput('S' + up); }
+  if (taxi.mode === 'cross') { pick('P'); return; }
+  // AT / VIA / HOLD SHORT: taxiway names (or letters + digits); digits not continuing a taxiway are runway pairs
   if (padCodes('taxi', 'W').length && /[A-Z]/.test(up) && pick('W')) return;
   if (/[A-Z]/.test(up) && has('L' + up)) { taxi.kb = ''; return taxiInput('L' + up); }
   if (/\d/.test(up)) {
@@ -1686,10 +1729,19 @@ document.addEventListener('keydown', e => {
   if (!pad && !taxi) return;
   if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-  if (e.key === 'Tab') { e.preventDefault(); return; }   // keep keyboard focus inside the keypad
+  if (e.key === 'Tab') {   // keep keyboard focus inside the keypad, cycling through its buttons
+    e.preventDefault();
+    const bs = [...document.querySelectorAll('#pad button:not([disabled])')]; if (!bs.length) return;
+    let i = bs.indexOf(document.activeElement);
+    i = e.shiftKey ? (i <= 0 ? bs.length - 1 : i - 1) : (i + 1) % bs.length;
+    bs[i].focus(); return;
+  }
+  // a keypad button that has keyboard focus is pressed with Enter / Space as usual
+  if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.tagName === 'BUTTON' && document.activeElement.closest('#pad')) return;
   if (pad) return padKeyDown(e, e.key);
   return taxiKeyDown(e, e.key);
 });
+
 /* ---------- ATIS & Takeoff Data screen ---------- */
 let dataReturn = '#/';
 function returnLabel() {
@@ -1743,7 +1795,7 @@ function renderData(tab) {
     ${calc}
     <div class="fields">${fields.map((f, i) => {
       const v = fmt(f.k), u = unitFor(f, v);
-      return `<button class="field" data-act="padfrom" data-tab="${tab}" data-i="${i}"><small>${esc(f.label)}</small><span class="${v ? '' : 'blank'}">${v ? esc(v) + (u ? ' <small>' + esc(u) + '</small>' : '') : 'tap to enter'}</span></button>`;
+      return `<button class="field" data-act="padfrom" data-tab="${tab}" data-i="${i}"><small>${esc(f.label)}</small><span class="${v ? (v.length > 11 ? 'long' : '') : 'blank'}">${v ? esc(v) + (u ? ' <small>' + esc(u) + '</small>' : '') : 'tap to enter'}</span></button>`;
     }).join('')}</div>
     <div class="actions" style="margin-top:16px">
       <button class="small-btn" data-act="clearfd" data-tab="${tab}">Clear ${tab === 'tob' ? 'takeoff data' : SIDE_NAME[tab].toLowerCase() + ' ATIS'}</button>
@@ -1850,11 +1902,12 @@ function layoutTiles() {
   const tiles = [...grid.children], n = tiles.length, W = grid.clientWidth, H = grid.clientHeight;
   const gap = parseFloat(getComputedStyle(grid).rowGap || getComputedStyle(grid).gridRowGap) || 14;
   if (!n || !W) return;
+  const minRow = H < 420 || W < 360 ? 64 : 90;
   const cands = [];
   for (let cols = 1; cols <= Math.min(n, 6); cols++) {
     const rows = Math.ceil(n / cols), tw = (W - gap * (cols - 1)) / cols, th = (H - gap * (rows - 1)) / rows;
     let score = Math.abs(Math.log((tw / th) / 1.4)) + (n % cols ? 0.15 : 0) + (cols > 4 ? 0.5 : 0);
-    if (th < 90) score += 10;   // rows shorter than 90 px: the grid would run off the screen
+    if (th < minRow) score += 10;   // rows shorter than this: the grid would run off the screen
     if (tw < 110) score += 4;
     cands.push({ cols, rows, score });
   }
@@ -1864,7 +1917,7 @@ function layoutTiles() {
     grid.style.gridTemplateColumns = `repeat(${c.cols}, minmax(0, 1fr))`;
     tiles.forEach(t => t.style.gridColumn = '');
     if (n % c.cols) tiles[n - 1].style.gridColumn = `span ${c.cols - (n - 1) % c.cols}`;   // fill the last row
-    grid.style.gridAutoRows = Math.max(90, Math.floor((H - gap * (c.rows - 1)) / c.rows)) + 'px';
+    grid.style.gridAutoRows = Math.max(minRow, Math.floor((H - gap * (c.rows - 1)) / c.rows)) + 'px';
   };
   // The label (not the tile) must fit inside the tile's padding.
   const fits = px => {
@@ -1899,11 +1952,15 @@ function renderList(id) {
   const blocks = parse(l.text), choices = blocks.filter(b => b.type === 'choice');
   const body = blocks.filter(b => b.type !== 'choice').map(b => {
     if (b.type === 'section') return `<div class="sec">${esc(b.text)}</div>`;
-    if (b.type === 'note') return `<div class="note">⚠︎ ${esc(b.text)}</div>`;
-    if (b.type === 'table') return `<table class="tbl">${b.rows.map((r, i) => `<tr>${r.map(c => i === 0 ? `<th>${esc(c)}</th>` : `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table>`;
+    if (b.type === 'note') return `<div class="note">⚠︎ ${nob(b.text)}</div>`;
+    if (b.type === 'table') {
+      const tbl = rows => `<table class="tbl">${rows.map((r, i) => `<tr>${r.map(c => i === 0 ? `<th>${esc(c)}</th>` : `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table>`;
+      const body = b.rows.slice(1), half = Math.ceil(body.length / 2);
+      return body.length > 10 ? tbl([b.rows[0]].concat(body.slice(0, half))) + tbl([b.rows[0]].concat(body.slice(half))) : tbl(b.rows);
+    }
     if (b.type === 'text') {
       const tk = rowKeys(b.text);
-      return `<div class="row text${b.hl ? ' ' + b.hl : ''}${tk.length ? ' tap' : ''}"${tk.length ? ` data-keys="${tk.join(' ')}" role="button" tabindex="0"` : ''}><span class="c">${fillTokens(esc(b.text))}</span></div>`;
+      return `<div class="row text${b.hl ? ' ' + b.hl : ''}${tk.length ? ' tap' : ''}"${tk.length ? ` data-keys="${tk.join(' ')}" role="button" tabindex="0"` : ''}><span class="c">${fillTokens(nob(b.text))}</span></div>`;
     }
     const ks = rowKeys(b.c + ' ' + b.r);
     return `<div class="row${b.hl ? ' ' + b.hl : ''}${ks.length ? ' tap' : ''}"${ks.length ? ` data-keys="${ks.join(' ')}" role="button" tabindex="0"` : ''}><span class="c">${fillTokens(brk(b.c))}</span><span class="lead"></span><span class="r">${fillTokens(brk(b.r))}</span></div>`;
@@ -2002,19 +2059,23 @@ function layoutList() {
     while (hi - lo > 1) { const mid = (lo + hi) >> 1; fits(cols, mid, wrap) ? lo = mid : hi = mid; }
     return lo;
   };
-  // An alternative must be clearly bigger to win, except near the minimum, where 2 px matters.
-  const bigger = (a, b, ratio) => a > b * ratio || (b < WRAP_BELOW && a >= b + 2);
+  // An alternative must be clearly bigger to win. Near the minimum 2 px is enough, but not for a two-column
+  // layout whose labels get squeezed onto three or more lines.
+  const squeezed = k => { set(k.cols, k.px, k.wrap, PAD); return items.some(r => [...r.children].some(x => x.offsetHeight > k.px * 1.3 * 2.4)); };
+  const bigger = (k, cur, ratio) => !!k.px && (!cur.px || k.px > cur.px * ratio
+    || (cur.px < WRAP_BELOW && k.px >= cur.px + 2 && !(k.cols === 2 && cur.px >= 18 && squeezed(k))));   // at 16-17 px anything bigger wins
   const pick = wrap => {
-    const one = best(1, wrap), two = W >= 600 && one * 1.2 < MAX ? best(2, wrap) : 0;
-    return bigger(two, one, 1.2) ? { cols: 2, px: two, wrap } : { cols: 1, px: one, wrap };
+    const one = { cols: 1, px: best(1, wrap), wrap }, two = { cols: 2, px: W >= 600 && one.px * 1.2 < MAX ? best(2, wrap) : 0, wrap };
+    return bigger(two, one, 1.2) ? two : one;
   };
-  let c = pick(false);
-  if (c.px < WRAP_BELOW) { const w = pick(true); if (bigger(w.px, c.px, 1.15)) c = w; }
-  if (c.px < WRAP_BELOW) {
+  const plain = pick(false);
+  let c = plain;
+  if (plain.px < WRAP_BELOW) {   // small with every item on one line: try letting long lines wrap
+    const w = pick(true); if (bigger(w, c, 1.15)) c = w;
     const save = allowWrapped; allowWrapped = Infinity;
-    const one = best(1, true), two = W >= 600 && one < MAX ? best(2, true) : 0;
-    const f = two > one ? { cols: 2, px: two, wrap: true } : { cols: 1, px: one, wrap: true };
-    if (f.px && (!c.px || bigger(f.px, c.px, 1.2))) { c = f; anyWrap = true; } else allowWrapped = save;
+    const one = { cols: 1, px: best(1, true), wrap: true }, two = { cols: 2, px: W >= 600 && one.px < MAX ? best(2, true) : 0, wrap: true };
+    const f = two.px > one.px ? two : one;
+    if (bigger(f, c, 1.2)) { c = f; anyWrap = true; } else allowWrapped = save;
   }
   if (!c.px) { set(1, MIN, true, PAD); remember(1, MIN, true, PAD, true); return enableScroll(); }
   const px = c.px;
@@ -2040,6 +2101,7 @@ function layoutBar() {
     const start = Math.round(parseFloat(cs.fontSize)) || 20;
     const tryFit = () => { for (let px = start; px >= 12; px--) { sp.style.fontSize = px + 'px'; if (sp.scrollHeight <= sp.clientHeight + 1 && wordsFit(sp, px, max)) return true; } return false; };
     if (!tryFit() && sp.dataset.full && /\(/.test(sp.dataset.full)) { sp.innerHTML = tileLabel(sp.dataset.full.replace(/\s*\([^)]*\)/g, '')); tryFit(); }
+    if (!wordsFit(sp, 12, max) && sp.dataset.full) { sp.textContent = sp.dataset.full; tryFit(); }
   });
 }
 
@@ -2156,7 +2218,9 @@ const linkingTo = title => lists.filter(l => parse(l.text).some(b => b.type === 
 function go(hash) { if (location.hash === hash) route(); else location.hash = hash; }
 // Re-render the current screen in place (after a keypad closes), keeping the scroll position.
 function rerender() { const y = window.pageYOffset; route(true); window.scrollTo(0, y); }
+let lastHash = null;
 function route(keepScroll) {
+  if (location.hash !== lastHash) { lastHash = location.hash; Object.keys(layoutKeep).forEach(k => delete layoutKeep[k]); }
   const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if (p[0] !== 'edit') draft = null;
   if (p[0] !== 'data') dataReturn = location.hash || '#/';
