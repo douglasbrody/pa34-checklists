@@ -136,7 +136,7 @@ replace('Air Start / Unfeathering',"If engine does'nt start, prime w/ Fuel Pump 
 replace('Vacuum Failure','RPM ... INCREASE 2700',['RPM ... INCREASE TO 2700'])
 replace('Before Takeoff','Trims ... ELEVATOR T/O, RUDDER AS REQUIRED',['Elevator Trim ... SET FOR T/O','Rudder Trim ... SET'])
 # Before Takeoff: the POH pre-takeoff check sets the wing flaps (the run-up only checks their travel).
-insert('Before Takeoff','Rudder Trim ... SET',['Wing Flaps ... SET (0° NORMAL · 25° SHORT FIELD)'])
+insert('Before Takeoff','Rudder Trim ... SET',['Wing Flaps ... SET (0°, OR 25° FOR SHORTEST ROLL)'])
 # Approach: speeds first, the pre-landing items, first notch of flaps, then GUMPS (the gear line pulses).
 by_title['Approach / GUMPS']['lines']=[
     'Approach Speed ... 110 DWNWD · 100 BASE · 90 FINAL',
@@ -317,16 +317,17 @@ SFTO="""@HIDDEN
 Flaps 0° ... ROTATE 80 · 85 AT 50 FT
 Flaps 25° ... ROTATE 70 · 80 AT 50 FT
 Flaps / Trim ... 0°: T/O RANGE · 25°: SLIGHTLY NOSE UP
-Fuel Pumps · Mixtures · Props ... ON · RICH · FULL FWD
+Fuel Pumps · Mixtures · Props ... ON · RICH (LEAN AT HIGH DA) · FULL FWD
 Position ... MAX RUNWAY, CENTERLINE
 Brakes ... HOLD
 Throttles ... FULL — 2700 RPM, GAUGES GREEN
 Brakes ... RELEASE
+Airspeed Indicator ... ALIVE
 Climb Over Obstacle ... Vx 90 MPH
 Gear ... UP — NO RUNWAY REMAINS
 Then ... Vy 105 MPH
 Flaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE
-! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN
+! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN. Don't hold it on the runway (wheelbarrowing).
 -> TAKEOFF | normal takeoff : Takeoff
 -> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"""
 SFLDG="""@HIDDEN
@@ -341,9 +342,9 @@ S — Seat Belt & Switches ... CHECK
 Aim Point ... SELECTED
 Throttles ... IDLE BEFORE TOUCHDOWN
 Touchdown ... MAIN WHEELS FIRST, MIN. FLOAT
-After Touchdown ... RAISE FLAPS
+After Touchdown ... RAISE FLAPS — FLAP HANDLE, NOT GEAR
 Back Pressure · Brakes ... APPLY · MAXIMUM
-! Maximum demonstrated crosswind for landing: 15 MPH.
+! Maximum crosswind component for landing: 15 MPH (POH 6-11).
 -> GO AROUND | if needed : Go Around
 -> AFTER LANDING | after touchdown : After Landing"""
 

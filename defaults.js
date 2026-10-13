@@ -101,7 +101,7 @@ const DEFAULTS = [
   "title": "Before Takeoff",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "Flight Instruments ... CHECK\nFlight Instruments/Nav Aids ... CHECKED / SET\nCowl Flaps ... OPEN\nAlternate Air ... OFF\nFuel Selectors ... ON\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\nQuadrant Friction ... ADJUSTED\nElectric Fuel Pumps ... ON\nPitot Heat ... AS REQUIRED\nStrobe, Landing, Recognition Lights ... ON\nNavigation Lights ... NIGHT ONLY\nElevator Trim ... SET FOR T/O\nRudder Trim ... SET\nWing Flaps ... SET (0° NORMAL · 25° SHORT FIELD)\nPanel Lights ... AS NEEDED\nDoors, Storm Window ... LOCKED, CLOSED\nSeat Belts & Back ... SECURE & ERECT\nTransponder ... ALT\n* Crew Briefing ... COMPLETED"
+  "text": "Flight Instruments ... CHECK\nFlight Instruments/Nav Aids ... CHECKED / SET\nCowl Flaps ... OPEN\nAlternate Air ... OFF\nFuel Selectors ... ON\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\nQuadrant Friction ... ADJUSTED\nElectric Fuel Pumps ... ON\nPitot Heat ... AS REQUIRED\nStrobe, Landing, Recognition Lights ... ON\nNavigation Lights ... NIGHT ONLY\nElevator Trim ... SET FOR T/O\nRudder Trim ... SET\nWing Flaps ... SET (0°, OR 25° FOR SHORTEST ROLL)\nPanel Lights ... AS NEEDED\nDoors, Storm Window ... LOCKED, CLOSED\nSeat Belts & Back ... SECURE & ERECT\nTransponder ... ALT\n* Crew Briefing ... COMPLETED"
  },
  {
   "title": "Crew Takeoff Briefing",
@@ -113,7 +113,7 @@ const DEFAULTS = [
   "title": "Short-Field Takeoff",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "@HIDDEN\n# POH 6-7\nFlaps 0° ... ROTATE 80 · 85 AT 50 FT\nFlaps 25° ... ROTATE 70 · 80 AT 50 FT\nFlaps / Trim ... 0°: T/O RANGE · 25°: SLIGHTLY NOSE UP\nFuel Pumps · Mixtures · Props ... ON · RICH · FULL FWD\nPosition ... MAX RUNWAY, CENTERLINE\nBrakes ... HOLD\nThrottles ... FULL — 2700 RPM, GAUGES GREEN\nBrakes ... RELEASE\nClimb Over Obstacle ... Vx 90 MPH\nGear ... UP — NO RUNWAY REMAINS\nThen ... Vy 105 MPH\nFlaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE\n! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN\n-> TAKEOFF | normal takeoff : Takeoff\n-> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"
+  "text": "@HIDDEN\n# POH 6-7\nFlaps 0° ... ROTATE 80 · 85 AT 50 FT\nFlaps 25° ... ROTATE 70 · 80 AT 50 FT\nFlaps / Trim ... 0°: T/O RANGE · 25°: SLIGHTLY NOSE UP\nFuel Pumps · Mixtures · Props ... ON · RICH (LEAN AT HIGH DA) · FULL FWD\nPosition ... MAX RUNWAY, CENTERLINE\nBrakes ... HOLD\nThrottles ... FULL — 2700 RPM, GAUGES GREEN\nBrakes ... RELEASE\nAirspeed Indicator ... ALIVE\nClimb Over Obstacle ... Vx 90 MPH\nGear ... UP — NO RUNWAY REMAINS\nThen ... Vy 105 MPH\nFlaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE\n! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN. Don't hold it on the runway (wheelbarrowing).\n-> TAKEOFF | normal takeoff : Takeoff\n-> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"
  },
  {
   "title": "Takeoff",
@@ -161,7 +161,7 @@ const DEFAULTS = [
   "title": "Short-Field Landing",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "@HIDDEN\nFinal Approach Speed ... 87 MPH, FULL FLAPS (40°)\n# GUMPS\nG — Fuel Selectors & Pumps ... ON\n^ U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR\nM — Mixture Controls ... FULL RICH\nP — Propeller Controls ... FULL FORWARD (HIGH RPM)\nS — Seat Belt & Switches ... CHECK\n# Short field — POH 6-11\nAim Point ... SELECTED\nThrottles ... IDLE BEFORE TOUCHDOWN\nTouchdown ... MAIN WHEELS FIRST, MIN. FLOAT\nAfter Touchdown ... RAISE FLAPS\nBack Pressure · Brakes ... APPLY · MAXIMUM\n! Maximum demonstrated crosswind for landing: 15 MPH.\n-> GO AROUND | if needed : Go Around\n-> AFTER LANDING | after touchdown : After Landing"
+  "text": "@HIDDEN\nFinal Approach Speed ... 87 MPH, FULL FLAPS (40°)\n# GUMPS\nG — Fuel Selectors & Pumps ... ON\n^ U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR\nM — Mixture Controls ... FULL RICH\nP — Propeller Controls ... FULL FORWARD (HIGH RPM)\nS — Seat Belt & Switches ... CHECK\n# Short field — POH 6-11\nAim Point ... SELECTED\nThrottles ... IDLE BEFORE TOUCHDOWN\nTouchdown ... MAIN WHEELS FIRST, MIN. FLOAT\nAfter Touchdown ... RAISE FLAPS — FLAP HANDLE, NOT GEAR\nBack Pressure · Brakes ... APPLY · MAXIMUM\n! Maximum crosswind component for landing: 15 MPH (POH 6-11).\n-> GO AROUND | if needed : Go Around\n-> AFTER LANDING | after touchdown : After Landing"
  },
  {
   "title": "Go Around",
