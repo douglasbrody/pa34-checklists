@@ -1023,12 +1023,28 @@ function renderList(id) {
 //  1. Largest font up to a comfortable maximum with every item on one line (one or two columns).
 //  2. Only if that would be too small, let long items wrap (when it is clearly bigger).
 //  3. Any spare height becomes spacing between lines rather than bigger text.
+const LAYOUT_KEY = 'layout.v1';
+let layoutCache = read(LAYOUT_KEY, {}) || {};
 function layoutList() {
   const fit = $app.querySelector('.fit'), sheet = $app.querySelector('.sheet'); if (!fit) return;
   fit.classList.remove('scroll');
   const cs = getComputedStyle(fit);
   const H = fit.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   const W = fit.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  // Same checklist, same text, same screen size: reuse the size worked out last time.
+  const cacheKey = fnv(sheet.innerHTML) + ':' + Math.round(W) + 'x' + Math.round(H);
+  const hit = layoutCache[cacheKey];
+  if (hit) {
+    sheet.style.columnCount = hit[0]; sheet.style.fontSize = hit[1] + 'px';
+    sheet.style.setProperty('--rp', hit[3] + 'em'); sheet.classList.toggle('wrapr', !!hit[2]);
+    if (hit[4]) fit.classList.add('scroll');
+    return;
+  }
+  const remember = (cols, px, wrap, pad, scroll) => {
+    const keys = Object.keys(layoutCache); if (keys.length > 400) layoutCache = {};   // keep it small
+    layoutCache[cacheKey] = [cols, px, wrap ? 1 : 0, +pad.toFixed(3), scroll ? 1 : 0];
+    write(LAYOUT_KEY, layoutCache);
+  };
   const MIN = 16, MAX = 34, WRAP_BELOW = 24, PAD = 0.22, PAD_MAX = 0.9;
   const set = (cols, px, wrap, pad) => {
     sheet.style.columnCount = cols; sheet.style.fontSize = px + 'px';
@@ -1037,14 +1053,13 @@ function layoutList() {
   // When wrapping is allowed, only a few items (at most 1 in 5) may actually wrap.
   const items = [...sheet.querySelectorAll('.row:not(.text)')];
   const allowWrapped = Math.max(1, Math.floor(items.length / 5));
+  const rowEls = [...sheet.querySelectorAll('.row')];
   const fits = (cols, px, wrap, pad = PAD) => {
     set(cols, px, wrap, pad);
     if (sheet.scrollHeight > H + 1 || sheet.scrollWidth > W + 1) return false;
     if (wrap && items.filter(r => [...r.children].some(x => x.offsetHeight > px * 1.95)).length > allowWrapped) return false;
-    return ![...sheet.querySelectorAll('.row')].some(r => {
-      const end = r.getBoundingClientRect().right - parseFloat(getComputedStyle(r).paddingRight);
-      return r.lastElementChild.getBoundingClientRect().right > end + 0.5;
-    });
+    const padR = rowEls.length ? parseFloat(getComputedStyle(rowEls[0]).paddingRight) : 0;
+    return !rowEls.some(r => r.lastElementChild.getBoundingClientRect().right > r.getBoundingClientRect().right - padR + 0.5);
   };
   const best = (cols, wrap) => {
     if (!fits(cols, MIN, wrap)) return 0;
@@ -1061,13 +1076,14 @@ function layoutList() {
   if (c.px < WRAP_BELOW) { const w = pick(true); if (w.px > c.px * 1.15) c = w; }
   if (!c.px) {   // nothing fits even small: wrap freely, and scroll only as a last resort
     items.length = 0; c = { cols: 1, px: best(1, true), wrap: true };
-    if (!c.px) { set(1, MIN, true, PAD); fit.classList.add('scroll'); return; }
+    if (!c.px) { set(1, MIN, true, PAD); fit.classList.add('scroll'); remember(1, MIN, true, PAD, true); return; }
   }
   const px = Math.floor(c.px);
   let lo = PAD, hi = PAD_MAX;
   if (fits(c.cols, px, c.wrap, hi)) lo = hi;
   else while (hi - lo > 0.02) { const mid = (lo + hi) / 2; fits(c.cols, px, c.wrap, mid) ? lo = mid : hi = mid; }
   set(c.cols, px, c.wrap, lo);
+  remember(c.cols, px, c.wrap, lo, false);
 }
 
 // Shrink a top-bar tile's label until the whole name fits (three lines at most).
@@ -1081,7 +1097,11 @@ function layoutBar() {
 }
 
 function layout() { layoutBar(); layoutTiles(); layoutList(); }
-let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 60); });
+let rt, lastSize = innerWidth + 'x' + innerHeight;
+addEventListener('resize', () => {
+  clearTimeout(rt);
+  rt = setTimeout(() => { const sz = innerWidth + 'x' + innerHeight; if (sz !== lastSize) { lastSize = sz; layout(); } }, 120);
+});
 
 function renderManage() {
   const rows = lists.map((l, i) => `
