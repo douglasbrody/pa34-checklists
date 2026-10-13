@@ -165,6 +165,8 @@
   .tab { flex: 1 1 0; min-width: 0; padding: 0 2px; min-height: 66px; border-radius: 14px; font-size: 19px; font-weight: 800; background: var(--card); border: 2px solid var(--line); line-height: 1.15; }
   .tab.on { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .calc { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 12px 16px; font-size: 28px; font-weight: 850; margin: 0 0 12px; text-align: center; line-height: 1.25; }
+  .calc-freq { font-size: 22px; font-weight: 850; color: var(--next); margin-bottom: 6px; }
+  .pad-freq { text-align: center; font-size: 22px; font-weight: 850; color: var(--next); margin-top: 2px; }
   .calc small { display: block; font-size: 15px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
   .fields { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px; }
   .field { min-height: 84px; border-radius: 14px; background: var(--card); border: 2px solid var(--line); text-align: left; padding: 8px 14px; }
@@ -495,7 +497,7 @@ function tokenValue(key) {
   if (key === 'times.out' || key === 'times.in') return timesText(key.split('.')[1]) || 'TAP TO RECORD';
   const [side, f] = key.split('.');
   if (f === 'hw') return components(side, true);
-  if (f === 'sum') return atisSummary(side) || 'TAP TO ENTER';
+  if (f === 'sum') return hasAtis(side) ? atisSummary(side) : [sideWx(side), 'TAP TO ENTER'].filter(Boolean).join(' · ');
   if (f === 'comp') return [windText(side), components(side)].filter(Boolean).join(' · ');
   return FIELD[key] ? fmt(key) : '';
 }
@@ -534,7 +536,7 @@ function wxLine(forced) {
   const has = sd => ['rwy', 'wdir', 'wspd', 'alt'].some(f => fd[sd + '.' + f] !== undefined);
   if (forced === 'none') return '';
   if ((forced === 'arr' || forced === 'dep') && !has(forced))
-    return `<button class="wx empty" data-act="padall" data-tab="${forced}"><b>${forced.toUpperCase()}</b> · Tap to enter ${SIDE_NAME[forced].toLowerCase()} ATIS</button>`;
+    return `<button class="wx empty" data-act="padall" data-tab="${forced}"><b>${forced.toUpperCase()}</b> · ${sideWx(forced) ? esc(sideWx(forced)) + ' · Tap to enter' : 'Tap to enter ' + SIDE_NAME[forced].toLowerCase() + ' ATIS'}</button>`;
   let side = forced || fd._active || 'dep';
   if (!forced && !has(side)) side = side === 'dep' ? 'arr' : 'dep';   // fall back to the other ATIS until this one is entered
   if (!has(side)) return '';
@@ -559,6 +561,10 @@ function aptKey(code) {
 }
 const aptRunways = key => ((key && AIRPORT_RUNWAYS[key]) || []).map(e => e.split(':')[0]);   // "6/24"
 // Full length (ft) of the runway that has this end, e.g. aptRunwayLen('KBDR', '24') -> 4677
+// Weather broadcast for the airport, e.g. "ATIS 119.15" (or AWOS / ASOS); from the built-in file.
+const aptWx = key => (key && typeof AIRPORT_WX !== 'undefined' && AIRPORT_WX[key]) || '';
+const hasAtis = sd => ['rwy', 'wdir', 'wspd', 'alt'].some(f => fd[sd + '.' + f] !== undefined);
+const sideWx = sd => { const k = aptKey(fd[sd + '.apt']); return k ? [k, aptWx(k)].filter(Boolean).join(' ') : ''; };
 function aptRunwayLen(key, end) {
   const e = ((key && AIRPORT_RUNWAYS[key]) || []).find(x => x.split(':')[0].split('/').includes(end));
   return e && e.includes(':') ? +e.split(':')[1] : 0;
@@ -884,6 +890,7 @@ function renderPad() {
   if (!el) { el = document.createElement('div'); el.id = 'pad'; document.body.appendChild(el); }
   el.innerHTML = `<div class="sheet2">
     <div class="pad-top"><span>${esc(f.label)}</span><small>${esc(group)} · ${pad.i + 1} of ${pad.keys.length}</small></div>
+    ${(side === 'dep' || side === 'arr') && f.kind !== 'ident' && sideWx(side) ? `<div class="pad-freq">${esc(sideWx(side))}</div>` : ''}
     <div class="pad-val">${shown}${f.unit && f.kind !== 'letter' && !(pad.buf === '' && fmt(k).includes('°')) ? `<span class="unit">${esc(f.unit)}</span>` : ''}</div>
     <div class="keys${f.kind === 'letter' || f.kind === 'ident' ? ' letters' : ''}">${keys}</div>
     <div class="pad-act"><button data-pad="prev"${pad.i === 0 ? ' disabled' : ''}>← Back</button><button data-pad="done">Done</button><button class="go" data-pad="next">${last ? 'Save' : 'Next →'}</button></div>
@@ -953,7 +960,7 @@ function renderData(tab) {
   const fields = tab === 'tob' ? TOB_FIELDS : atisFields(tab);
   const calc = tab === 'tob'
     ? `<div class="calc"><small>Runway available · headwind / tailwind</small>${esc(toraText() || '—')}<br>${esc(components('dep', true) || '—')}</div>`
-    : `<div class="calc"><small>Wind · components for RWY ${esc(fd[tab + '.rwy'] || '—')}</small>${esc([windText(tab), components(tab)].filter(Boolean).join(' · ') || '—')}</div>`;
+    : `<div class="calc">${sideWx(tab) ? `<div class="calc-freq">${esc(sideWx(tab))}</div>` : ''}<small>Wind · components for RWY ${esc(fd[tab + '.rwy'] || '—')}</small>${esc([windText(tab), components(tab)].filter(Boolean).join(' · ') || '—')}</div>`;
   $app.innerHTML = `<div class="wrap">
     <div class="home-head">
       <button class="home-tile" data-go="#/">${ICON_HOME}<span>HOME</span></button>
