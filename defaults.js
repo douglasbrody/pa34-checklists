@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 14;
+const DEFAULTS_VERSION = 15;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -158,6 +158,30 @@ const DEFAULTS = [
   "text": "Maintain Direction and Airspeed ... BLUE LINE / 105 MPH\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\nThrottle Controls ... FULL FORWARD\nFlaps ... UP\nLanding Gear ... UP\nFuel Pumps ... ON\nIdentify INOP Engine ... DEAD FOOT, DEAD ENGINE\nVerify INOP Engine ... RETARD THROTTLE TO VERIFY\n-> FIX | Restore power (if altitude permits) : Engine Failure — If Altitude Permits (3,500')\n-> FEATHER | Feathering procedure : Feathering Procedure"
  },
  {
+  "title": "Engine Failure on Takeoff — 100 MPH or Below",
+  "group": "Emergency/Takeoff & Climb Eng. Fail",
+  "color": "#c62828",
+  "text": "# If engine failure occurs during takeoff roll below 100 MPH\nThrottle Controls ... CLOSE BOTH — STOP STRAIGHT\n# If inadequate runway remains to stop\nThrottle Controls ... CLOSED\nBrakes ... APPLY MAX BRAKING\nMaster Switch ... OFF\nFuel Selectors ... OFF\nContinue straight, turning to avoid obstacles as necessary."
+ },
+ {
+  "title": "Engine Failure on Takeoff — 100 MPH or Above",
+  "group": "Emergency/Takeoff & Climb Eng. Fail",
+  "color": "#c62828",
+  "text": "Engine failure occurs during ground roll or after lift-off with gear down and 100 MPH attained:\n# If adequate runway remains to stop\nClose both throttles immediately; land if airborne; stop straight ahead.\n# If inadequate runway remains to stop\nAbort or continue based on: weight / density altitude, obstructions, weather, competency.\n# If decision is made to continue\nMaintain Heading and Airspeed ... 93 or 105 MPH\nRetract Landing Gear ... WHEN CLIMB IS ESTABLISHED\nFeather Inoperative Engine ... SEE FEATHERING PROCEDURE"
+ },
+ {
+  "title": "Engine Failure in Climb — Below 80 MPH",
+  "group": "Emergency/Takeoff & Climb Eng. Fail",
+  "color": "#c62828",
+  "text": "Power on Operative Engine ... REDUCE, MAINTAIN DIRECTIONAL CONTROL\nNose ... LOWER TO ATTAIN Vyse 105 MPH\nInoperative Engine ... FEATHER"
+ },
+ {
+  "title": "Engine Failure in Climb — Above 80 MPH",
+  "group": "Emergency/Takeoff & Climb Eng. Fail",
+  "color": "#c62828",
+  "text": "Directional Control ... MAINTAIN\nMinimum Airspeed ... MAINTAIN Vyse 105 MPH\nInoperative Engine ... FEATHER"
+ },
+ {
   "title": "Engine Failure — If Altitude Permits (3,500')",
   "group": "Emergency/Engine Failure",
   "color": "#c62828",
@@ -174,30 +198,6 @@ const DEFAULTS = [
   "group": "Emergency/Engine Failure",
   "color": "#c62828",
   "text": "Fuel Selector INOP Engine ... ON\nFuel Pump INOP Engine ... OFF\nThrottle Controls ... OPEN 1/4 INCH\nPropeller Controls ... FULL FORWARD\nMixture Controls ... RICH\nMagnetos ... ON\nStarter ... ENGAGE TILL PROP WINDMILLS\nThrottle ... REDUCE TILL ENGINE IS WARM\nSet Zero Thrust ... SET MAP / 2000 RPM\nAlternator ... ON\nCowl Flaps ... OPEN WHEN ENGINE IS WARM\nIf engine does'nt start, prime w/ Fuel Pump INOP Engine ON 3 sec, then repeat the steps above."
- },
- {
-  "title": "Engine Failure on Takeoff — 100 MPH or Below",
-  "group": "Emergency/Takeoff & Climb",
-  "color": "#c62828",
-  "text": "# If engine failure occurs during takeoff roll below 100 MPH\nThrottle Controls ... CLOSE BOTH — STOP STRAIGHT\n# If inadequate runway remains to stop\nThrottle Controls ... CLOSED\nBrakes ... APPLY MAX BRAKING\nMaster Switch ... OFF\nFuel Selectors ... OFF\nContinue straight, turning to avoid obstacles as necessary."
- },
- {
-  "title": "Engine Failure on Takeoff — 100 MPH or Above",
-  "group": "Emergency/Takeoff & Climb",
-  "color": "#c62828",
-  "text": "Engine failure occurs during ground roll or after lift-off with gear down and 100 MPH attained:\n# If adequate runway remains to stop\nClose both throttles immediately; land if airborne; stop straight ahead.\n# If inadequate runway remains to stop\nAbort or continue based on: weight / density altitude, obstructions, weather, competency.\n# If decision is made to continue\nMaintain Heading and Airspeed ... 93 or 105 MPH\nRetract Landing Gear ... WHEN CLIMB IS ESTABLISHED\nFeather Inoperative Engine ... SEE FEATHERING PROCEDURE"
- },
- {
-  "title": "Engine Failure in Climb — Below 80 MPH",
-  "group": "Emergency/Takeoff & Climb",
-  "color": "#c62828",
-  "text": "Power on Operative Engine ... REDUCE, MAINTAIN DIRECTIONAL CONTROL\nNose ... LOWER TO ATTAIN Vyse 105 MPH\nInoperative Engine ... FEATHER"
- },
- {
-  "title": "Engine Failure in Climb — Above 80 MPH",
-  "group": "Emergency/Takeoff & Climb",
-  "color": "#c62828",
-  "text": "Directional Control ... MAINTAIN\nMinimum Airspeed ... MAINTAIN Vyse 105 MPH\nInoperative Engine ... FEATHER"
  },
  {
   "title": "Single-Engine Fuel Management",

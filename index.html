@@ -198,6 +198,8 @@
   .kp-label { font-size: 14px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 8px 2px 6px; }
   .keys.rwy36 { grid-template-columns: repeat(9, 1fr); }
   .keys.rwy36 .key { min-height: 58px; font-size: 26px; }
+  .keys.twnum { grid-template-columns: repeat(10, 1fr); margin-top: 8px; }
+  .keys.twnum .key { min-height: 50px; font-size: 22px; }
   .keys.pairs { grid-template-columns: repeat(6, 1fr); }
   .keys.pairs .key { min-height: 54px; font-size: 21px; }
   .keys.sfx { grid-template-columns: repeat(4, 1fr); margin-top: 10px; }
@@ -525,6 +527,12 @@ function taxiInput(a) {
     else if (mode === 'via') { if (p && p.k === 'via') p.v.push(val); else parts.push({ k: 'via', v: [val] }); }
     else if (mode === 'hs') parts.push({ k: 'hs', v: val });
     else return;
+  } else if (kind === 'T') {                            // taxiway number, e.g. A then 3 -> A3
+    const p = last(); if (!p) return;
+    if (p.k === 'at' && p.v) p.v += val;
+    else if (p.k === 'via' && p.v.length && !/^RWY /.test(p.v[p.v.length - 1])) p.v[p.v.length - 1] += val;
+    else if (p.k === 'hs' && !/^RWY /.test(p.v)) p.v += val;
+    else return;
   } else if (kind === 'P') {                            // runway pair
     const pair = pairOf(+val), p = last();
     if (mode === 'via') { if (p && p.k === 'via') p.v.push('RWY ' + pair); else parts.push({ k: 'via', v: ['RWY ' + pair] }); }
@@ -540,10 +548,13 @@ function taxiInput(a) {
     else if (p.k === 'at') { p.v = p.v.slice(0, -1); if (!p.v) parts.pop(); }
     else if (p.k === 'via') {
       const t = p.v[p.v.length - 1];
-      if (/^RWY \d+[LCR]\//.test(t)) p.v[p.v.length - 1] = 'RWY ' + strip(t.slice(4)); else p.v.pop();
+      if (/^RWY \d+[LCR]\//.test(t)) p.v[p.v.length - 1] = 'RWY ' + strip(t.slice(4));
+      else if (!/^RWY /.test(t) && t.length > 1) p.v[p.v.length - 1] = t.slice(0, -1);
+      else p.v.pop();
       if (!p.v.length) parts.pop();
     } else if (p.k === 'cross') { if (/[LCR]\//.test(p.v)) p.v = strip(p.v); else parts.pop(); }
-    else { if (/^RWY \d+[LCR]/.test(p.v)) p.v = 'RWY ' + (p.v.includes('/') ? strip(p.v.slice(4)) : p.v.slice(4).replace(/[LCR]$/, '')); else parts.pop(); }
+    else if (/^RWY /.test(p.v)) { if (/^RWY \d+[LCR]/.test(p.v)) p.v = 'RWY ' + (p.v.includes('/') ? strip(p.v.slice(4)) : p.v.slice(4).replace(/[LCR]$/, '')); else parts.pop(); }
+    else { p.v = p.v.slice(0, -1); if (!p.v) parts.pop(); }
     const l = last(); if (l) taxi.mode = l.k;
   }
   saveFd(); renderTaxi();
@@ -551,7 +562,8 @@ function taxiInput(a) {
 function renderTaxi() {
   const txt = taxiText(), mode = taxi.mode, parts = taxiParts();
   const key = (code, label, cls) => `<button class="key${cls ? ' ' + cls : ''}" data-taxi="${code}">${label}</button>`;
-  const letters = `<div class="keys letters">${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => key('L' + c, c)).join('')}</div>`;
+  const letters = `<div class="keys letters">${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => key('L' + c, c)).join('')}</div>`
+    + `<div class="keys twnum">${'1234567890'.split('').map(d => key('T' + d, d)).join('')}</div>`;
   const pairs = `<div class="keys pairs">${Array.from({ length: 18 }, (_, i) => key('P' + (i + 1), pairOf(i + 1))).join('')}</div>`;
   const sfx = `<div class="keys sfx">${key('SL', 'L')}${key('SC', 'C')}${key('SR', 'R')}${key('back', '⌫')}</div>`;
   const back = `<div class="keys sfx">${key('back', '⌫', 'wide')}</div>`;
@@ -559,8 +571,8 @@ function renderTaxi() {
   const dep = parts.find(p => p.k === 'rwy');
   let pad;
   if (mode === 'rwy') pad = label('Departure runway') + `<div class="keys rwy36">${Array.from({ length: 36 }, (_, i) => key('N' + (i + 1), i + 1)).join('')}</div>` + sfx;
-  else if (mode === 'at') pad = label('Intersection taxiway') + letters + back;
-  else if (mode === 'via') pad = label('Taxiways') + letters + label('Taxi along a runway') + pairs + sfx;
+  else if (mode === 'at') pad = label('Intersection taxiway (letter, then number if any)') + letters + back;
+  else if (mode === 'via') pad = label('Taxiways (letter, then number if any)') + letters + label('Taxi along a runway') + pairs + sfx;
   else if (mode === 'cross') pad = label('Runway to cross') + pairs + sfx;
   else pad = label('Hold short of a taxiway') + letters + label('…or a runway') + pairs
     + `<div class="keys sfx">${dep ? key('D', 'RWY ' + esc(dep.v), 'wide2') : '<span></span><span></span>'}${key('SL', 'L')}${key('SR', 'R')}${key('back', '⌫')}</div>`;
@@ -568,7 +580,7 @@ function renderTaxi() {
   if (!el) { el = document.createElement('div'); el.id = 'pad'; document.body.appendChild(el); }
   el.innerHTML = `<div class="sheet2">
     <div class="pad-top"><span>Taxi clearance</span><small>pick the instruction, then tap its parts</small></div>
-    <div class="taxi-read">${txt ? esc(txt) : '<span class="was">e.g. RWY 24 at A · via A, B · cross RWY 11/29 · hold short RWY 24</span>'}</div>
+    <div class="taxi-read">${txt ? esc(txt) : '<span class="was">e.g. RWY 24 at A3 · via A, B · cross RWY 11/29 · hold short RWY 24</span>'}</div>
     <div class="taxi-modes">${TAXI_MODES.map(([k, l]) => `<button class="key${mode === k ? ' on' : ''}" data-taxi="M${k}">${l}</button>`).join('')}</div>
     ${pad}
     <div class="pad-act"><button data-taxi="clear">Clear</button><button class="go" data-taxi="done">Done</button></div>
