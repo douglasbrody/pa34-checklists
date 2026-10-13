@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 18;
+const DEFAULTS_VERSION = 19;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -95,13 +95,13 @@ const DEFAULTS = [
   "title": "Engine Run-up",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "Parking Brake ... SET\nFuel Selectors ... ON\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\n# Run-up left engine, then right engine\nThrottle Control ... 1500 RPM\nPropeller Control ... FULL BACK–FULL FORWARD, 3 TIMES\nRPM drop, MAP increase / oil pressure drop / no oil coming out from propeller governor.\nThrottle Control ... 2000 RPM\nPropeller Control ... 1800 RPM\nThrottle Control ... 25\" MP\nGovernor ... RPM STAND BY\nPropeller Control ... FULL FORWARD\nThrottle Control ... 2000 RPM\nAlternate Air ... ON/OFF — CHECK RPM DROP\nMagnetos (one at a time) ... OFF/ON (norm 100 drop, max 175, diff 50)\nAlternator (one at a time) ... OFF\nOvervoltage Relay Light (one at a time) ... PRESS / ILLUMINATED\nAlternator (one at a time) ... ON / CHARGING\nVacuum Gauge ... 4.5\"–5.2\" Hg\nThrottle ... IDLE (650–700 RPM), Then 1000 RPM\nEngine Gauges ... IN GREEN\n# Repeat for opposite engine\nFlight Controls/Flaps ... FREE / FULL TRAVEL\nTrims ... SET"
+  "text": "Parking Brake ... SET\nFuel Selectors ... ON\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\n# Run-up left engine, then right engine\nThrottle Control ... 1500 RPM\nPropeller Control ... FULL BACK–FULL FORWARD, 3 TIMES\nRPM drop, MAP increase / oil pressure drop / no oil coming out from propeller governor.\nThrottle Control ... 2000 RPM\nPropeller Control ... 1800 RPM\nThrottle Control ... 25\" MP\nGovernor ... RPM STAND BY\nPropeller Control ... FULL FORWARD\nThrottle Control ... 2000 RPM\nAlternate Air ... ON/OFF — CHECK RPM DROP\nMagnetos (one at a time) ... OFF/ON (norm 100 drop, max 175, diff 50)\nAlternator (one at a time) ... OFF\nOvervoltage Relay Light (one at a time) ... PRESS / ILLUMINATED\nAlternator (one at a time) ... ON / CHARGING\nVacuum Gauge ... 4.5\"–5.2\" Hg\nThrottle ... IDLE (650–700 RPM), THEN 1000 RPM\nEngine Gauges ... IN GREEN\n# Repeat for opposite engine\nFlight Controls/Flaps ... FREE / FULL TRAVEL\nTrims ... SET"
  },
  {
   "title": "Before Takeoff",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "Flight Instruments ... CHECK\nFlight Instruments/Nav Aids ... CHECKED / SET\nCowl Flaps ... OPEN\nAlternate Air ... OFF\nFuel Selectors ... ON\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\nQuadrant Friction ... ADJUSTED\nElectric Fuel Pumps ... ON\nPitot Heat ... AS REQUIRED\nStrobe, Landing, Recognition Lights ... ON\nNavigation Lights ... NIGHT ONLY\nElevator Trim ... SET FOR T/O\nRudder Trim ... SET\nPanel Lights ... AS NEEDED\nDoors, Storm Window ... LOCKED, CLOSED\nSeat Belts & Back ... SECURE & ERECT\nTransponder ... ALT\n* Crew Briefing ... COMPLETED"
+  "text": "Flight Instruments ... CHECK\nFlight Instruments/Nav Aids ... CHECKED / SET\nCowl Flaps ... OPEN\nAlternate Air ... OFF\nFuel Selectors ... ON\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\nQuadrant Friction ... ADJUSTED\nElectric Fuel Pumps ... ON\nPitot Heat ... AS REQUIRED\nStrobe, Landing, Recognition Lights ... ON\nNavigation Lights ... NIGHT ONLY\nElevator Trim ... SET FOR T/O\nRudder Trim ... SET\nWing Flaps ... SET (0° NORMAL · 25° SHORT FIELD)\nPanel Lights ... AS NEEDED\nDoors, Storm Window ... LOCKED, CLOSED\nSeat Belts & Back ... SECURE & ERECT\nTransponder ... ALT\n* Crew Briefing ... COMPLETED"
  },
  {
   "title": "Crew Takeoff Briefing",
@@ -110,10 +110,16 @@ const DEFAULTS = [
   "text": "# Today\nRunway available ... {tora}\nWind (headwind / tailwind) ... {dep.hw}\nTakeoff distance over 50 ft ... {tob.todist} FT\nAccelerate-stop distance ... {tob.asd} FT\nSingle-engine rate of climb ... {tob.seroc} FPM\nSingle-engine service ceiling ... {tob.secl} FT\n# Speeds (MPH CAS)\nVr (short: 80 flaps 0° · 70 flaps 25°) ... 80–85\nVx / Vy ... 90 / 105\nVmc — red radial ... 80\nVyse — blue radial ... 105\n# If an engine fails\nOn the runway, below 100 MPH ... CLOSE BOTH — STOP\nAirborne, gear down, runway left ... CLOSE BOTH — LAND\nAirborne below Vmc 80 ... REDUCE GOOD ENG. · NOSE DOWN\nGear up ... CONTROL · CONFIGURE · CLIMB\n# Gear up — memory items\nAirspeed ... 105 MPH (BLUE LINE)\nMixtures / props / throttles ... FULL FORWARD\nFlaps / gear · fuel pumps ... UP · ON\nIdentify · verify ... DEAD FOOT · RETARD THROTTLE\nProp — inop engine ... FEATHER\nBank ... 5° TOWARD GOOD ENGINE\nChecklist ... AT 400 FT AGL\nCannot climb ... HOLD 105 — LAND AHEAD\nSimulated failures ... THROTTLE ONLY, SLOWLY"
  },
  {
+  "title": "Short-Field Takeoff",
+  "group": "Flight",
+  "color": "#138a4a",
+  "text": "@HIDDEN\n# POH 6-7\nFlaps 0° ... ROTATE 80 · 85 AT 50 FT\nFlaps 25° ... ROTATE 70 · 80 AT 50 FT\nFlaps / Trim ... 0°: T/O RANGE · 25°: SLIGHTLY NOSE UP\nFuel Pumps · Mixtures · Props ... ON · RICH · FULL FWD\nPosition ... MAX RUNWAY, CENTERLINE\nBrakes ... HOLD\nThrottles ... FULL — 2700 RPM, GAUGES GREEN\nBrakes ... RELEASE\nClimb Over Obstacle ... Vx 90 MPH\nGear ... UP — NO RUNWAY REMAINS\nThen ... Vy 105 MPH\nFlaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE\n! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN\n-> TAKEOFF | normal takeoff : Takeoff\n-> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"
+ },
+ {
   "title": "Takeoff",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "Contact Tower ... PATTERN / VFR / IFR\nParking Brake ... RELEASE / TAXI–HOLD SHORT\nCompass (compare against RWY heading) ... CHECKED\nThrottle Controls ... FULL RPM / CHECK ENGINE GAUGES\nRotate ... 80–85 MPH\nGear Up ... NO RWY REMAINS\nVx or Vy ... 90 / 105 MPH"
+  "text": "Contact Tower ... PATTERN / VFR / IFR\nParking Brake ... RELEASE / TAXI–HOLD SHORT\nCompass (compare against RWY heading) ... CHECKED\nThrottle Controls ... FULL RPM / CHECK ENGINE GAUGES\nRotate ... 80–85 MPH\nGear Up ... NO RWY REMAINS\nVx or Vy ... 90 / 105 MPH\n-> SHORT FIELD | POH 6-7 : Short-Field Takeoff"
  },
  {
   "title": "Climb Check (500' AGL)",
@@ -149,13 +155,19 @@ const DEFAULTS = [
   "title": "Approach / GUMPS",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "Approach Speed ... 110 DWNWD · 100 BASE · 90 FINAL\nBrakes ... PRESSURE CHECK\nStrobe Lights ... ON\nNavigation Lights ... NIGHT ONLY\nLanding Light ... ON\nPitot Heat ... AS REQUIRED\nFlaps ... 1ST NOTCH, THEN AS REQ (OEI MAX 25°)\n# GUMPS\nG — Fuel Selectors & Pumps ... ON\n^ U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR\nM — Mixture Controls ... FULL RICH\nP — Propeller Controls ... FULL FORWARD (HIGH RPM)\nS — Seat Belt & Switches ... CHECK\n-> GO AROUND | if needed : Go Around"
+  "text": "Approach Speed ... 110 DWNWD · 100 BASE · 90 FINAL\nBrakes ... PRESSURE CHECK\nStrobe Lights ... ON\nNavigation Lights ... NIGHT ONLY\nLanding Light ... ON\nPitot Heat ... AS REQUIRED\nFlaps ... 1ST NOTCH, THEN AS REQ (OEI MAX 25°)\n# GUMPS\nG — Fuel Selectors & Pumps ... ON\n^ U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR\nM — Mixture Controls ... FULL RICH\nP — Propeller Controls ... FULL FORWARD (HIGH RPM)\nS — Seat Belt & Switches ... CHECK\n-> GO AROUND | if needed : Go Around\n-> SHORT FIELD | full flaps · 87 MPH : Short-Field Landing"
+ },
+ {
+  "title": "Short-Field Landing",
+  "group": "Flight",
+  "color": "#138a4a",
+  "text": "@HIDDEN\nFinal Approach Speed ... 87 MPH, FULL FLAPS (40°)\n# GUMPS\nG — Fuel Selectors & Pumps ... ON\n^ U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR\nM — Mixture Controls ... FULL RICH\nP — Propeller Controls ... FULL FORWARD (HIGH RPM)\nS — Seat Belt & Switches ... CHECK\n# Short field — POH 6-11\nAim Point ... SELECTED\nThrottles ... IDLE BEFORE TOUCHDOWN\nTouchdown ... MAIN WHEELS FIRST, MIN. FLOAT\nAfter Touchdown ... RAISE FLAPS\nBack Pressure · Brakes ... APPLY · MAXIMUM\n! Maximum demonstrated crosswind for landing: 15 MPH.\n-> GO AROUND | if needed : Go Around\n-> AFTER LANDING | after touchdown : After Landing"
  },
  {
   "title": "Go Around",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "@BRANCH\nThrottle Controls ... FULL FORWARD\nPitch Up ... 10°–12°\nFlaps ... RETRACT TO 25°\nLanding Gear ... UP — RETRACT (+ rate of climb on VSI)\nFlaps (below 125 MPH) ... RETRACT\nCowl Flaps ... ADJUST\n-> APPROACH | back to Approach / GUMPS : Approach / GUMPS"
+  "text": "@BRANCH\nThrottle Controls ... FULL FORWARD\nPitch Up ... 10°–12°\nFlaps ... RETRACT TO 25°\nLanding Gear ... UP — RETRACT (+ rate of climb on VSI)\nFlaps (below 125 MPH) ... RETRACT\nCowl Flaps ... ADJUST\n-> APPROACH | back to Approach / GUMPS : Approach / GUMPS\n-> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"
  },
  {
   "title": "After Landing",
@@ -245,7 +257,7 @@ const DEFAULTS = [
   "title": "Engine Fire — On the Ground",
   "group": "Emergency/Fire & Descent",
   "color": "#c62828",
-  "text": "# If engine has not started\nMixture ... IDLE CUT OFF\nThrottle ... FULL OPEN\nStarter ... ENGAGE\nThis is an attempt to pull the fire into the engine.\n# If engine has started, continue operating. If external fire extinguishing is to be applied:\nFuel Selectors ... OFF\nMixture Controls ... IDLE CUT OFF\nEVACUATE."
+  "text": "# If engine has not started\nMixture ... IDLE CUT OFF\nThrottle ... FULL OPEN\nStarter ... ENGAGE\nThis is an attempt to pull the fire into the engine.\n# If the engine has started, keep it running to pull the fire into the engine. If external fire extinguishing is to be applied:\nFuel Selectors ... OFF\nMixture Controls ... IDLE CUT OFF\nEVACUATE."
  },
  {
   "title": "Emergency Descent",
@@ -329,7 +341,7 @@ const DEFAULTS = [
   "title": "Steep Turns",
   "group": "Maneuvers",
   "color": "#a37800",
-  "text": "Gear / Flaps ... UP / UP\nAirspeed ... ≤ 133 MPH (AT OR BELOW Va)\nEntry Heading / Landmark ... NOTED\nRoll In ... COORDINATED, 45° BANK\nBack Pressure / Power ... HOLD ALTITUDE / ADD AS REQ\nTurn ... 360° — ROLL OUT ON ENTRY HEADING\nReverse ... OPPOSITE DIRECTION\n# Tolerances\nAltitude · Airspeed ... ± 100 FT · ± 10 KT\nBank · Rollout Heading ... ± 5° · ± 10°\n! Engine quits in the turn: WINGS LEVEL · REDUCE POWER · then MEMORY ITEMS"
+  "text": "Gear / Flaps ... UP / UP\nAirspeed ... ≤ 133 MPH (AT OR BELOW Va)\nEntry Heading / Landmark ... NOTED\nRoll In ... COORDINATED, 45° BANK\nBack Pressure / Power ... HOLD ALTITUDE / ADD AS REQ\nTurn ... 360° — ROLL OUT ON ENTRY HEADING\nReverse ... OPPOSITE DIRECTION\n# Tolerances\nAltitude · Airspeed ... ± 100 FT · ± 11 MPH (10 KT)\nBank · Rollout Heading ... ± 5° · ± 10°\n! Engine quits in the turn: WINGS LEVEL · REDUCE POWER · then MEMORY ITEMS"
  },
  {
   "title": "Slow Flight",
@@ -353,7 +365,7 @@ const DEFAULTS = [
   "title": "Vmc Demo — Setup",
   "group": "Maneuvers",
   "color": "#a37800",
-  "text": "Altitude ... ≥ 3,500 FT AGL\nGear / Flaps ... UP / UP\nCowl Flaps ... OPEN\nStabilator Trim ... TAKEOFF RANGE\nMixtures / Propellers ... RICH / FULL FORWARD\nAirspeed ... ≥ 105 MPH BEFORE POWER CUT\nThrottle — Engine to Fail ... IDLE, SLOWLY\nProp — Engine to Fail ... WINDMILLING — NO FEATHER\nThrottle — Operating Engine ... FULL\nRudder / Bank ... TOWARD GOOD ENGINE / ≤ 5°\n! Expect the gear warning horn (gear up, MP below 14\")."
+  "text": "Altitude ... ≥ 3,500 FT AGL\nGear / Flaps ... UP / UP\nCowl Flaps ... OPEN\nStabilator Trim ... TAKEOFF RANGE\nMixtures / Propellers ... RICH / FULL FORWARD\nAirspeed ... ≥ 105 MPH BEFORE POWER CUT\nThrottle — Engine to Fail ... IDLE, SLOWLY\nProp — Engine to Fail ... WINDMILLING — NO FEATHER\nThrottle — Operating Engine ... FULL\nRudder / Bank ... TOWARD GOOD ENGINE / ≤ 5°\nPitch / Airspeed ... SE CLIMB ATTITUDE ≈ 116 MPH\n! Expect the gear warning horn (gear up, MP below 14\")."
  },
  {
   "title": "Vmc Demo — Recover",
@@ -362,21 +374,9 @@ const DEFAULTS = [
   "text": "# Maneuver\nPitch ... RAISE SLOWLY — ≈ 1 MPH / SEC\nRudder ... INCREASE — HOLD HEADING\nRed Line ... 80 MPH\n# Recover at the first of\nLoss of directional control · stall horn · buffet\n# Recovery\nThrottle — Operating Engine ... REDUCE IMMEDIATELY\nPitch ... LOWER — REDUCE AOA\nHeading ... WITHIN 20° OF ENTRY\nThrottle — Operating Engine ... ADVANCE SMOOTHLY\nAirspeed ... Vyse 105\nBoth Throttles ... SYMMETRICAL POWER\n! Spin: BOTH THROTTLES IDLE · FULL OPPOSITE RUDDER · WHEEL FORWARD · AILERONS NEUTRAL"
  },
  {
-  "title": "Short-Field Takeoff",
-  "group": "Maneuvers",
-  "color": "#a37800",
-  "text": "# POH 6-7\nFlaps 0° ... ROTATE 80 · 85 AT 50 FT\nFlaps 25° ... ROTATE 70 · 80 AT 50 FT\nFuel Pumps · Mixtures · Props ... ON · RICH · FULL FWD\nPosition ... MAX RUNWAY, CENTERLINE\nBrakes ... HOLD\nThrottles ... FULL — 2700 RPM, GAUGES GREEN\nBrakes ... RELEASE\nClimb Over Obstacle ... Vx 90 MPH\nGear ... UP — NO RUNWAY REMAINS\nThen ... Vy 105 MPH\nFlaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE\n! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN"
- },
- {
-  "title": "Short-Field Landing",
-  "group": "Maneuvers",
-  "color": "#a37800",
-  "text": "# POH 6-11\nFlaps ... FULL (40°)\nFinal Approach Speed ... 87 MPH\nAim Point ... SELECTED\nThrottles ... IDLE BEFORE TOUCHDOWN\nTouchdown ... MAIN WHEELS FIRST, MIN. FLOAT\nAfter Touchdown ... RAISE FLAPS\nBack Pressure · Brakes ... APPLY · MAXIMUM\n! Maximum demonstrated crosswind for landing: 15 MPH."
- },
- {
   "title": "One Engine Inoperative Approach",
   "group": "Maneuvers",
   "color": "#a37800",
-  "text": "# POH 3-13\nInoperative Engine ... FEATHERED\nAltitude & Airspeed ... EXTRA — LAND THE FIRST TIME\nGear ... DOWN WHEN LANDING IS ASSURED\nFlaps ... NOT UNTIL CERTAIN OF FIELD (MAX 25°)\nFinal Approach Speed ... 105 MPH\nRudder Trim ... ADJUST AS POWER CHANGES\n! Single-engine go-around only if unavoidable.\n-> FEATHER | Feathering procedure : Feathering Procedure\n-> SE GO AROUND | if unavoidable : Single-Engine Go Around"
+  "text": "# POH 3-13\nInoperative Engine ... FEATHERED\nAltitude & Airspeed ... EXTRA — LAND THE FIRST TIME\nGear ... DOWN — 3 GREENS, 1 IN THE MIRROR\nFlaps ... NOT UNTIL CERTAIN OF FIELD (MAX 25°)\nFinal Approach Speed ... 105 MPH\nRudder Trim ... ADJUST AS POWER CHANGES\n! Single-engine go-around only if unavoidable.\n-> FEATHER | Feathering procedure : Feathering Procedure\n-> SE GO AROUND | if unavoidable : Single-Engine Go Around"
  }
 ];

@@ -123,6 +123,11 @@ replace('Before Taxi','Avionics ... Checked Start Screen & DB',['Avionics ... CH
 replace('Before Taxi','RAIM ... Check in System',['RAIM ... CHECK IN SYSTEM'])
 # Takeoff: contact the tower first.
 tk=by_title['Takeoff']['lines']; tk.insert(0, tk.pop(tk.index('Contact Tower ... PATTERN / VFR / IFR')))
+tk.append('-> SHORT FIELD | POH 6-7 : Short-Field Takeoff')
+# Engine fire on the ground: keep the reason (AVIA) for keeping a started engine running.
+replace('Engine Fire — On the Ground','# If engine has started, continue operating. If external fire extinguishing is to be applied:',
+    ['# If the engine has started, keep it running to pull the fire into the engine. If external fire extinguishing is to be applied:'])
+replace('Engine Run-up','Throttle ... IDLE (650–700 RPM), Then 1000 RPM',['Throttle ... IDLE (650–700 RPM), THEN 1000 RPM'])
 # The right wing has no gear limit switches (the left wing has the squat switch, added below).
 by_title['Right Wing']['lines'].remove('Limit Switches ... CHECKED / NO DAMAGE')
 # Wording fixes.
@@ -130,6 +135,8 @@ replace('Air Start / Unfeathering',"If engine does'nt start, prime w/ Fuel Pump 
     ['If the engine does not start, prime with Fuel Pump INOP Engine ON 3 sec, then repeat the steps above.'])
 replace('Vacuum Failure','RPM ... INCREASE 2700',['RPM ... INCREASE TO 2700'])
 replace('Before Takeoff','Trims ... ELEVATOR T/O, RUDDER AS REQUIRED',['Elevator Trim ... SET FOR T/O','Rudder Trim ... SET'])
+# Before Takeoff: the POH pre-takeoff check sets the wing flaps (the run-up only checks their travel).
+insert('Before Takeoff','Rudder Trim ... SET',['Wing Flaps ... SET (0° NORMAL · 25° SHORT FIELD)'])
 # Approach: speeds first, the pre-landing items, first notch of flaps, then GUMPS (the gear line pulses).
 by_title['Approach / GUMPS']['lines']=[
     'Approach Speed ... 110 DWNWD · 100 BASE · 90 FINAL',
@@ -145,9 +152,11 @@ by_title['Approach / GUMPS']['lines']=[
     'M — Mixture Controls ... FULL RICH',
     'P — Propeller Controls ... FULL FORWARD (HIGH RPM)',
     'S — Seat Belt & Switches ... CHECK',
-    '-> GO AROUND | if needed : Go Around']
+    '-> GO AROUND | if needed : Go Around',
+    '-> SHORT FIELD | full flaps · 87 MPH : Short-Field Landing']
 # Go Around is a branch: it has a tile, but Next on Approach leads to After Landing.
-by_title['Go Around']['lines']=['@BRANCH']+by_title['Go Around']['lines']+['-> APPROACH | back to Approach / GUMPS : Approach / GUMPS']
+by_title['Go Around']['lines']=['@BRANCH']+by_title['Go Around']['lines']+['-> APPROACH | back to Approach / GUMPS : Approach / GUMPS',
+    "-> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"]
 by_title['Left Engine Nacelle']['lines']=list(by_title['Right Engine Nacelle']['lines'])
 rw=by_title['Right Wing']['lines']
 lw=[]
@@ -303,6 +312,41 @@ POWER="""@HIDDEN
 ! Manifold pressure (in Hg): ±0.16" per 10°F from standard — add above standard, subtract below. FT = full throttle. Avoid continuous 2200–2400 RPM.
 -> BACK TO CRUISE | Cruise : Cruise"""
 
+SFTO="""@HIDDEN
+# POH 6-7
+Flaps 0° ... ROTATE 80 · 85 AT 50 FT
+Flaps 25° ... ROTATE 70 · 80 AT 50 FT
+Flaps / Trim ... 0°: T/O RANGE · 25°: SLIGHTLY NOSE UP
+Fuel Pumps · Mixtures · Props ... ON · RICH · FULL FWD
+Position ... MAX RUNWAY, CENTERLINE
+Brakes ... HOLD
+Throttles ... FULL — 2700 RPM, GAUGES GREEN
+Brakes ... RELEASE
+Climb Over Obstacle ... Vx 90 MPH
+Gear ... UP — NO RUNWAY REMAINS
+Then ... Vy 105 MPH
+Flaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE
+! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN
+-> TAKEOFF | normal takeoff : Takeoff
+-> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"""
+SFLDG="""@HIDDEN
+Final Approach Speed ... 87 MPH, FULL FLAPS (40°)
+# GUMPS
+G — Fuel Selectors & Pumps ... ON
+^ U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR
+M — Mixture Controls ... FULL RICH
+P — Propeller Controls ... FULL FORWARD (HIGH RPM)
+S — Seat Belt & Switches ... CHECK
+# Short field — POH 6-11
+Aim Point ... SELECTED
+Throttles ... IDLE BEFORE TOUCHDOWN
+Touchdown ... MAIN WHEELS FIRST, MIN. FLOAT
+After Touchdown ... RAISE FLAPS
+Back Pressure · Brakes ... APPLY · MAXIMUM
+! Maximum demonstrated crosswind for landing: 15 MPH.
+-> GO AROUND | if needed : Go Around
+-> AFTER LANDING | after touchdown : After Landing"""
+
 # Maneuvers (behind a small button on the home screen). Speeds MPH CAS, from the POH and the
 # checkride maneuver sheets: the big items only.
 MANEUVERS=[
@@ -325,7 +369,7 @@ Back Pressure / Power ... HOLD ALTITUDE / ADD AS REQ
 Turn ... 360° — ROLL OUT ON ENTRY HEADING
 Reverse ... OPPOSITE DIRECTION
 # Tolerances
-Altitude · Airspeed ... ± 100 FT · ± 10 KT
+Altitude · Airspeed ... ± 100 FT · ± 11 MPH (10 KT)
 Bank · Rollout Heading ... ± 5° · ± 10°
 ! Engine quits in the turn: WINGS LEVEL · REDUCE POWER · then MEMORY ITEMS"""),
 ('Slow Flight',"""# Entry
@@ -375,6 +419,7 @@ Throttle — Engine to Fail ... IDLE, SLOWLY
 Prop — Engine to Fail ... WINDMILLING — NO FEATHER
 Throttle — Operating Engine ... FULL
 Rudder / Bank ... TOWARD GOOD ENGINE / ≤ 5°
+Pitch / Airspeed ... SE CLIMB ATTITUDE ≈ 116 MPH
 ! Expect the gear warning horn (gear up, MP below 14")."""),
 ('Vmc Demo — Recover',"""# Maneuver
 Pitch ... RAISE SLOWLY — ≈ 1 MPH / SEC
@@ -390,32 +435,10 @@ Throttle — Operating Engine ... ADVANCE SMOOTHLY
 Airspeed ... Vyse 105
 Both Throttles ... SYMMETRICAL POWER
 ! Spin: BOTH THROTTLES IDLE · FULL OPPOSITE RUDDER · WHEEL FORWARD · AILERONS NEUTRAL"""),
-('Short-Field Takeoff',"""# POH 6-7
-Flaps 0° ... ROTATE 80 · 85 AT 50 FT
-Flaps 25° ... ROTATE 70 · 80 AT 50 FT
-Fuel Pumps · Mixtures · Props ... ON · RICH · FULL FWD
-Position ... MAX RUNWAY, CENTERLINE
-Brakes ... HOLD
-Throttles ... FULL — 2700 RPM, GAUGES GREEN
-Brakes ... RELEASE
-Climb Over Obstacle ... Vx 90 MPH
-Gear ... UP — NO RUNWAY REMAINS
-Then ... Vy 105 MPH
-Flaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE
-! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN"""),
-('Short-Field Landing',"""# POH 6-11
-Flaps ... FULL (40°)
-Final Approach Speed ... 87 MPH
-Aim Point ... SELECTED
-Throttles ... IDLE BEFORE TOUCHDOWN
-Touchdown ... MAIN WHEELS FIRST, MIN. FLOAT
-After Touchdown ... RAISE FLAPS
-Back Pressure · Brakes ... APPLY · MAXIMUM
-! Maximum demonstrated crosswind for landing: 15 MPH."""),
 ('One Engine Inoperative Approach',"""# POH 3-13
 Inoperative Engine ... FEATHERED
 Altitude & Airspeed ... EXTRA — LAND THE FIRST TIME
-Gear ... DOWN WHEN LANDING IS ASSURED
+Gear ... DOWN — 3 GREENS, 1 IN THE MIRROR
 Flaps ... NOT UNTIL CERTAIN OF FIELD (MAX 25°)
 Final Approach Speed ... 105 MPH
 Rudder Trim ... ADJUST AS POWER CHANGES
@@ -430,7 +453,8 @@ for l in normal:
     add(l['title'], l['group'], '\n'.join(l['lines']))
     if l['title']=='Before Starting Engine': add('Passenger Briefing','Start & Taxi',PAX)
     if l['title']=='Starting Engine': add('Hot Start','Start & Taxi',HOT); add('Flooded Start','Start & Taxi',FLOODED)
-    if l['title']=='Before Takeoff': add('Crew Takeoff Briefing','Start & Taxi',CREW)
+    if l['title']=='Before Takeoff': add('Crew Takeoff Briefing','Start & Taxi',CREW); add('Short-Field Takeoff','Flight',SFTO)
+    if l['title']=='Approach / GUMPS': add('Short-Field Landing','Flight',SFLDG)
     if l['title']=='Cruise': add('Cruise Power Settings','Flight',POWER)
 # Emergency checklists are split into categories (shown as a second tile screen).
 # Memory Items stays at the top level so it is one tap from the Emergency screen.
@@ -450,7 +474,7 @@ for l in emer:
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 for title, text in MANEUVERS: add(title, 'Maneuvers', text)
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=18
+DEFAULTS_VERSION=19
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

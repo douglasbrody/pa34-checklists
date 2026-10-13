@@ -82,7 +82,8 @@ for i, a in info.items():
         continue
     for code in {a.get('local_code', ''), i, a.get('iata_code', ''), a.get('gps_code', '')}:
         code = (code or '').upper().strip()
-        if not code or code == key or code in runways or key == 'K' + code:
+        # never shadow a real code or the 'K' + FAA ident of another airport
+        if not code or code == key or code in runways or 'K' + code in runways:
             continue
         if code in alias and alias[code] != key:
             clash.add(code)

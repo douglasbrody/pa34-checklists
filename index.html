@@ -17,7 +17,7 @@
     --accent: #1e5bd8; --accent-fg: #fff; --next: #1e5bd8; --tok: #1752c9; --warnc: #c2410c;
     --warn-bg: #fff4d6; --warn-fg: #6b4a00; --tile-filter: none;
     --hl-bg: #fff19a; --hl-fg: #111; --pulse-bg: #ffc93a;
-    --scan-bg: rgba(17, 24, 39, .62); --scan-fg: #fff;
+    --scan-bg: rgba(255, 255, 255, .58); --scan-fg: rgba(17, 34, 68, .78); --scan-line: rgba(30, 91, 216, .28);
     --vh: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
   }
   [data-theme="night"] {
@@ -25,14 +25,14 @@
     --accent: #2c5fbf; --accent-fg: #e8e8e8; --next: #4d8dff; --tok: #7fb0ff; --warnc: #ff9f43;
     --warn-bg: #2a2100; --warn-fg: #e0b84a; --tile-filter: brightness(.62);
     --hl-bg: #3d3500; --hl-fg: #f2e27a; --pulse-bg: #6e5c00;
-    --scan-bg: rgba(40, 40, 40, .72); --scan-fg: #e6e6e6;
+    --scan-bg: rgba(70, 70, 70, .42); --scan-fg: rgba(230, 230, 230, .8); --scan-line: rgba(255, 255, 255, .18);
   }
   [data-theme="red"] {
     --bg: #000; --fg: #ff3b2f; --card: #120000; --muted: #d83a2e; --line: #3a0805;
     --accent: #4a0000; --accent-fg: #ff4a3d; --next: #ff3b2f; --tok: #ff6b5f; --warnc: #ff8a7f;
     --warn-bg: #2a0000; --warn-fg: #ff6b5f; --tile-filter: none;
     --hl-bg: #3a0000; --hl-fg: #ff6b5f; --pulse-bg: #6a0c06;
-    --scan-bg: rgba(42, 0, 0, .78); --scan-fg: #ff4a3d;
+    --scan-bg: rgba(70, 0, 0, .45); --scan-fg: rgba(255, 74, 61, .85); --scan-line: rgba(255, 59, 47, .3);
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; background: var(--bg); color: var(--fg); }
@@ -62,6 +62,7 @@
     min-height: 56px; padding: 0 18px; border-radius: 14px; font-size: 19px; font-weight: 700; flex: none;
     background: var(--card); border: 1px solid var(--line); color: var(--fg);
   }
+  button.banner { display: block; width: 100%; text-align: left; font: inherit; font-size: 15px; font-weight: 700; color: var(--warn-fg); }
   .banner { flex: none; margin: 0 0 12px; padding: 8px 12px; border-radius: 12px; background: var(--warn-bg); color: var(--warn-fg); font-size: 15px; font-weight: 700; }
   .tiles { flex: 1; min-height: 0; display: grid; grid-gap: 14px; overflow-y: auto; }
   .tile {
@@ -71,10 +72,11 @@
     filter: var(--tile-filter); box-shadow: 0 2px 6px rgba(0,0,0,.15);
     transition: transform .08s;
   }
+  .tile .tl { display: block; max-width: 100%; }
   .tiles.anywhere .tile { overflow-wrap: anywhere; }
   .tile:active, .home-tile:active, .next-tile:active, .choice:active, .emerg-tile:active, .big-go:active { transform: scale(.97); }
   [data-theme="red"] .tile { background: #1a0000 !important; color: var(--fg); border: 2px solid #5a0d08; box-shadow: none; }
-  .empty { padding: 40px 10px; text-align: center; color: var(--muted); }
+  .empty-msg { padding: 40px 10px; text-align: center; color: var(--muted); }
 
   /* ---------- Checklist page ---------- */
   .page { display: flex; flex-direction: column; }
@@ -159,13 +161,15 @@
   .more-cue.gone { display: none; }
   /* Emergency scan reminder: a light banner that fades in and out; taps pass straight through. */
   .scan {
-    position: fixed; left: 50%; top: 44%; z-index: 40; pointer-events: none; opacity: 0;
-    -webkit-transform: translate(-50%, -50%); transform: translate(-50%, -50%);
-    width: 92vw; max-width: 900px; padding: 14px 20px; border-radius: 20px; text-align: center;
-    background: var(--scan-bg); color: var(--scan-fg); font-size: 34px; font-weight: 900; letter-spacing: 1px; line-height: 1.2;
+    position: fixed; left: 50%; top: 120px; z-index: 40; pointer-events: none; opacity: 0;
+    -webkit-transform: translateX(-50%); transform: translateX(-50%);
+    max-width: calc(100vw - 32px); padding: 8px 22px; border-radius: 16px; text-align: center; white-space: nowrap;
+    background: var(--scan-bg); color: var(--scan-fg); border: 2px solid var(--scan-line);
+    -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+    font-size: 28px; font-size: min(28px, 3.3vw); font-weight: 850; letter-spacing: 1px; line-height: 1.2;
     animation: scan 6s ease-in-out 3s infinite;
   }
-  @keyframes scan { 0% { opacity: 0; } 6% { opacity: .9; } 28% { opacity: .9; } 36% { opacity: 0; } 100% { opacity: 0; } }
+  @keyframes scan { 0% { opacity: 0; } 6% { opacity: .85; } 28% { opacity: .85; } 36% { opacity: 0; } 100% { opacity: 0; } }
 
   /* ---------- Flight data tokens, wind line, footer ---------- */
   .fv { color: var(--tok); border-bottom: .09em solid currentColor; padding: 0 .08em; font-weight: 850; }
@@ -183,9 +187,9 @@
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .wx b { color: var(--next); }
-  .wx-key { flex: none; white-space: nowrap; margin-left: .3em; }
+  .wx-key { flex: 0 1 auto; min-width: 0; white-space: normal; margin-left: .3em; }
   .wx-xw { font-weight: 850; }
-  .wx-rest { flex: 1 1 auto; min-width: 0; margin-left: .3em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+  .wx-rest { flex: 1 1 0; min-width: 0; margin-left: .3em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
   .wx.empty { border-style: dashed; border-color: var(--next); color: var(--next); }
   .wx.empty .wx-rest { color: inherit; }
   .home .wx { margin: 14px 0 0; }
@@ -198,6 +202,8 @@
     filter: var(--tile-filter); box-shadow: 0 2px 6px rgba(0,0,0,.15);
   }
   [data-theme="red"] .emerg-tile { background: #3a0000; color: var(--fg); border: 2px solid #8a1a14; box-shadow: none; }
+  .wrap.data { display: flex; flex-direction: column; min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); min-height: calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  .wrap.data .data-foot { margin-top: auto; }
   .data-foot { position: -webkit-sticky; position: sticky; bottom: 0; padding: 10px 0 calc(12px + env(safe-area-inset-bottom)); margin-bottom: calc(-1 * env(safe-area-inset-bottom)); background: var(--bg); }
   .data-foot .foot { margin: 0; }
   .tabs { display: flex; margin: 0 0 14px; }
@@ -211,7 +217,7 @@
   .field { min-height: 84px; border-radius: 14px; background: var(--card); border: 2px solid var(--line); text-align: left; padding: 8px 14px; min-width: 0; }
   .field small { display: block; font-size: 14px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
   .field span { font-size: 30px; font-weight: 850; color: var(--tok); }
-  .field span.empty { color: var(--muted); font-weight: 600; font-size: 22px; }
+  .field span.blank { color: var(--muted); font-weight: 600; font-size: 22px; }
   .field span small { display: inline; color: var(--muted); font-size: 16px; }
   .big-go { width: 100%; min-height: 76px; border-radius: 16px; background: var(--accent); color: var(--accent-fg); font-size: 26px; font-weight: 850; margin: 0 0 12px; }
   .big-go.alt { background: var(--card); color: var(--fg); border: 2px solid var(--line); font-size: 22px; min-height: 64px; }
@@ -220,20 +226,26 @@
 
   /* ---------- Keypad sheet ---------- */
   #pad { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 50; background: rgba(0,0,0,.5);
-    display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-top: env(safe-area-inset-top); }
+    display: flex; flex-direction: column; justify-content: flex-end; align-items: center; padding-top: env(safe-area-inset-top);
+    overscroll-behavior: contain; touch-action: none; }
   #pad .sheet2 {
     width: 100%; max-width: 760px; max-height: 100%; display: flex; flex-direction: column;
-    background: var(--bg); border-radius: 22px 22px 0 0;
+    background: var(--bg); border-radius: 22px 22px 0 0; border-top: 2px solid var(--line);
     padding: 12px calc(16px + env(safe-area-inset-right)) calc(14px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
   }
   .pad-head { flex: none; }
-  .pad-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .pad-mid { flex: 1 1 auto; min-height: 0; position: relative; display: flex; flex-direction: column; }
+  .pad-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; }
+  .pad-cue { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 0 2px; text-align: center; pointer-events: none; display: none;
+    background: linear-gradient(to bottom, rgba(0,0,0,0), var(--bg) 70%); font-size: 13px; font-weight: 850; color: var(--next); letter-spacing: .5px; }
+  .pad-mid.more .pad-cue { display: block; }
   .pad-step { display: flex; align-items: center; font-size: 15px; font-weight: 700; color: var(--muted); }
   .pad-step span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .pad-label { font-size: 36px; font-weight: 900; text-align: center; text-transform: uppercase; letter-spacing: .5px; line-height: 1.1; margin: 4px 0 2px; }
   .pad-freq { text-align: center; font-size: 20px; font-weight: 850; color: var(--next); }
   .pad-val { font-size: 52px; font-weight: 850; text-align: center; min-height: 70px; line-height: 70px; color: var(--tok); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-  .pad-val.sky { font-size: 34px; }
+  .pad-val.sky { font-size: 32px; white-space: normal; line-height: 1.15; min-height: 70px; height: auto; display: flex; align-items: center; justify-content: center; flex-wrap: wrap; }
+  .pad-val.sky .was { font-size: inherit; }
   .pad-val .was { color: var(--muted); font-weight: 600; font-size: 38px; }
   .pad-val .unit { font-size: 24px; color: var(--muted); margin-left: 8px; }
   .keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-gap: 10px; }
@@ -254,6 +266,10 @@
   .kp-label { font-size: 14px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 8px 2px 6px; }
   .keys.vis { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .keys.vis .key { font-size: 24px; min-height: 60px; }
+  .keys.vis .key.span2 { font-size: 20px; }
+  .keys.appr { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .keys.appr .key { font-size: 24px; min-height: 60px; }
+  .chip-groups { margin-bottom: 4px; }
   .keys.sky { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .keys.sky .key { font-size: 24px; min-height: 64px; }
   .keys.rwy36 { grid-template-columns: repeat(9, minmax(0, 1fr)); }
@@ -319,7 +335,7 @@
     #pad .keys.letters .key { min-height: 38px; font-size: 19px; }
     .keys.twnum .key { min-height: 36px; font-size: 17px; }
     .keys.rwy36 .key { min-height: 42px; font-size: 18px; }
-    .keys.pairs .key { min-height: 38px; font-size: 14px; letter-spacing: -.3px; }
+    .keys.pairs .key { min-height: 40px; font-size: 16px; }
     .keys.twlist .key { min-height: 42px; font-size: 17px; }
     .keys.vis .key { min-height: 46px; font-size: 18px; }
     .keys.sky .key { min-height: 48px; font-size: 19px; }
@@ -358,7 +374,10 @@
     .list-title { font-size: 22px; padding-top: 6px; }
     .choice { min-height: 70px; font-size: 26px; }
     .choice small { font-size: 13px; margin-top: 2px; }
-    .scan { font-size: 22px; padding: 10px 12px; }
+    .scan { white-space: normal; width: calc(100vw - 24px); font-size: 18px; padding: 6px 10px; letter-spacing: 0; }
+    .small-btn .lbl { display: none; }
+    .keys.pairs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .keys.appr .key { font-size: 18px; min-height: 46px; }
     .fit { padding: 8px 12px 10px; }
   }
 
@@ -383,7 +402,33 @@
     .pad-val { font-size: 32px; min-height: 40px; line-height: 40px; }
     .pad-act button { min-height: 46px; font-size: 19px; }
     #pad .keys.letters .key, .keys.rwy36 .key, .keys.pairs .key, .keys.twlist .key, .keys.vis .key, .keys.sky .key { min-height: 36px; font-size: 17px; }
-    .scan { font-size: 22px; }
+    .scan { font-size: 20px; white-space: nowrap; width: auto; }
+    .taxi-read { font-size: 18px; min-height: 0; padding: 0 2px 4px; }
+    .taxi-modes { margin-bottom: 4px; }
+    .taxi-modes .key { min-height: 40px; font-size: 15px; }
+    #pad .keys.letters { grid-template-columns: repeat(13, minmax(0, 1fr)); }
+    .keys.twnum, .keys.rwy36 { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+    .keys.num { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .keys.vis { grid-template-columns: repeat(9, minmax(0, 1fr)); }
+    .keys.appr { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .keys.appr .key { min-height: 38px; font-size: 16px; }
+    .key.big { min-height: 44px; font-size: 22px; }
+    .pad-label { margin: 0; }
+    .pad-val, .pad-val.sky { min-height: 36px; line-height: 36px; font-size: 28px; }
+    .pad-val.sky { font-size: 20px; line-height: 1.1; }
+    .chip-groups { display: flex; }
+    .chip-groups > * { flex: 1 1 0; min-width: 0; }
+    .chip-groups > * + * { margin-left: 8px; }
+    .near-row { min-height: 40px; }
+    .apt-pick { min-height: 40px; font-size: 16px; }
+    .apt-pick small { display: none; }
+  }
+
+  /* Tall phones: keypad keys at least 44 px (Apple's minimum tap size). */
+  @media (max-width: 600px) and (min-height: 700px) {
+    #pad .keys.letters .key, .keys.pairs .key, .keys.twlist .key, .keys.rwy36 .key { min-height: 44px; }
+    .keys.twnum .key { min-height: 44px; }
+    .apt-chip { min-height: 44px; }
   }
 
   /* ---------- Edit ---------- */
@@ -427,6 +472,7 @@
   window.onerror = function (msg, src, line) {
     try {
       var p = document.getElementById('pad'); if (p) p.parentNode.removeChild(p);
+      document.body.style.overflow = '';
       try { pad = null; taxi = null; } catch (e) {}
       try { localStorage.setItem('lastError', JSON.stringify({ msg: String(msg), src: String(src || '').split('/').pop(), line: line, t: Date.now() })); } catch (e) {}
       var box = document.getElementById('err');
@@ -447,7 +493,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 35;
+const APP_VERSION = 36;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -474,7 +520,7 @@ function freshDefaults() {
 // Checklist content updates: a device whose checklists match a published default set (i.e. were
 // never edited) picks up new defaults automatically. Edited checklists are never overwritten.
 const VER_KEY = 'defaults.version', DSIG_KEY = 'defaults.sig', IDMAP_KEY = 'idmap.v1';
-const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9'];
+const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9'];
 const isPristine = ls => { const s = sig(ls); return s === read(DSIG_KEY, '') || KNOWN_SIGS.includes(s); };
 let lists = read(KEY, null);
 function applyDefaults() {
@@ -499,7 +545,7 @@ function find(id) {
 }
 const findByTitle = t => lists.find(x => normTitle(x.title) === normTitle(t));
 const ICON_HOME = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>';
-const homeTile = (label) => `<button class="home-tile" data-go="#/" aria-label="Home">${ICON_HOME}<span>${label || 'HOME'}</span></button>`;
+const homeTile = (label) => `<button class="home-tile" data-go="#/" aria-label="${label ? esc(label) : 'Home'}">${ICON_HOME}<span>${label || 'HOME'}</span></button>`;
 
 // Text format: "# Section", "! Caution", "Challenge ... Response", "* highlighted", "^ pulsing highlight",
 // "| a | b | c" table rows (the first row is the header), plain text, "-> Label | subtitle : Checklist title"
@@ -551,10 +597,11 @@ function applyTheme() {
   document.documentElement.dataset.theme = theme;
   document.querySelector('meta[name=theme-color]').content = theme === 'day' ? '#1b1d21' : '#000000';
 }
-const THEME_LABEL = { day: '☀︎ Day', night: '☾ Night', red: '● Red' };
+const THEME_LABEL = { day: ['☀︎', 'Day'], night: ['☾', 'Night'], red: ['●', 'Red'] };
 
 /* ---------- Screen wake lock (keeps the screen on while the app is in use) ---------- */
-let wakeLock = null, wakeReq = null, wantWake = false;
+let wakeLock = null, wakeReq = null, wantWake = false, wakeFailed = false;
+const wakeHint = () => (navigator.maxTouchPoints || 0) > 0 && (!('wakeLock' in navigator) || wakeFailed) && !read('wakehint.v1', false);
 function setWake(on) {
   wantWake = on;
   if (!('wakeLock' in navigator)) return;
@@ -564,7 +611,10 @@ function setWake(on) {
       if (!wantWake) { s.release(); return; }
       wakeLock = s;
       s.addEventListener('release', () => { if (wakeLock === s) wakeLock = null; });
-    }).catch(() => { wakeReq = null; });
+    }).catch(() => {
+      wakeReq = null;
+      if (!wakeFailed) { wakeFailed = true; const h = location.hash; if ((h === '' || h === '#' || h === '#/') && !pad && !taxi) renderHome(); }
+    });
   } else if (!on && wakeLock) { const s = wakeLock; wakeLock = null; s.release().catch(() => {}); }
 }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) setWake(true); });
@@ -576,9 +626,11 @@ const FD_KEY = 'flightdata.v1', STALE_MS = 12 * 3600e3;
 let fd = read(FD_KEY, {});
 if (!fd || typeof fd !== 'object' || Array.isArray(fd)) fd = {};
 if (fd._t && Date.now() - fd._t > STALE_MS) fd = {};   // last flight's data is more than 12 h old: start fresh
+if (!fd._t && Object.keys(fd).length) fd._t = Date.now();   // carried over from a version without timestamps
 const saveFd = () => write(FD_KEY, fd);
 const SIDE_NAME = { dep: 'Departure', arr: 'Arrival' };
-const ATIS_SET = ['info', 'wdir', 'wspd', 'gust', 'vis', 'ceil', 'temp', 'dew', 'alt', 'rwy'];
+const ATIS_SET = ['info', 'wdir', 'wspd', 'gust', 'vis', 'ceil', 'temp', 'dew', 'alt', 'appr', 'rwy', 'drwy'];
+const APPR_TYPES = ['ILS', 'RNAV', 'LOC', 'VOR', 'GPS', 'VISUAL'];
 const atisFields = side => [
   { k: side + '.apt', label: 'Airport', kind: 'ident', max: 4 },
   { k: side + '.info', label: 'ATIS information', kind: 'letter' },
@@ -590,7 +642,9 @@ const atisFields = side => [
   { k: side + '.temp', label: 'Temperature', max: 2, unit: '°C', extra: '−' },
   { k: side + '.dew', label: 'Dew point', max: 2, unit: '°C', extra: '−' },
   { k: side + '.alt', label: 'Altimeter', max: 4, unit: 'IN HG' },
-  { k: side + '.rwy', label: 'Runway in use', kind: 'rwy' }];
+  { k: side + '.appr', label: 'Approach in use', kind: 'appr' },
+  { k: side + '.rwy', label: 'Landing runway', kind: 'rwy' },
+  { k: side + '.drwy', label: 'Departing runway', kind: 'rwy' }];
 const TOB_FIELDS = [
   { k: 'tob.len', label: 'Runway available', max: 5, unit: 'FT' },
   { k: 'tob.todist', label: 'Takeoff distance over 50 ft', max: 4, unit: 'FT' },
@@ -609,18 +663,24 @@ const SKY_COVER = ['FEW', 'SCT', 'BKN', 'OVC'];
 
 // Store a value and apply the knock-on rules (new airport or ATIS letter = new ATIS, new wind = no old gust...).
 function setField(k, v) {
-  const [side, f] = k.split('.'), now = Date.now();
-  if ((side === 'dep' || side === 'arr') && f === 'apt' && fd[k] !== undefined && v !== fd[k]) {
+  const [side, f] = k.split('.'), now = Date.now(), old = fd[k], atis = side === 'dep' || side === 'arr';
+  const sameApt = (a, b) => (aptKey(a) || String(a || '').toUpperCase()) === (aptKey(b) || String(b || '').toUpperCase());
+  if (atis && f === 'apt' && old !== undefined && old !== '' && !sameApt(old, v)) {
     Object.keys(fd).forEach(x => { if (x.startsWith(side + '.') && x !== k) delete fd[x]; });
-    if (side === 'dep') { delete fd.taxi; delete fd.taxiApt; Object.keys(fd).forEach(x => { if (x.startsWith('tob.')) delete fd[x]; }); }
+    if (side === 'dep') {
+      if (fd.taxiApt) { delete fd.taxi; delete fd.taxiApt; }   // a clearance built without an airport is kept
+      Object.keys(fd).forEach(x => { if (x.startsWith('tob.')) delete fd[x]; });
+    }
   }
-  if ((side === 'dep' || side === 'arr') && f === 'info' && fd[k] !== undefined && v !== fd[k]) ATIS_SET.forEach(x => { if (x !== 'info') delete fd[side + '.' + x]; });
-  if ((f === 'wspd' || f === 'wdir') && v !== fd[k]) delete fd[side + '.gust'];
+  if (atis && f === 'info' && old !== undefined && v !== old) ATIS_SET.forEach(x => { if (x !== 'info') delete fd[side + '.' + x]; });
+  if ((f === 'wspd' || f === 'wdir') && v !== old) delete fd[side + '.gust'];
   // a new start time at or past the recorded shutdown time means those shutdown times were from the last flight
   if (side === 'out' && fd['in.' + f] !== undefined && +v >= +fd['in.' + f]) Object.keys(fd).forEach(x => { if (x.startsWith('in.')) delete fd[x]; });
   fd[k] = v;
   if (k === 'tob.len') fd['tob.lenFor'] = toraCtx();
-  if (side !== '_') fd[side + '._t'] = now;
+  // The ATIS age restarts with a new airport or letter (or new weather where there is no letter, e.g. AWOS),
+  // not when one value is corrected.
+  if (!atis || f === 'apt' || f === 'info' || !fd[side + '._t'] || (!fd[side + '.info'] && /^(wdir|wspd|alt)$/.test(f))) fd[side + '._t'] = now;
   fd._t = now;
   saveFd();
 }
@@ -662,9 +722,14 @@ function fmt(k) {
   if (f === 'temp' || f === 'dew') return v.replace('-', '−');
   if (f === 'wdir') return v === 'VRB' ? 'VRB' : v.padStart(3, '0') + '°';
   if (f === 'vis') return v === '10' ? '10+' : v;
+  if (f === 'appr') return apprText(v);
   if (/^(len|secl|todist|asd)$/.test(f)) return thousands(v);
   return v;
 }
+// Approach in use: up to three approaches, stored like "ILS 6 / RNAV 24" or "VISUAL".
+const apprSegs = v => v ? String(v).split(' / ').filter(Boolean) : [];
+const apprText = v => apprSegs(v).map(x => x.replace(/ (\d+[LCR]?)$/, ' RWY $1')).join(' · ');
+const apprRwy = v => { const m = apprSegs(v).map(x => (x.match(/ (\d+[LCR]?)$/) || [])[1]).filter(Boolean); return m[0] || ''; };
 function windText(side) {
   const d = fd[side + '.wdir'], sp = fd[side + '.wspd'], g = fd[side + '.gust'];
   if (!d && !sp) return '';
@@ -677,9 +742,11 @@ function takeoffRunway() {
   const parts = taxiParts(), depKey = aptKey(fd['dep.apt']);
   const ok = !fd.taxiApt || !depKey || fd.taxiApt === depKey;
   const r = ok ? parts.find(p => p.k === 'rwy') : null, a = ok ? parts.find(p => p.k === 'at') : null;
-  return { rwy: r ? r.v : (fd['dep.rwy'] || ''), at: a ? a.v : '', fromClearance: !!r };
+  return { rwy: r ? r.v : depAtisRwy(), at: a ? a.v : '', fromClearance: !!r };
 }
-const sideRwy = side => side === 'dep' ? takeoffRunway().rwy : (fd['arr.rwy'] || '');
+const depAtisRwy = () => fd['dep.drwy'] || fd['dep.rwy'] || apprRwy(fd['dep.appr']);
+const arrRwy = () => fd['arr.rwy'] || apprRwy(fd['arr.appr']) || fd['arr.drwy'] || '';
+const sideRwy = side => side === 'dep' ? takeoffRunway().rwy : arrRwy();
 
 // Headwind / crosswind for a runway (runway number × 10 = magnetic heading, as ATIS winds are).
 const XW_LIMIT = 13;   // POH maximum demonstrated crosswind 15 MPH ≈ 13 kt
@@ -713,9 +780,19 @@ function compHtml(c) {
 }
 const atisAgeMin = side => fd[side + '._t'] ? Math.floor((Date.now() - fd[side + '._t']) / 60000) : 0;
 const ageText = m => m >= 120 ? Math.floor(m / 60) + ' H OLD' : m + ' MIN OLD';
+function atisRwyText(side) {
+  const d = fd[side + '.drwy'], l = fd[side + '.rwy'];
+  if (side === 'dep') return d ? 'DEP RWY ' + d : l ? 'RWY ' + l : '';
+  return [fd[side + '.appr'] ? fmt(side + '.appr') : '', l ? 'LDG RWY ' + l : ''].filter(Boolean).join(' · ');
+}
 function atisSummary(side) {
-  return [fd[side + '.apt'] || '', fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', fd[side + '.rwy'] ? 'RWY ' + fd[side + '.rwy'] : '',
+  return [fd[side + '.apt'] || '', fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', atisRwyText(side),
     windText(side), fmt(side + '.alt'), atisAgeMin(side) > 60 ? ageText(atisAgeMin(side)) : ''].filter(Boolean).join(' · ');
+}
+// Before the ATIS is entered: whatever is known (airport, frequency, letter) and a prompt.
+function atisPending(side) {
+  const k = aptKey(fd[side + '.apt']);
+  return [k ? sideWx(side) : (fd[side + '.apt'] || ''), fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : ''].filter(Boolean).join(' · ');
 }
 // What a manually entered "runway available" applies to; it is only used while that still matches.
 function toraCtx() { const t = takeoffRunway(); return [aptKey(fd['dep.apt']), t.rwy, t.at].join('|'); }
@@ -728,6 +805,10 @@ function toraText() {
   const { rwy, at } = takeoffRunway(), apt = aptKey(fd['dep.apt']);
   const label = 'RWY ' + (rwy || '—') + (at ? ' at ' + at : '');
   if (lenOk()) return label + ' · ' + thousands(fd['tob.len']) + ' FT (entered)';
+  if (fd['tob.len']) {
+    const was = String(fd['tob.lenFor'] || '').split('|');
+    return label + ' · entered ' + thousands(fd['tob.len']) + ' FT was for RWY ' + (was[1] || '—') + (was[2] ? ' at ' + was[2] : '') + ' — re-enter';
+  }
   if (!rwy) return '';
   const full = aptRunwayLen(apt, rwy);
   if (at) {
@@ -760,15 +841,16 @@ function tokenValue(key) {
   if (key === 'times.out' || key === 'times.in') return timesText(key.split('.')[1]) || 'TAP TO RECORD';
   const [side, f] = key.split('.');
   if (SIDES.includes(side)) {
-    if (f === 'hw') { const c = windComp(side); return c ? 'RWY ' + sideRwy(side) + ' · ' + headText(c) + ' KT' : ''; }
+    if (f === 'hw') { const c = windComp(side); return c ? 'RWY ' + sideRwy(side) + ' · ' + headText(c) + (c.calm ? '' : ' KT') : ''; }
     if (f === 'comp') { const c = windComp(side); return [windText(side), compText(c)].filter(Boolean).join(' · '); }
-    if (f === 'sum') return hasAtis(side) ? atisSummary(side) : [sideWx(side), 'TAP TO ENTER'].filter(Boolean).join(' · ');
+    if (f === 'sum') return hasAtis(side) ? atisSummary(side) : [atisPending(side), 'TAP TO ENTER'].filter(Boolean).join(' · ');
   }
   return FIELD[key] ? fmt(key) : '';
 }
 function tokenWarn(key) {
   const [side, f] = key.split('.');
   if (key === 'asd') { const asd = +fd['tob.asd'], av = toraFeet(); return !!(asd && av && asd > av); }
+  if (key === 'tora') return !!fd['tob.len'] && !lenOk();
   if (SIDES.includes(side) && (f === 'hw' || f === 'comp')) { const c = windComp(side); return isTail(c) || (f === 'comp' && xwHigh(c)); }
   if (SIDES.includes(side) && f === 'sum') return atisAgeMin(side) > 60;
   return false;
@@ -782,7 +864,7 @@ function tokenFields(key) {
   else {
     const [side, f] = key.split('.');
     if (SIDES.includes(side) && f === 'sum') ks = atisFields(side).map(x => x.k);
-    else if (SIDES.includes(side) && (f === 'comp' || f === 'hw')) ks = [side + '.rwy', side + '.wdir', side + '.wspd', side + '.gust'];
+    else if (SIDES.includes(side) && (f === 'comp' || f === 'hw')) ks = [side === 'dep' ? 'dep.drwy' : 'arr.rwy', side + '.wdir', side + '.wspd', side + '.gust'];
     else ks = [key];
   }
   return ks.filter(k => FIELD[k]);
@@ -799,25 +881,31 @@ const rowKeys = text => { const ks = []; text.replace(TOKEN, (m, k) => { tokenFi
 // after Takeoff. The phase reached is remembered, so emergencies, maneuvers and the home screen follow it.
 function phaseSide(l) {
   if (!l || !inFlow(l)) return null;
-  const idx = name => lists.findIndex(x => inFlow(x) && normTitle(x.title) === name);
-  const t = idx('takeoff'); if (t < 0) return null;
-  let bt = idx('before taxi'); if (bt < 0) bt = idx('taxi');
+  const idx = (id, name, loose) => {
+    let i = lists.findIndex(x => x.id === id && inFlow(x));
+    if (i < 0) i = lists.findIndex(x => inFlow(x) && normTitle(x.title) === name);
+    if (i < 0 && loose) i = lists.findIndex(x => inFlow(x) && !meta(x).hidden && loose.test(normTitle(x.title)));
+    return i;
+  };
+  const t = idx('d-takeoff', 'takeoff', /^takeoff(?!.*brief)/); if (t < 0) return null;
+  let bt = idx('d-before-taxi', 'before taxi', /before taxi/); if (bt < 0) bt = idx('d-taxi', 'taxi', /^taxi\b/);
   const i = lists.indexOf(l);
   return i > t ? 'arr' : (bt >= 0 && i < bt ? 'none' : 'dep');
 }
 const curPhase = () => fd._phase === 'arr' ? 'arr' : 'dep';
-const hasAtis = sd => ['rwy', 'wdir', 'wspd', 'alt'].some(f => fd[sd + '.' + f] !== undefined);
+const hasAtis = sd => ['rwy', 'drwy', 'appr', 'wdir', 'wspd', 'alt'].some(f => fd[sd + '.' + f] !== undefined);
 // prompt: when this ATIS is still blank, offer to enter it (normal flow); otherwise show nothing.
 function wxLine(side, prompt) {
   if (!side || side === 'none') return '';
   if (!hasAtis(side)) {
     if (!prompt) return '';
-    return `<button class="wx empty" data-act="padall" data-tab="${side}"><b>${side.toUpperCase()}</b> <span class="wx-rest">· ${sideWx(side) ? esc(sideWx(side)) + ' · Tap to enter' : 'Tap to enter ' + SIDE_NAME[side].toLowerCase() + ' ATIS'}</span></button>`;
+    const known = atisPending(side);
+    return `<button class="wx empty" data-act="padall" data-tab="${side}"><b>${side.toUpperCase()}</b> <span class="wx-rest">· ${known ? esc(known) + ' · Tap to enter' : 'Tap to enter ' + SIDE_NAME[side].toLowerCase() + ' ATIS'}</span></button>`;
   }
   const rwy = sideRwy(side), c = windComp(side, rwy), age = atisAgeMin(side);
   const comp = c ? compHtml(c) : (rwy ? 'XW —' : 'XW — enter runway');
   const rest = [windText(side), fd[side + '.apt'] || '', fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', fmt(side + '.alt')].filter(Boolean);
-  const atisNote = side === 'dep' && takeoffRunway().fromClearance && fd['dep.rwy'] && fd['dep.rwy'] !== rwy ? ` <span class="warn">(ATIS ${esc(fd['dep.rwy'])})</span>` : '';
+  const atisNote = side === 'dep' && takeoffRunway().fromClearance && depAtisRwy() && depAtisRwy() !== rwy ? ` <span class="warn">(ATIS ${esc(depAtisRwy())})</span>` : '';
   return `<button class="wx" data-go="#/data/${side}"><b>${side.toUpperCase()}</b> <span class="wx-key">${age > 60 ? `<span class="warn">${ageText(age)}</span> · ` : ''}RWY ${esc(rwy || '—')}${atisNote} · <span class="wx-xw">${comp}</span></span>`
     + (rest.length ? `<span class="wx-rest">· ${esc(rest.join(' · '))}</span>` : '') + `</button>`;
 }
@@ -922,7 +1010,7 @@ async function loadTaxiways(key, force) {
   if (!key || twLoading[key]) return;
   const c = twCache[key];
   if (!force && c && c.t) {
-    const good = (c.osm && c.osm.length) || (c.ints && Object.keys(c.ints).length);
+    const good = !c.partial && ((c.osm && c.osm.length) || (c.ints && Object.keys(c.ints).length));   // names-only results retry after a day
     if (Date.now() - c.t < (good ? TW_FRESH : TW_RETRY)) return;
   }
   if (navigator.onLine === false) return;
@@ -947,7 +1035,7 @@ async function loadTaxiways(key, force) {
     if (!res) throw new Error('server busy');
     const prev = twCache[key] || {};
     const got = res.names.length || Object.keys(res.ints).length;
-    twCache[key] = Object.assign({}, prev, { t: Date.now() },
+    twCache[key] = Object.assign({}, prev, { t: Date.now(), partial: partial && !!got },
       got ? { osm: res.names } : {}, (!partial && got) ? { ints: res.ints } : {});
     write(TW_KEY, twCache);
   } catch (e) { /* offline or server busy: keep what we have */ }
@@ -1008,10 +1096,11 @@ function airportChips(side) {
   else if (geo.busy) nearHtml = '<span class="near-note">Finding nearest airports…</span>';
   else if (geo.perm === 'denied') nearHtml = '<span class="near-note">Location is off — Settings › Privacy &amp; Security › Location Services</span>';
   else nearHtml = `<button class="key apt-pick" data-pad="locate">📍 Find nearest<small>${geo.err ? 'no GPS position — try again' : 'uses this device’s location'}</small></button>`;
+  const group = (label, html) => `<div><div class="kp-label">${label}</div><div class="near-row">${html}</div></div>`;
   const copy = side === 'arr' && fd['dep.apt'] && hasAtis('dep')
-    ? `<div class="kp-label">Pattern work</div><div class="near-row"><button class="key apt-pick" data-pad="copydep">= DEP ${esc(fd['dep.apt'])}<small>copy the whole departure ATIS</small></button></div>` : '';
-  return copy + `<div class="kp-label">Nearest</div><div class="near-row">${nearHtml}</div>`
-    + (recent.length ? `<div class="kp-label">Recent</div><div class="near-row">${recent.map(id => chip(id, aptWx(id) || 'recent')).join('')}</div>` : '');
+    ? group('Pattern work', `<button class="key apt-pick" data-pad="copydep">= DEP ${esc(fd['dep.apt'])}<small>copy the whole departure ATIS</small></button>`) : '';
+  return '<div class="chip-groups">' + copy + group('Nearest', nearHtml)
+    + (recent.length ? group('Recent', recent.map(id => chip(id, aptWx(id) || 'recent')).join('')) : '') + '</div>';
 }
 function copyDepToArr() {
   const now = Date.now();
@@ -1071,7 +1160,7 @@ function taxiInput(a) {
   const key = aptKey(fd[taxi.side + '.apt']) || '';
   let parts = taxiParts().slice();
   if (taxi.fresh && a[0] !== 'M') {   // first entry: a clearance left over for another airport is replaced
-    if (fd.taxiApt && key && fd.taxiApt !== key) parts = [];
+    if (fd.taxiApt && key && fd.taxiApt !== key) { parts = []; taxi.before = []; }
     fd.taxiApt = key; taxi.fresh = false;
   }
   fd.taxi = parts;
@@ -1145,20 +1234,23 @@ function taxiInput(a) {
 }
 function renderTaxi() {
   const txt = taxiText(), mode = taxi.mode, parts = taxiParts();
-  const key = (code, label, cls) => `<button class="key${cls ? ' ' + cls : ''}" data-taxi="${esc(code)}">${label}</button>`;
+  const key = (code, label, cls) => keyBtn('taxi', code, label, cls);
   const label = t => `<div class="kp-label">${t}</div>`;
-  const apt = aptKey(fd[taxi.side + '.apt']), rwys = aptRunways(apt), tws = aptTaxiways(apt);
-  const useRwys = rwys.length && !taxi.all, useTws = tws.length && !taxi.all;
+  const apt = aptKey(fd[taxi.side + '.apt']), rwys = aptRunways(apt), tc = twCache[apt] || {};
+  // Map (OSM) names replace the letter keys; names only learned from earlier clearances are an extra row.
+  const tws = aptTaxiways(apt), osm = tc.osm || [], learned = (tc.learned || []).filter(n => !osm.includes(n)).sort(twSort);
+  const useRwys = rwys.length && !taxi.all, useTws = osm.length && !taxi.all;
   const allLetters = `<div class="keys letters">${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => key('L' + c, c)).join('')}</div>`
     + `<div class="keys twnum">${'1234567890'.split('').map(d => key('T' + d, d)).join('')}</div>`;
-  const letters = useTws ? `<div class="keys twlist">${tws.map(n => key('W' + n, esc(n))).join('')}</div>` : allLetters;
+  const letters = useTws ? `<div class="keys twlist">${tws.map(n => key('W' + n, esc(n))).join('')}</div>`
+    : (learned.length && !taxi.all ? `<div class="keys twlist">${learned.map(n => key('W' + n, esc(n))).join('')}${key('forget', '✕ saved', '')}</div>` : '') + allLetters;
   const pairs = useRwys ? `<div class="keys pairs">${rwys.map(p => key('P' + p, esc(p))).join('')}</div>`
     : `<div class="keys pairs">${Array.from({ length: 18 }, (_, i) => key('P' + (i + 1), pairOf(i + 1))).join('')}</div>`;
   const sfx = useRwys ? `<div class="keys sfx">${key('back', '⌫', 'wide')}</div>`
     : `<div class="keys sfx">${key('SL', 'L')}${key('SC', 'C')}${key('SR', 'R')}${key('back', '⌫')}</div>`;
   const back = `<div class="keys sfx">${key('back', '⌫', 'wide')}</div>`;
   const dep = parts.find(p => p.k === 'rwy');
-  const twNote = apt && !tws.length ? (twLoading[apt] ? ' — loading names…' : ' — no names on file, tap letters') : '';
+  const twNote = apt && !osm.length ? (twLoading[apt] ? ' — loading names…' : learned.length ? ' — saved names, or tap letters' : ' — no names on file, tap letters') : '';
   let body;
   if (mode === 'rwy') body = label('Departure runway') + (useRwys
     ? `<div class="keys pairs">${aptEnds(apt).map(e => key('N' + e, esc(e))).join('')}</div>`
@@ -1177,7 +1269,7 @@ function renderTaxi() {
       <div class="taxi-read">${txt ? esc(txt) : '<span class="was">e.g. RWY 24 at A3 · via A, B · cross RWY 11/29 · hold short RWY 24</span>'}</div>
       <div class="taxi-modes">${TAXI_MODES.map(([k, l]) => `<button class="key${mode === k ? ' on' : ''}" data-taxi="M${k}" aria-pressed="${mode === k}">${l}</button>`).join('')}</div>
     </div>
-    <div class="pad-body">${body}</div>
+    ${padMid(body)}
     <div class="pad-act"><button data-taxi="clear">Clear</button><button class="go" data-taxi="done">Done</button></div>`, 'taxi');
 }
 document.addEventListener('click', e => {
@@ -1185,8 +1277,14 @@ document.addEventListener('click', e => {
   if (e.target.id === 'pad') return closeTaxi();
   const b = e.target.closest('[data-taxi]'); if (!b) return;
   const a = b.dataset.taxi;
+  taxi.kb = '';
   if (a === 'done') return closeTaxi();
-  if (a === 'clear') { delete fd.taxi; delete fd.taxiApt; saveFd(); taxi.mode = 'rwy'; taxi.fresh = true; return renderTaxi(); }
+  if (a === 'clear') { delete fd.taxi; delete fd.taxiApt; saveFd(); taxi.mode = 'rwy'; taxi.fresh = true; taxi.before = []; return renderTaxi(); }
+  if (a === 'forget') {                  // drop taxiway names learned at this airport
+    const k = aptKey(fd[taxi.side + '.apt']), c = twCache[k];
+    if (c) { delete c.learned; write(TW_KEY, twCache); }
+    return renderTaxi();
+  }
   if (a === 'all') { taxi.all = !taxi.all; return renderTaxi(); }
   if (a === 'swap') { taxi.side = taxi.side === 'dep' ? 'arr' : 'dep'; taxi.fresh = true; loadTaxiways(aptKey(fd[taxi.side + '.apt'])); return renderTaxi(); }
   if (a === 'apt') {                     // set the airport, then come back to the taxi keypad
@@ -1216,9 +1314,17 @@ function sheetHtml(inner, cls) {
   if (!el) { el = document.createElement('div'); el.id = 'pad'; document.body.appendChild(el); }
   const old = el.querySelector('.pad-body'), top = old ? old.scrollTop : 0;
   el.innerHTML = `<div class="sheet2 ${cls || ''}" role="dialog" aria-modal="true">${inner}</div>`;
-  const nb = el.querySelector('.pad-body'); if (nb && top) nb.scrollTop = top;
+  document.body.style.overflow = 'hidden';   // the page behind doesn't scroll while the keypad is open
+  const nb = el.querySelector('.pad-body'), mid = el.querySelector('.pad-mid');
+  if (nb && top) nb.scrollTop = top;
+  if (nb && mid) {   // "MORE KEYS" cue while part of the key area is below the fold
+    const upd = () => mid.classList.toggle('more', nb.scrollTop + nb.clientHeight < nb.scrollHeight - 4);
+    nb.addEventListener('scroll', upd, { passive: true }); upd();
+  }
 }
-let pad = null;   // { keys, i, buf, after, allRwy }
+const padMid = body => `<div class="pad-mid"><div class="pad-body">${body}</div><div class="pad-cue">MORE KEYS ↓</div></div>`;
+const keyBtn = (attr, code, label, cls) => `<button class="key${cls ? ' ' + cls : ''}" data-${attr}="${esc(code)}"${code === 'back' ? ' aria-label="Delete"' : ''}>${label}</button>`;
+let pad = null;   // { keys, i, buf, after, allRwy, kb }
 let padTimer = 0;
 function padTimerClear() { clearTimeout(padTimer); padTimer = 0; }
 function scheduleAdvance() {
@@ -1230,11 +1336,12 @@ function openPad(keys, start, after) {
   keys = (keys || []).filter(k => FIELD[k]);
   if (!keys.length) return;
   padTimerClear();
-  pad = { keys, i: Math.min(start || 0, keys.length - 1), buf: '', after, allRwy: false };
+  pad = { keys, i: Math.min(start || 0, keys.length - 1), buf: '', after, allRwy: false, kb: '' };
   onFieldShown(); renderPad();
 }
 function onFieldShown() {
   const f = FIELD[pad.keys[pad.i]];
+  pad.kb = '';
   if (f && f.kind === 'ident') { checkGeoPerm(); locate(); }
 }
 function closePad() {
@@ -1253,14 +1360,16 @@ function commitPad() {
   let b = pad.buf;
   if (f.kind === 'ident') b = aptKey(b) || b.toUpperCase();
   if (f.kind === 'rwy') b = b.replace(/^0+(?=\d)/, '');
-  if (f.kind === 'sky') b = b.trim();
-  const n = parseFloat(b);
+  if (f.kind === 'sky' || f.kind === 'appr') b = b.trim();
+  const n = parseFloat(b), rwyOk = r => parseInt(r, 10) >= 1 && parseInt(r, 10) <= 36;
   const bad = (fld === 'wdir' && b !== 'VRB' && !(n >= 0 && n <= 360))
-    || (f.kind === 'rwy' && !(parseInt(b, 10) >= 1 && parseInt(b, 10) <= 36))
+    || (f.kind === 'rwy' && !rwyOk(b))
+    || (f.kind === 'appr' && apprSegs(b).some(x => { const p = x.split(' '); return !APPR_TYPES.includes(p[0]) || (p[1] !== undefined && !rwyOk(p[1])); }))
     || (fld === 'alt' && !(b.length === 4 && n >= 2700 && n <= 3200))
     || ((fld === 'temp' || fld === 'dew') && !/\d/.test(b))
     || (fld === 'gust' && fd[side + '.wspd'] !== undefined && !(n > +fd[side + '.wspd']))
     || (f.kind === 'decimal' && (!/\d/.test(b) || /\.$/.test(b)))
+    || (side === 'in' && fd['out.' + fld] !== undefined && n < +fd['out.' + fld])   // shutdown reading below the start reading
     || (f.kind === 'sky' && b !== 'CLR' && skyLayers(b).some(l => l.h === null));
   if (bad) { shake(); return false; }
   if (f.kind === 'ident') rememberAirport(b);
@@ -1281,6 +1390,7 @@ function unitFor(f, v, typing) {
 }
 function typedText(f, b) {
   if (f.kind === 'sky') return b === 'CLR' ? 'SKY CLEAR' : skyText(b);
+  if (f.kind === 'appr') return apprText(b);
   if (f.k.endsWith('.alt') && b.length > 2) return b.slice(0, 2) + '.' + b.slice(2);
   if (f.kind === 'vis' && b === '10') return '10+';
   return b.replace('-', '−');
@@ -1288,32 +1398,41 @@ function typedText(f, b) {
 function renderPad() {
   const k = pad.keys[pad.i], f = FIELD[k];
   if (!f) { pad = null; const el = document.getElementById('pad'); if (el) el.remove(); return; }
-  const side = k.split('.')[0];
+  const [side, fld] = k.split('.');
   const group = side === 'tob' ? 'Takeoff data' : side === 'out' ? 'Start times' : side === 'in' ? 'Shutdown times' : SIDE_NAME[side] + ' ATIS';
-  const key = (code, label, cls) => `<button class="key${cls ? ' ' + cls : ''}" data-pad="${esc(code)}">${label}</button>`;
+  const key = (code, label, cls) => keyBtn('pad', code, label, cls);
   const backKey = key('back', '⌫', '');
-  let keys, gridCls = '', chips = '';
-  if (f.kind === 'letter') { gridCls = 'letters'; keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => key('L' + c, c)).join('') + backKey; }
-  else if (f.kind === 'ident') { gridCls = 'letters'; chips = airportChips(side); keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(c => key('I' + c, c)).join('') + backKey; }
-  else if (f.kind === 'vis') {
-    gridCls = 'vis';
-    keys = key('V10', '10+ SM', 'big') + VIS_VALUES.map(v => key('V' + v, esc(v))).join('') + key('back', '⌫', 'span2');
-  }
+  const grid = (cls, html) => `<div class="keys ${cls}">${html}</div>`;
+  const label = t => `<div class="kp-label">${t}</div>`;
+  const ends = (f.kind === 'rwy' || f.kind === 'appr') ? aptEnds(aptKey(fd[side + '.apt'])) : [];
+  const numRwy = () => grid('num', '123456789'.split('').map(d => key(d, d)).join('') + key('XL', 'L') + key('0', '0') + key('XR', 'R') + key('XC', 'C') + key('back', '⌫', 'span2'));
+  let body;
+  if (f.kind === 'letter') body = grid('letters', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => key('L' + c, c)).join('') + backKey);
+  else if (f.kind === 'ident') body = airportChips(side) + grid('letters', 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(c => key('I' + c, c)).join('') + backKey);
+  else if (f.kind === 'vis') body = grid('vis', key('V10', '10+ SM', 'big') + VIS_VALUES.map(v => key('V' + v, esc(v))).join('') + key('back', '⌫', 'span2'));
   else if (f.kind === 'sky') {
     const cur = pad.buf.split(/\s+/).pop() || '', active = (cur.match(/^(FEW|SCT|BKN|OVC)/) || [])[1];
-    gridCls = 'sky';
-    keys = key('XCLR', 'SKY CLEAR', 'big') + SKY_COVER.map(c => key('X' + c, c, active === c ? 'on' : '')).join('')
-      + '1234567890'.split('').map(d => key(d, d)).join('') + key('back', '⌫', 'span2');
+    body = grid('sky', key('XCLR', 'SKY CLEAR', 'big') + SKY_COVER.map(c => key('X' + c, c, active === c ? 'on' : '')).join('')
+      + '1234567890'.split('').map(d => key(d, d)).join('') + key('back', '⌫', 'span2'));
   }
-  else if (f.kind === 'rwy' && !pad.allRwy && aptRunways(aptKey(fd[side + '.apt'])).length) {
-    gridCls = 'vis';
-    keys = aptEnds(aptKey(fd[side + '.apt'])).map(e => key('E' + e, esc(e))).join('') + key('rwyall', 'Other…') + backKey;
+  else if (f.kind === 'appr') {
+    // "ILS RUNWAY 6 APPROACH IN USE": the type, then the runway; up to three approaches
+    const cur = apprSegs(pad.buf).pop() || '', curType = /\d/.test(cur) ? '' : cur;
+    body = label('Approach type') + grid('appr', APPR_TYPES.map(t => key('Q' + t, t, curType === t ? 'on' : '')).join(''))
+      + label('…then runway (Next when done)')
+      + (ends.length && !pad.allRwy ? grid('vis', ends.map(e => key('E' + e, esc(e))).join('') + key('rwyall', 'Other…', 'span2') + backKey) : numRwy());
+  }
+  else if (f.kind === 'rwy') {
+    // "LANDING AND DEPARTING RUNWAY 24": one tap copies the runway already entered
+    const lrwy = fd[side + '.rwy'], arwy = apprRwy(fd[side + '.appr']);
+    const same = fld === 'drwy' && lrwy ? key('E' + lrwy, 'SAME AS LANDING · ' + esc(lrwy), 'big')
+      : fld === 'rwy' && arwy ? key('E' + arwy, 'SAME AS APPROACH · ' + esc(arwy), 'big') : '';
+    if (ends.length && !pad.allRwy) body = grid('vis', same + ends.map(e => key('E' + e, esc(e))).join('') + key('rwyall', 'Other…', 'span2') + backKey);
+    else body = (same ? grid('vis', same) : '') + numRwy();
   }
   else {
     const extra = f.kind === 'decimal' ? '.' : f.extra || '';
-    keys = '123456789'.split('').map(d => key(d, d)).join('');
-    if (f.kind === 'rwy') keys += key('XL', 'L') + key('0', '0') + key('XR', 'R') + key('XC', 'C') + key('back', '⌫', 'span2');
-    else keys += (extra ? key('X' + extra, esc(extra)) : '<span></span>') + key('0', '0') + backKey;
+    body = grid('num', '123456789'.split('').map(d => key(d, d)).join('') + (extra ? key('X' + extra, esc(extra)) : '<span></span>') + key('0', '0') + backKey);
   }
   const typing = pad.buf !== '';
   const shownV = typing ? typedText(f, pad.buf) : fmt(k);
@@ -1324,28 +1443,55 @@ function renderPad() {
       <div class="pad-step"><span>${esc(group)} · ${pad.i + 1} of ${pad.keys.length}</span></div>
       <div class="pad-label">${esc(f.label)}</div>
       ${(side === 'dep' || side === 'arr') && f.kind !== 'ident' && sideWx(side) ? `<div class="pad-freq">${esc(sideWx(side))}</div>` : ''}
-      <div class="pad-val${f.kind === 'sky' ? ' sky' : ''}">${shown}${unit && (typing || fd[k] !== undefined) ? `<span class="unit">${esc(unit)}</span>` : ''}</div>
+      <div class="pad-val${f.kind === 'sky' || f.kind === 'appr' ? ' sky' : ''}">${shown}${unit && (typing || fd[k] !== undefined) ? `<span class="unit">${esc(unit)}</span>` : ''}</div>
     </div>
-    <div class="pad-body">${chips}<div class="keys ${gridCls}">${keys}</div></div>
+    ${padMid(body)}
     <div class="pad-act"><button data-pad="prev"${pad.i === 0 ? ' disabled' : ''}>← Back</button><button data-pad="done">Done</button><button class="go" data-pad="next">${lastF ? 'Save' : 'Next →'}</button></div>`, 'pad');
+}
+// Approach in use: type keys start (or change) an approach, runway keys complete it.
+function apprKey(a) {
+  const segs = apprSegs(pad.buf), cur = segs[segs.length - 1] || '';
+  const parts = cur.split(' '), type = parts[0], r = parts[1] || '';
+  const put = v => { segs[segs.length - 1] = v; pad.buf = segs.join(' / '); renderPad(); };
+  if (a[0] === 'Q') {
+    if (cur && !r && cur !== 'VISUAL') return put(a.slice(1));   // change the type just picked
+    if (segs.length < 3) { segs.push(a.slice(1)); pad.buf = segs.join(' / '); renderPad(); }
+    return;
+  }
+  if (!cur) return shake();                                      // pick the approach type first
+  if (a[0] === 'E') return put(type + ' ' + a.slice(1));
+  if (/^\d$/.test(a)) { if (/[LCR]$/.test(r) || r.length >= 2) return; return put(type + ' ' + r + a); }
+  if (/^X[LCR]$/.test(a)) { if (!r || /[LCR]$/.test(r)) return; return put(cur + a[1]); }
 }
 function padKey(a) {
   if (!pad) return;
   const f = FIELD[pad.keys[pad.i]];
+  pad.kb = '';
   if (a === 'next') return advancePad();
   if (a === 'prev') { padTimerClear(); if (pad.i > 0 && commitPad()) { pad.i--; pad.buf = ''; pad.allRwy = false; onFieldShown(); renderPad(); } return; }
   if (a === 'done') { padTimerClear(); if (commitPad()) closePad(); return; }
   if (a === 'back') {
     padTimerClear();
     if (f.kind === 'sky' && pad.buf) { const t = pad.buf.replace(/\s+$/, ''); pad.buf = /(FEW|SCT|BKN|OVC)$/.test(t) ? t.replace(/\s*(FEW|SCT|BKN|OVC)$/, '') : t.slice(0, -1); pad.buf = pad.buf.trim(); }
+    else if (f.kind === 'appr' && pad.buf) {
+      const segs = apprSegs(pad.buf), m = segs.pop().match(/^(\S+) (\S+)$/);
+      if (m) { const r = m[2].slice(0, -1); segs.push(r ? m[1] + ' ' + r : m[1]); }
+      pad.buf = segs.join(' / ');
+    }
     else if (pad.buf) pad.buf = pad.buf.slice(0, -1);
     else { delete fd[pad.keys[pad.i]]; saveFd(); }
     return renderPad();
   }
   if (a === 'locate') { geo.failT = 0; locate(true); return renderPad(); }
   if (a === 'rwyall') { pad.allRwy = true; return renderPad(); }
-  if (a === 'copydep') { padTimerClear(); copyDepToArr(); pad = null; const el = document.getElementById('pad'); if (el) el.remove(); return rerender(); }
+  if (a === 'copydep') {
+    padTimerClear(); copyDepToArr();
+    const after = pad.after; pad = null;
+    const el = document.getElementById('pad'); if (el) el.remove();
+    return after ? after() : rerender();
+  }
   if (padTimer) return;   // an automatic advance is about to happen: ignore extra characters
+  if (f.kind === 'appr') return apprKey(a);
   const kind = a[0], val = a.slice(1);
   if (/^\d$/.test(a)) {
     if (f.kind === 'sky') {
@@ -1384,24 +1530,63 @@ document.addEventListener('click', e => {
   padKey(b.dataset.pad);
 });
 // Hardware keyboard (desktop, iPad keyboard): type into the keypad; Enter = Next, Esc = Done.
+// Keys that hold a whole value (visibility, runway ends, approach types, taxiway names) are matched as
+// you type: a unique match is pressed at once; when several start the same way, Enter takes the exact one.
+function padCodes(attr, prefix) {
+  const out = [];
+  document.querySelectorAll('#pad [data-' + attr + ']').forEach(b => { const c = b.dataset[attr]; if (c.indexOf(prefix) === 0 && !b.disabled) out.push(c.slice(prefix.length)); });
+  return out;
+}
+function typedPick(attr, prefix, ch, st, press) {
+  const all = padCodes(attr, prefix), match = t => all.filter(c => c.toUpperCase().indexOf(t) === 0);
+  let t = (st.kbP === prefix ? st.kb || '' : '') + ch, m = match(t);
+  if (!m.length) { t = ch; m = match(t); }
+  if (!m.length) { st.kb = ''; return false; }
+  if (m.length === 1) { st.kb = ''; press(prefix + m[0]); return true; }
+  st.kb = t; st.kbP = prefix; st.kbAll = all;
+  return true;
+}
+function typedExact(st, press) {
+  if (!st.kb) return false;
+  const ex = (st.kbAll || []).filter(c => c.toUpperCase() === st.kb)[0];
+  st.kb = '';
+  if (ex === undefined) return false;
+  press(st.kbP + ex); return true;
+}
 document.addEventListener('keydown', e => {
   if (!pad && !taxi) return;
+  if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-  const k = e.key;
+  const k = e.key, up = k.length === 1 ? k.toUpperCase() : '';
   if (pad) {
-    if (k === 'Enter') { e.preventDefault(); return padKey('next'); }
+    const f = FIELD[pad.keys[pad.i]] || {}, kb = pad.kb, press = c => { padKey(c); };
+    const has = c => padCodes('pad', c).indexOf('') >= 0;
+    const tryCodes = cs => { for (const c of cs) if (c && has(c)) { e.preventDefault(); padKey(c); return true; } return false; };
+    if (k === 'Enter') { e.preventDefault(); if (typedExact(pad, press)) return; return padKey('next'); }
     if (k === 'Escape') { e.preventDefault(); return padKey('done'); }
     if (k === 'Backspace') { e.preventDefault(); return padKey('back'); }
-    const up = k.length === 1 ? k.toUpperCase() : '';
-    const f = FIELD[pad.keys[pad.i]];
-    const cand = [up, 'I' + up, 'L' + up, 'X' + up, k === '-' ? 'X−' : '', k === '.' ? 'X.' : ''].filter(Boolean);
-    for (const c of cand) { const b = document.querySelector(`#pad [data-pad="${c}"]`); if (b && !b.disabled) { e.preventDefault(); return padKey(c); } }
-    if (f && f.kind === 'sky' && /^\d$/.test(k)) { e.preventDefault(); return padKey(k); }
+    if (!up || up === ' ') return;
+    if (f.kind === 'sky') return tryCodes([{ F: 'XFEW', S: 'XSCT', B: 'XBKN', O: 'XOVC', C: 'XCLR' }[up], up]);
+    if (f.kind === 'vis') { e.preventDefault(); if (up === '+') return padKey('V10'); pad.kb = kb; return typedPick('pad', 'V', up, pad, press); }
+    if (f.kind === 'rwy' || f.kind === 'appr') {
+      const cur = apprSegs(pad.buf).pop() || '';
+      if (f.kind === 'appr' && /[A-Z]/.test(up) && !(/[LCR]/.test(up) && / \d/.test(cur))) { e.preventDefault(); pad.kb = kb; return typedPick('pad', 'Q', up, pad, press); }
+      if (padCodes('pad', 'E').length && !pad.allRwy) { e.preventDefault(); pad.kb = kb; return typedPick('pad', 'E', up, pad, press); }
+      return tryCodes([up, 'X' + up]);
+    }
+    return tryCodes([up, 'I' + up, 'L' + up, f.k && /wdir$/.test(f.k) && up === 'V' ? 'XVRB' : '', f.k && /gust$/.test(f.k) && up === 'N' ? 'XNONE' : '',
+      'X' + up, k === '-' ? 'X−' : '', k === '.' ? 'X.' : '']);
   } else if (taxi) {
-    if (k === 'Escape' || k === 'Enter') { e.preventDefault(); return closeTaxi(); }
-    if (k === 'Backspace') { e.preventDefault(); return taxiInput('back'); }
-    const up = k.length === 1 ? k.toUpperCase() : '';
-    for (const c of ['L' + up, 'T' + up, 'W' + up]) { const b = document.querySelector(`#pad [data-taxi="${c}"]`); if (b) { e.preventDefault(); return taxiInput(c); } }
+    const press = c => taxiInput(c);
+    if (k === 'Enter') { e.preventDefault(); if (typedExact(taxi, press)) return; return closeTaxi(); }
+    if (k === 'Escape') { e.preventDefault(); return closeTaxi(); }
+    if (k === 'Backspace') { e.preventDefault(); taxi.kb = ''; return taxiInput('back'); }
+    if (!up || up === ' ') return;
+    const pre = taxi.mode === 'rwy' ? ['N', 'S'] : taxi.mode === 'cross' ? ['P', 'S'] : ['W', 'L', 'T', 'P'];
+    for (const p of pre) {
+      if (p === 'S' || p === 'L' || p === 'T') { if (padCodes('taxi', p + up).indexOf('') >= 0) { e.preventDefault(); taxi.kb = ''; return taxiInput(p + up); } continue; }
+      if (padCodes('taxi', p).length && typedPick('taxi', p, up, taxi, press)) { e.preventDefault(); return; }
+    }
   }
 });
 
@@ -1426,7 +1611,7 @@ function dataTabs(tab) {
 }
 function renderTaxiTab() {
   const txt = taxiText();
-  $app.innerHTML = `<div class="wrap">
+  $app.innerHTML = `<div class="wrap data">
     ${dataHead()}
     ${dataTabs('taxi')}
     <button class="big-go" data-act="taxi">${txt ? 'Edit taxi clearance' : 'Enter taxi clearance'}</button>
@@ -1445,12 +1630,12 @@ function renderData(tab) {
   let calc;
   if (tab === 'tob') {
     const c = windComp('dep');
-    calc = `<div class="calc"><small>Runway available · wind for that runway</small>${esc(toraText() || '—')}<br>${c ? compHtml(c) : '—'}${asdText() ? `<br><span class="${tokenWarn('asd') ? 'warn' : ''}">ACCEL-STOP ${esc(asdText())}</span>` : ''}</div>`;
+    calc = `<div class="calc"><small>Runway available · wind for that runway</small><span class="${tokenWarn('tora') ? 'warn' : ''}">${esc(toraText() || '—')}</span><br>${c ? compHtml(c) : '—'}${asdText() ? `<br><span class="${tokenWarn('asd') ? 'warn' : ''}">ACCEL-STOP ${esc(asdText())}</span>` : ''}</div>`;
   } else {
     const c = windComp(tab), age = atisAgeMin(tab), cig = ceilingOf(fd[tab + '.ceil']);
-    calc = `<div class="calc">${sideWx(tab) ? `<div class="calc-freq">${esc(sideWx(tab))}</div>` : ''}<small>Wind · components for RWY ${esc(sideRwy(tab) || '—')}${age > 60 ? ` · <span class="warn">${ageText(age)}</span>` : ''}</small>${[esc(windText(tab)), c ? compHtml(c) : ''].filter(Boolean).join(' · ') || '—'}${cig !== null ? `<br><small>Ceiling ${thousands(cig)} FT</small>` : ''}</div>`;
+    calc = `<div class="calc">${sideWx(tab) ? `<div class="calc-freq">${esc(sideWx(tab))}</div>` : ''}<small>Wind · components for RWY ${esc(sideRwy(tab) || '—')}${age > 60 ? ` · <span class="warn">${ageText(age)}</span>` : ''}</small>${[esc(windText(tab)), c ? compHtml(c) : ''].filter(Boolean).join(' · ') || '—'}${atisRwyText(tab) ? `<small>${esc(atisRwyText(tab))}</small>` : ''}${cig !== null ? `<small>Ceiling ${thousands(cig)} FT</small>` : ''}</div>`;
   }
-  $app.innerHTML = `<div class="wrap">
+  $app.innerHTML = `<div class="wrap data">
     ${dataHead()}
     ${dataTabs(tab)}
     <button class="big-go" data-act="padall" data-tab="${tab}">${tab === 'tob' ? 'Enter takeoff data' : 'Enter ' + SIDE_NAME[tab].toLowerCase() + ' ATIS'}</button>
@@ -1458,7 +1643,7 @@ function renderData(tab) {
     ${calc}
     <div class="fields">${fields.map((f, i) => {
       const v = fmt(f.k), u = unitFor(f, v);
-      return `<button class="field" data-act="padfrom" data-tab="${tab}" data-i="${i}"><small>${esc(f.label)}</small><span class="${v ? '' : 'empty'}">${v ? esc(v) + (u ? ' <small>' + esc(u) + '</small>' : '') : 'tap to enter'}</span></button>`;
+      return `<button class="field" data-act="padfrom" data-tab="${tab}" data-i="${i}"><small>${esc(f.label)}</small><span class="${v ? '' : 'blank'}">${v ? esc(v) + (u ? ' <small>' + esc(u) + '</small>' : '') : 'tap to enter'}</span></button>`;
     }).join('')}</div>
     <div class="actions" style="margin-top:16px">
       <button class="small-btn" data-act="clearfd" data-tab="${tab}">Clear ${tab === 'tob' ? 'takeoff data' : SIDE_NAME[tab].toLowerCase() + ' ATIS'}</button>
@@ -1515,24 +1700,27 @@ function nextOf(l, step) {
 const prevOf = l => nextOf(l, -1);
 
 /* ---------- Screens ---------- */
+// Tile labels never break at a hyphen ("Run-up") or between a number and its unit ("80 MPH").
+const tileLabel = t => esc(String(t).replace(/(\w)-(\w)/g, '$1\u2011$2').replace(/(\d'?) (MPH|AGL|FT|KT)\b/g, '$1\u00a0$2'));
 const tileHtml = (label, color, hash) =>
-  `<button class="tile" style="background:${esc(color)}" data-go="${esc(hash)}">${esc(label)}</button>`;
+  `<button class="tile" style="background:${esc(color)}" data-go="${esc(hash)}"><span class="tl">${tileLabel(label)}</span></button>`;
 const groupTile = g => g.list ? tileHtml(g.list.title, g.list.color, `#/list/${g.list.id}`) : tileHtml(g.name, g.color, groupHash(g.path));
 const inSafariTab = () => navigator.standalone === false && !(window.matchMedia && matchMedia('(display-mode: standalone)').matches);
 
 function renderHome() {
   const tiles = groups('').map(groupTile).join('') + tileHtml('ATIS & Takeoff Data', '#0f7f8a', '#/data/tob');
-  const banner = !isPristine(lists) && updateWaiting() ? `<div class="banner">Updated PA-34 checklists are available — Edit › Restore PA-34 defaults (your edits are kept until then).</div>`
-    : inSafariTab() ? `<div class="banner">Running in Safari, not installed — for offline use: Share › Add to Home Screen.</div>` : '';
+  const banner = (!isPristine(lists) && updateWaiting() ? `<div class="banner">Updated PA-34 checklists are available — Edit › Restore PA-34 defaults (your edits are kept until then).</div>` : '')
+    + (inSafariTab() ? `<div class="banner">Running in Safari, not installed — for offline use: Share › Add to Home Screen (its data is kept separately from this tab).</div>` : '')
+    + (wakeHint() ? `<button class="banner" data-act="wakehint">This device may let the screen lock in flight: Settings › Display &amp; Brightness › Auto-Lock › Never. (Tap to hide)</button>` : '');
   $app.innerHTML = `<div class="home">
     <div class="home-head">
       <h1>Checklists</h1>
       ${sideGroups().map(g => `<button class="small-btn" data-go="${groupHash(g)}">${esc(g)}</button>`).join('')}
-      <button class="small-btn" data-act="theme" aria-label="Display mode: ${theme}">${THEME_LABEL[theme]}</button>
+      <button class="small-btn" data-act="theme" aria-label="Display mode: ${THEME_LABEL[theme][1]}">${THEME_LABEL[theme][0]}<span class="lbl"> ${THEME_LABEL[theme][1]}</span></button>
       <button class="small-btn" data-go="#/edit">Edit</button>
     </div>
     ${banner}
-    ${lists.length ? `<div class="tiles">${tiles}</div>` : `<div class="empty">No checklists yet. Tap <b>Edit</b> to add one.</div>`}
+    ${lists.length ? `<div class="tiles">${tiles}</div>` : `<div class="empty-msg">No checklists yet. Tap <b>Edit</b> to add one.</div>`}
     ${wxLine(curPhase(), false)}
   </div>`;
   layout();
@@ -1559,13 +1747,15 @@ function renderGroup(path) {
 // label fits with whole words (words only break if nothing fits even at 16px).
 function layoutTiles() {
   const grid = $app.querySelector('.tiles'); if (!grid) return;
-  const tiles = [...grid.children], n = tiles.length, W = grid.clientWidth, H = grid.clientHeight, gap = 14;
+  const tiles = [...grid.children], n = tiles.length, W = grid.clientWidth, H = grid.clientHeight;
+  const gap = parseFloat(getComputedStyle(grid).rowGap || getComputedStyle(grid).gridRowGap) || 14;
   if (!n || !W) return;
   let best = null;
-  for (let cols = 1; cols <= Math.min(n, 4); cols++) {
+  for (let cols = 1; cols <= Math.min(n, 6); cols++) {
     const rows = Math.ceil(n / cols), tw = (W - gap * (cols - 1)) / cols, th = (H - gap * (rows - 1)) / rows;
-    let score = Math.abs(Math.log((tw / th) / 1.4)) + (n % cols ? 0.15 : 0);
-    if (th < 90) score += 3; if (tw < 120) score += 3;
+    let score = Math.abs(Math.log((tw / th) / 1.4)) + (n % cols ? 0.15 : 0) + (cols > 4 ? 0.5 : 0);
+    if (th < 90) score += 10;   // rows shorter than 90 px: the grid would run off the screen
+    if (tw < 110) score += 4;
     if (!best || score < best.score) best = { cols, rows, score };
   }
   const { cols, rows } = best;
@@ -1574,7 +1764,15 @@ function layoutTiles() {
   if (n % cols) tiles[n - 1].style.gridColumn = `span ${cols - (n - 1) % cols}`;   // fill the last row
   grid.style.gridAutoRows = Math.max(90, Math.floor((H - gap * (rows - 1)) / rows)) + 'px';
   grid.classList.remove('anywhere');
-  const fits = px => { grid.style.fontSize = px + 'px'; return !tiles.some(t => t.scrollHeight > t.clientHeight + 1 || t.scrollWidth > t.clientWidth + 1); };
+  // The label (not the tile) must fit inside the tile's padding.
+  const pads = tiles.map(t => { const cs = getComputedStyle(t); return [parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight), parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom)]; });
+  const fits = px => {
+    grid.style.fontSize = px + 'px';
+    return !tiles.some((t, i) => {
+      const l = t.firstElementChild || t;
+      return l.scrollWidth > l.clientWidth + 1 || l.offsetWidth > t.clientWidth - pads[i][0] + 1 || l.offsetHeight > t.clientHeight - pads[i][1] + 1;
+    });
+  };
   let lo = 16, hi = 46;
   if (fits(hi)) lo = hi;
   else if (!fits(lo)) { grid.classList.add('anywhere'); grid.style.fontSize = '16px'; return; }
@@ -1623,10 +1821,10 @@ function renderList(id) {
       ${next ? `<button class="next-tile" data-go="#/list/${next.id}" aria-label="Next: ${esc(next.title)}"><small>Next →</small><span data-full="${esc(next.title)}">${esc(next.title)}</span></button>` : ''}
     </div>
     <h2 class="list-title">${esc(l.title)}</h2>
-    <div class="fit"><div class="sheet">${body || '<div class="empty">This checklist is empty.</div>'}</div></div>
+    <div class="fit"><div class="sheet">${body || '<div class="empty-msg">This checklist is empty.</div>'}</div></div>
     ${choices.length ? `<div class="choices">${choiceButtons(choices)}</div>` : ''}
     ${footer(wx, emer)}
-    ${emer ? '<div class="scan" aria-hidden="true">SCAN · HEADING · AIRSPEED · ALTITUDE · TRAFFIC</div>' : ''}
+    ${emer ? '<div class="scan" aria-hidden="true">SCAN\u00a0· HEADING\u00a0· AIRSPEED\u00a0· ALTITUDE\u00a0· TRAFFIC</div>' : ''}
   </div>`;
   layout();
 }
@@ -1654,6 +1852,7 @@ function layoutList() {
   const rowEls = [...sheet.querySelectorAll('.row')], items = rowEls.filter(r => !r.classList.contains('text'));
   const set = (cols, px, wrap, pad) => {
     sheet.style.columnCount = cols; sheet.style.fontSize = px + 'px';
+    sheet.style.maxWidth = cols > 1 ? 'none' : Math.min(W, 1000) + 'px';   // one column: no metre-long dot leaders
     sheet.style.setProperty('--rp', pad + 'em'); sheet.classList.toggle('wrapr', !!wrap);
   };
   let allowWrapped = Math.max(1, Math.floor(items.length / 5));
@@ -1679,6 +1878,11 @@ function layoutList() {
     if (hit[5]) return enableScroll();
     if (fits(hit[1], hit[2], hit[3], hit[4])) return;   // still fits (styles or fonts unchanged)
   }
+  // Same checklist and screen but a flight-data value changed: keep the same size if it still fits, so the
+  // text doesn't jump around every time a value is entered.
+  if (hit && !hit[5] && hit[0] !== hash && fits(hit[1], hit[2], hit[3], hit[4])) {
+    layoutStore.map[lkey] = [hash].concat(hit.slice(1)); write(LAYOUT_KEY, layoutStore); return;
+  }
   const remember = (cols, px, wrap, pad, scroll) => { if (Object.keys(layoutStore.map).length > 600) layoutStore.map = {}; layoutStore.map[lkey] = [hash, cols, px, wrap ? 1 : 0, +pad.toFixed(3), scroll ? 1 : 0]; write(LAYOUT_KEY, layoutStore); };
   const best = (cols, wrap) => {
     if (!fits(cols, MIN, wrap)) return 0;
@@ -1695,14 +1899,15 @@ function layoutList() {
   if (c.px < WRAP_BELOW) { const w = pick(true); if (w.px > c.px * 1.15) c = w; }
   if (c.px < WRAP_BELOW) {
     const save = allowWrapped; allowWrapped = Infinity;
-    const f = { cols: 1, px: best(1, true), wrap: true };
+    const one = best(1, true), two = W >= 600 && one < MAX ? best(2, true) : 0;
+    const f = two > one ? { cols: 2, px: two, wrap: true } : { cols: 1, px: one, wrap: true };
     if (f.px && (!c.px || f.px > c.px * 1.2)) c = f; else allowWrapped = save;
   }
   if (!c.px) { set(1, MIN, true, PAD); remember(1, MIN, true, PAD, true); return enableScroll(); }
   const px = c.px;
   let lo = PAD, hi = PAD_MAX;
   if (fits(c.cols, px, c.wrap, hi)) lo = hi;
-  else while (hi - lo > 0.03) { const mid = (lo + hi) / 2; fits(c.cols, px, c.wrap, mid) ? lo = mid : hi = mid; }
+  else while (hi - lo > 0.05) { const mid = (lo + hi) / 2; fits(c.cols, px, c.wrap, mid) ? lo = mid : hi = mid; }
   set(c.cols, px, c.wrap, lo);
   remember(c.cols, px, c.wrap, lo, false);
 }
@@ -1725,7 +1930,11 @@ function layoutBar() {
   });
 }
 
-function layout() { layoutBar(); layoutTiles(); layoutList(); }
+function placeScan() {
+  const sc = $app.querySelector('.scan'), bar = $app.querySelector('.bar');
+  if (sc && bar) sc.style.top = Math.round(bar.getBoundingClientRect().bottom + 6) + 'px';
+}
+function layout() { layoutBar(); layoutTiles(); layoutList(); placeScan(); }
 let rt, lastSize = innerWidth + 'x' + innerHeight;
 addEventListener('resize', () => {
   clearTimeout(rt);
@@ -1757,7 +1966,7 @@ function renderManage() {
       <button class="small-btn" data-act="import">Import backup</button>
       <button class="small-btn danger" data-act="samples">Restore PA-34 defaults</button>
     </div>
-    <div class="about" id="about">App v${APP_VERSION} · checklists v${DEFAULTS_VERSION}${isPristine(lists) ? '' : ' (edited)'} · <span id="offline">checking offline copy…</span></div>
+    <div class="about" id="about">App v${APP_VERSION} · checklists v${read(VER_KEY, DEFAULTS_VERSION)}${isPristine(lists) ? '' : ' (edited)'}${updateWaiting() ? ' · v' + DEFAULTS_VERSION + ' available' : ''} · <span id="offline">checking offline copy…</span></div>
   </div>`;
   if ('caches' in window) caches.keys().then(ks => Promise.all(ks.map(k => caches.open(k).then(c => c.keys())))).then(all => {
     const n = [].concat(...all).length, el = document.getElementById('offline');
@@ -1882,11 +2091,19 @@ $app.addEventListener('click', e => {
       }
       break;
     case 'export': exportBackup(); break;
+    case 'copybk': {
+      const ta = document.getElementById('bk'); if (!ta) break;
+      const done = () => { t.textContent = 'Copied ✓'; };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(ta.value).then(done, () => { ta.select(); document.execCommand('copy'); done(); });
+      else { ta.select(); document.execCommand('copy'); done(); }
+      break;
+    }
     case 'padall': case 'padfrom': {
       const keys = (t.dataset.tab === 'tob' ? TOB_FIELDS : atisFields(t.dataset.tab)).map(f => f.k);
       openPad(keys, t.dataset.act === 'padfrom' ? +t.dataset.i : 0); break;
     }
     case 'copydep': copyDepToArr(); rerender(); break;
+    case 'wakehint': write('wakehint.v1', true); renderHome(); break;
     case 'clearfd': {
       const pre = t.dataset.tab + '.';
       Object.keys(fd).forEach(k => { if (k.startsWith(pre)) delete fd[k]; });
@@ -1915,7 +2132,7 @@ function openRowEditor(row) {
 }
 $app.addEventListener('keydown', e => {   // tappable data rows also work with a keyboard
   const row = e.target.closest && e.target.closest('.row.tap');
-  if (row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openRowEditor(row); }
+  if (row && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); openRowEditor(row); }
 });
 
 // Keep the draft in sync so a re-render (e.g. rotation) never loses typing.
@@ -1933,9 +2150,23 @@ async function exportBackup() {
   try {
     if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: name }); return; }
   } catch (e) { if (e.name === 'AbortError') return; }
+  // Home Screen apps on older iPadOS can't save a downloaded file: share it as text, or show it to copy.
+  const standalone = navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
+  if (standalone) {
+    try { if (navigator.share) { await navigator.share({ title: name, text: data }); return; } } catch (e) { if (e.name === 'AbortError') return; }
+    return showBackupText(data);
+  }
   const a = document.createElement('a');
   a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function showBackupText(data) {
+  $app.innerHTML = `<div class="wrap">
+    <div class="home-head">${homeTile('Done')}<h1>Backup</h1></div>
+    <p>Copy this text and keep it somewhere safe (e.g. Notes or Files). To restore it, save it as a .json file and use Import backup.</p>
+    <textarea id="bk" readonly>${esc(data)}</textarea>
+    <div class="actions"><button class="small-btn" data-act="copybk">Copy</button><button class="small-btn" data-go="#/edit">Back to Edit</button></div>
+  </div>`;
 }
 const readText = f => typeof f.text === 'function' ? f.text() : new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error); r.readAsText(f); });
 document.getElementById('importFile').addEventListener('change', async e => {
@@ -1967,6 +2198,13 @@ function reloadIfSafe() {
 /* ---------- Start ---------- */
 applyTheme();
 route();
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});   // ask the browser not to evict saved data
+// Coming back to the app the next day: last flight's data is cleared, as on a fresh start.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState !== 'visible' || !fd._t || Date.now() - fd._t <= STALE_MS) return;
+  fd = {}; saveFd();
+  if (!pad && !taxi && !draft) rerender();
+});
 (async () => { for (const sd of ['dep', 'arr']) await loadTaxiways(aptKey(fd[sd + '.apt'])); })();   // one at a time (server rate limit)
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   const hadController = !!navigator.serviceWorker.controller;
