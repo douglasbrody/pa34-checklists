@@ -420,20 +420,25 @@ const fillTokens = html => html.replace(TOKEN, (m, k) => {
 });
 const rowKeys = text => { const ks = []; text.replace(TOKEN, (m, k) => { tokenFields(k).forEach(x => ks.includes(x) || ks.push(x)); }); return ks; };
 
-// Which ATIS a checklist's wind line shows: departure up to and including Takeoff, arrival for
-// every normal checklist after it. Emergencies (any phase) and other screens: the most recent one.
+// Which ATIS a checklist's wind line shows: none before Before Taxi, departure from Before Taxi
+// through Takeoff, arrival for every normal checklist after Takeoff.
+// Emergencies (any phase) and other screens: the most recent one.
 function phaseSide(l) {
   if (!l || isEmergency(l.group)) return null;
-  const t = lists.findIndex(x => x.title.trim().toLowerCase() === 'takeoff');
+  const at = name => lists.findIndex(x => x.title.trim().toLowerCase() === name);
+  const t = at('takeoff'), bt = at('before taxi') >= 0 ? at('before taxi') : at('taxi');
   if (t < 0) return null;
-  return lists.indexOf(l) > t ? 'arr' : 'dep';
+  const i = lists.indexOf(l);
+  if (i > t) return 'arr';
+  return bt >= 0 && i < bt ? 'none' : 'dep';
 }
-// The wind line at the bottom of screens. After takeoff it always shows the arrival ATIS,
-// and when that is still blank it offers to enter it.
+// The wind line at the bottom of screens. In the departure and arrival phases it always shows
+// that phase's ATIS, and when it is still blank it offers to enter it.
 function wxLine(forced) {
   const has = sd => ['rwy', 'wdir', 'wspd', 'alt'].some(f => fd[sd + '.' + f] !== undefined);
-  if (forced === 'arr' && !has('arr'))
-    return `<button class="wx empty" data-act="padall" data-tab="arr"><b>ARR</b> · Tap to enter arrival ATIS</button>`;
+  if (forced === 'none') return '';
+  if ((forced === 'arr' || forced === 'dep') && !has(forced))
+    return `<button class="wx empty" data-act="padall" data-tab="${forced}"><b>${forced.toUpperCase()}</b> · Tap to enter ${SIDE_NAME[forced].toLowerCase()} ATIS</button>`;
   let side = forced || fd._active || 'dep';
   if (!forced && !has(side)) side = side === 'dep' ? 'arr' : 'dep';   // fall back to the other ATIS until this one is entered
   if (!has(side)) return '';
