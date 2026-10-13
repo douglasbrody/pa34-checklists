@@ -118,7 +118,7 @@ by_title['Cruise']['lines'].append('-> POWER TABLE | MP / RPM — POH 8-16 : Cru
 replace('Cruise Climb (above 1000\' AGL)','Electric Fuel Pumps ... OFF (ALT? ONE AT A TIME) — CHECK FUEL PR',['Electric Fuel Pumps ... OFF (ONE AT A TIME) — CHECK FUEL PRESSURE'])
 # Before Taxi: heading indicator checked against the compass, altimeter from the ATIS, then bugs.
 replace('Before Taxi','Heading Indicator ... SET TO COMPASS',['Heading Indicator ... CHECK VS. COMPASS'])
-replace('Before Taxi','Altimeter ... SET TO ATIS or APT. ELEV.',['Altimeter ... SET TO ATIS ({dep.alt})','Altitude ... BUG','Heading ... BUG'])
+replace('Before Taxi','Altimeter ... SET TO ATIS or APT. ELEV.',['Altimeter ... SET TO ATIS','Altitude ... BUG','Heading ... BUG'])
 replace('Before Taxi','Avionics ... Checked Start Screen & DB',['Avionics ... CHECK START SCREEN & DATABASE'])
 replace('Before Taxi','RAIM ... Check in System',['RAIM ... CHECK IN SYSTEM'])
 # Inside Cockpit: lights and pitot heat were switched on for the walk-around check; off again before the master.
@@ -219,11 +219,10 @@ for t in ['Engine Failure on Takeoff — 100 MPH or Below','Engine Failure on Ta
     by_title[t]['lines'].insert(0,'@ATIS DEP')
     if t!='Engine Failure on Takeoff — 100 MPH or Below':
         by_title[t]['lines'].append('-> FEATHER | Feathering procedure : Feathering Procedure')
-# ATIS lines show the entered ATIS (tap to enter it): departure before taxi, arrival in the descent.
-replace('Before Taxi','ATIS ... OBTAIN',['ATIS ... {dep.sum}'])
-replace('Descent','ATIS ... OBTAIN',['ATIS ... {arr.sum}'])
-# Taxi clearance (tap to enter it with the taxi keypad) at the top of the Taxi checklist.
-by_title['Taxi']['lines'].insert(0,'* Taxi clearance: {taxi}')
+# After the ATIS, the wind and runway (tap to enter them) give the crosswind / headwind: departure before taxi,
+# arrival in the descent.
+insert('Before Taxi','ATIS ... OBTAIN',['Wind & Runway ... {dep.sum}'])
+insert('Descent','ATIS ... OBTAIN',['Wind & Runway ... {arr.sum}'])
 # Hobbs / tach lines: tap to record left & right tach and Hobbs (start, then shutdown with time flown).
 replace('Airplane Status','* HOBBS/TACH Times ... RECORDED',['* HOBBS/TACH Times ... {times.out}'])
 replace('Engine Shut-down','HOBBS/TACH Times ... RECORDED',['* HOBBS/TACH Times ... {times.in}'])
@@ -264,7 +263,7 @@ Questions? ... BEFORE WE START ENGINES"""
 # The {tokens} show values entered on the ATIS & Takeoff Data screen; tapping the line enters them.
 CREW="""# Today
 Runway available ... {tora}
-Wind (headwind / tailwind) ... {dep.hw}
+Wind (head / cross) ... {dep.hw}
 Takeoff distance over 50 ft ... {tob.todist} FT
 Accelerate-stop distance ... {tob.asd} FT
 Single-engine rate of climb ... {tob.seroc} FPM
@@ -499,7 +498,7 @@ for l in emer:
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 for title, text in MANEUVERS: add(title, 'Maneuvers', text)
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=23
+DEFAULTS_VERSION=24
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

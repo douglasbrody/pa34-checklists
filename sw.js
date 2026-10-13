@@ -1,6 +1,6 @@
 // Bump VERSION whenever any app file changes so iPads pick up the update.
-const VERSION = 'checklists-v40';
-const FILES = ['./', './index.html', './manifest.webmanifest', './defaults.js', './airports-us.js', './icon-180.png', './icon-512.png'];
+const VERSION = 'checklists-v41';
+const FILES = ['./', './index.html', './manifest.webmanifest', './defaults.js', './icon-180.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
   // cache: 'reload' skips the browser's HTTP cache, so an update never stores stale copies of old files.
