@@ -1,4 +1,5 @@
-# Builds ../airports-us.js: the runways of every open US airport, for the taxi keypad.
+# Builds ../airports-us.js: the runways (pair:length_ft) of every open US airport, for the taxi keypad
+# and the takeoff distance available.
 # Source: OurAirports (public domain) - https://davidmegginson.github.io/ourairports-data/
 #   python3 tools/build_runways.py airports.csv runways.csv airports-us.js
 # Then bump VERSION in sw.js so installed iPads pick up the new file.
@@ -25,9 +26,11 @@ with open(runways_csv, newline='', encoding='utf-8') as f:
             continue
         ends = sorted([le.groups(), he.groups()], key=lambda g: int(g[0]))
         pair = ends[0][0] + ends[0][1] + '/' + ends[1][0] + ends[1][1]
+        length = int(float(r['length_ft'])) if r['length_ft'] else 0
         key = idents[ident]
-        if pair not in runways.setdefault(key, []):
-            runways[key].append(pair)
+        entry = pair + (':' + str(length) if length else '')   # "6/24:4677" (feet)
+        if not any(e.split(':')[0] == pair for e in runways.setdefault(key, [])):
+            runways[key].append(entry)
 
 for k in runways:
     runways[k].sort(key=lambda p: (int(re.match(r'\d+', p).group()), p))

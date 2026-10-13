@@ -405,7 +405,7 @@ const atisFields = side => [
   { k: side + '.alt', label: 'Altimeter', max: 4, unit: 'IN HG' },
   { k: side + '.rwy', label: 'Runway in use', kind: 'rwy' }];
 const TOB_FIELDS = [
-  { k: 'tob.len', label: 'Runway length', max: 5, unit: 'FT' },
+  { k: 'tob.len', label: 'Runway available (only if not filled in)', max: 5, unit: 'FT' },
   { k: 'tob.todist', label: 'Takeoff distance over 50 ft', max: 4, unit: 'FT' },
   { k: 'tob.asd', label: 'Accelerate-stop distance', max: 4, unit: 'FT' },
   { k: 'tob.seroc', label: 'Single-engine rate of climb', max: 3, unit: 'FPM' },
@@ -469,7 +469,28 @@ function atisSummary(side) {
   return parts.join(' · ');
 }
 // Values for {tokens} in checklist text, and which fields to edit when the line is tapped.
+// Takeoff distance available for the departure: the taxi clearance's runway and intersection
+// ("RWY 24 at H"), else the ATIS runway; full length from the database, intersections estimated.
+function takeoffRunway() {
+  const parts = taxiParts(), i = parts.findIndex(p => p.k === 'rwy');
+  const rwy = i >= 0 ? parts[i].v : fd['dep.rwy'];
+  const at = i >= 0 && parts[i + 1] && parts[i + 1].k === 'at' ? parts[i + 1].v : '';
+  return { rwy, at };
+}
+function toraText() {
+  const { rwy, at } = takeoffRunway(), apt = aptKey(fd['dep.apt']);
+  if (fd['tob.len']) return 'RWY ' + (rwy || '—') + ' · ' + thousands(fd['tob.len']) + ' FT (entered)';
+  if (!rwy) return '';
+  const full = aptRunwayLen(apt, rwy);
+  if (at) {
+    const est = ((twCache[apt] || {}).ints || {})[at + '|' + rwy];
+    if (est) return 'RWY ' + rwy + ' at ' + at + ' · ≈' + thousands(est) + ' FT';
+    return 'RWY ' + rwy + ' at ' + at + ' · ' + (full ? 'full ' + thousands(full) + ' FT, intersection unknown' : 'length unknown');
+  }
+  return full ? 'RWY ' + rwy + ' · ' + thousands(full) + ' FT' : 'RWY ' + rwy;
+}
 function tokenValue(key) {
+  if (key === 'tora') return toraText();
   if (key === 'taxi') return taxiText() || 'TAP TO ENTER';
   if (key === 'times.out' || key === 'times.in') return timesText(key.split('.')[1]) || 'TAP TO RECORD';
   const [side, f] = key.split('.');
@@ -480,6 +501,7 @@ function tokenValue(key) {
 }
 function tokenFields(key) {
   if (key === 'taxi') return ['@taxi'];
+  if (key === 'tora') return ['tob.len'];
   if (key === 'times.out' || key === 'times.in') return timeFields(key.split('.')[1]).map(f => f.k);
   const [side, f] = key.split('.');
   if (f === 'sum') return atisFields(side).map(x => x.k);
@@ -535,31 +557,86 @@ function aptKey(code) {
   if (typeof AIRPORT_RUNWAYS === 'undefined' || !c) return '';
   return AIRPORT_RUNWAYS[c] ? c : AIRPORT_RUNWAYS['K' + c] ? 'K' + c : '';
 }
-const aptRunways = key => (key && AIRPORT_RUNWAYS[key]) || [];
+const aptRunways = key => ((key && AIRPORT_RUNWAYS[key]) || []).map(e => e.split(':')[0]);   // "6/24"
+// Full length (ft) of the runway that has this end, e.g. aptRunwayLen('KBDR', '24') -> 4677
+function aptRunwayLen(key, end) {
+  const e = ((key && AIRPORT_RUNWAYS[key]) || []).find(x => x.split(':')[0].split('/').includes(end));
+  return e && e.includes(':') ? +e.split(':')[1] : 0;
+}
 const twSort = (a, b) => a.replace(/\d+/, '') === b.replace(/\d+/, '') ? (+(a.match(/\d+/) || [0])[0]) - (+(b.match(/\d+/) || [0])[0]) : a < b ? -1 : 1;
 function aptTaxiways(key) {
   const c = twCache[key] || {};
   return [...new Set((c.osm || []).concat(c.learned || []))].sort(twSort);
 }
+// One download per airport: runway and taxiway lines from OpenStreetMap. From it we keep the
+// taxiway names and, for each taxiway/runway meeting point, the runway left from there in each
+// direction (scaled to the database runway length), e.g. ints['H|24'] = 3060.
 async function overpass(query) {
   const ctl = 'AbortController' in window ? new AbortController() : null;
-  const timer = ctl && setTimeout(() => ctl.abort(), 20000);
+  const timer = ctl && setTimeout(() => ctl.abort(), 30000);
   try {
     const r = await fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query), ctl ? { signal: ctl.signal } : {});
-    const j = await r.json();
-    return [...new Set(j.elements.flatMap(e => String(e.tags.ref || '').split(/[;,]/)).map(x => x.trim().toUpperCase())
-      .filter(x => /^[A-Z]{1,2}\d{0,2}$/.test(x)))];
+    return await r.json();
   } finally { if (timer) clearTimeout(timer); }
 }
+const geoDist = (a, b) => { const k = Math.PI / 180, x = (b[1] - a[1]) * k * Math.cos((a[0] + b[0]) / 2 * k), y = (b[0] - a[0]) * k; return Math.hypot(x, y) * 6371000 * 3.28084; };
+function geoBearing(a, b) {
+  const k = Math.PI / 180, y = Math.sin((b[1] - a[1]) * k) * Math.cos(b[0] * k);
+  const x = Math.cos(a[0] * k) * Math.sin(b[0] * k) - Math.sin(a[0] * k) * Math.cos(b[0] * k) * Math.cos((b[1] - a[1]) * k);
+  return (Math.atan2(y, x) / k + 360) % 360;
+}
+function parseAirportOsm(key, j) {
+  const nodes = {}, ways = [];
+  j.elements.forEach(e => { if (e.type === 'node') nodes[e.id] = [e.lat, e.lon]; else if (e.type === 'way') ways.push(e); });
+  const refs = w => String(w.tags.ref || '').split(/[;,]/).map(x => x.trim().toUpperCase()).filter(x => /^[A-Z]{1,2}\d{0,2}$/.test(x));
+  const taxiways = ways.filter(w => w.tags.aeroway === 'taxiway');
+  const names = [...new Set([].concat(...taxiways.map(refs)))];
+  const ints = {};
+  ways.filter(w => w.tags.aeroway === 'runway').forEach(r => {
+    const ends = String(r.tags.ref || '').split('/').map(x => x.trim().replace(/^0+/, ''));
+    if (ends.length !== 2 || !nodes[r.nodes[0]] || !nodes[r.nodes[r.nodes.length - 1]]) return;
+    const A = nodes[r.nodes[0]], B = nodes[r.nodes[r.nodes.length - 1]], osmLen = geoDist(A, B), brg = geoBearing(A, B);
+    // the end whose heading (number × 10) points from A toward B is the one that starts at A
+    const off = e => Math.abs(((parseInt(e, 10) * 10 - brg) % 360 + 540) % 360 - 180);
+    const startA = off(ends[0]) <= off(ends[1]) ? ends[0] : ends[1], startB = startA === ends[0] ? ends[1] : ends[0];
+    const scale = (aptRunwayLen(key, startA) || osmLen) / osmLen;
+    const onRwy = new Set(r.nodes);
+    taxiways.forEach(t => t.nodes.forEach(n => {
+      if (!onRwy.has(n) || !nodes[n]) return;
+      const p = nodes[n];
+      refs(t).forEach(name => {
+        [[startA, geoDist(p, B)], [startB, geoDist(p, A)]].forEach(([end, ft]) => {
+          const k2 = name + '|' + end, v = Math.round(ft * scale / 10) * 10;
+          if (!(k2 in ints) || v < ints[k2]) ints[k2] = v;   // several meeting points: keep the shorter
+        });
+      });
+    }));
+  });
+  return { names, ints };
+}
 async function loadTaxiways(key, force) {
-  if (!key || twLoading[key] || (!force && twCache[key] && twCache[key].osm)) return;
+  if (!key || twLoading[key] || (!force && twCache[key] && twCache[key].ints)) return;   // (older saves lack ints)
   if (navigator.onLine === false) return;
   twLoading[key] = true; if (taxi) renderTaxi();
   try {
-    const q = (tag, v) => `[out:json][timeout:20];area["${tag}"="${v}"]->.a;way(area.a)["aeroway"="taxiway"]["ref"];out tags;`;
-    let names = await overpass(q('icao', key));
-    if (!names.length) names = await overpass(q('faa', key.replace(/^K(?=[A-Z]{3}$)/, '')));
-    twCache[key] = Object.assign({}, twCache[key], { osm: names, t: Date.now() });
+    const full = (tag, v) => `[out:json][timeout:25];area["${tag}"="${v}"]->.a;(way(area.a)["aeroway"="taxiway"]["ref"];way(area.a)["aeroway"="runway"]["ref"];);out body;>;out skel qt;`;
+    const light = (tag, v) => `[out:json][timeout:20];area["${tag}"="${v}"]->.a;way(area.a)["aeroway"="taxiway"]["ref"];out tags;`;
+    const faa = key.replace(/^K(?=[A-Z]{3}$)/, '');
+    // The server is sometimes busy: try the full query twice, then fall back to names only.
+    const attempt = async build => {
+      for (let i = 0; i < 2; i++) {
+        try {
+          let res = parseAirportOsm(key, await overpass(build('icao', key)));
+          if (!res.names.length) res = parseAirportOsm(key, await overpass(build('faa', faa)));
+          return res;
+        } catch (e) { await new Promise(r => setTimeout(r, 3000)); }
+      }
+      return null;
+    };
+    let res = await attempt(full), partial = false;
+    if (!res) { res = await attempt(light); partial = true; }
+    if (!res) throw new Error('server busy');
+    twCache[key] = Object.assign({}, twCache[key], { osm: res.names, t: Date.now() }, partial ? {} : { ints: res.ints });
     write(TW_KEY, twCache);
   } catch (e) { /* offline or server busy: keep what we have */ }
   twLoading[key] = false;
@@ -875,7 +952,7 @@ function renderData(tab) {
   if (tab !== 'tob' && fd._active !== tab) { fd._active = tab; saveFd(); }
   const fields = tab === 'tob' ? TOB_FIELDS : atisFields(tab);
   const calc = tab === 'tob'
-    ? `<div class="calc"><small>Departure runway ${esc(fd['dep.rwy'] || '—')} · headwind / tailwind</small>${esc(components('dep', true) || '—')}</div>`
+    ? `<div class="calc"><small>Runway available · headwind / tailwind</small>${esc(toraText() || '—')}<br>${esc(components('dep', true) || '—')}</div>`
     : `<div class="calc"><small>Wind · components for RWY ${esc(fd[tab + '.rwy'] || '—')}</small>${esc([windText(tab), components(tab)].filter(Boolean).join(' · ') || '—')}</div>`;
   $app.innerHTML = `<div class="wrap">
     <div class="home-head">

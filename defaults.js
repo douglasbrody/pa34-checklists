@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 16;
+const DEFAULTS_VERSION = 17;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -95,7 +95,7 @@ const DEFAULTS = [
   "title": "Crew Takeoff Briefing",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "# Today\nRunway / length ... RWY {dep.rwy} / {tob.len} FT\nWind (headwind / tailwind) ... {dep.hw} KT\nTakeoff distance over 50 ft ... {tob.todist} FT\nAccelerate-stop distance ... {tob.asd} FT\nSingle-engine rate of climb ... {tob.seroc} FPM\nSingle-engine service ceiling ... {tob.secl} FT\n# Speeds (MPH CAS)\nVr (short: 75 flaps 0° · 70 flaps 25°) ... 80–85\nVx / Vy ... 90 / 105\nVmc — red radial ... 80\nVyse — blue radial ... 105\n# If an engine fails\nOn the runway, below 100 MPH ... CLOSE BOTH — STOP\nAirborne, gear down, runway left ... CLOSE BOTH — LAND\nAirborne below Vmc 80 ... REDUCE GOOD ENG. · NOSE DOWN\nGear up ... CONTROL · CONFIGURE · CLIMB\n# Gear up — memory items\nAirspeed ... 105 MPH (BLUE LINE)\nMixtures / props / throttles ... FULL FORWARD\nFlaps / gear · fuel pumps ... UP · ON\nIdentify · verify ... DEAD FOOT · RETARD THROTTLE\nProp — inop engine ... FEATHER\nBank ... 5° TOWARD GOOD ENGINE\nChecklist ... AT 400 FT AGL\nCannot climb ... HOLD 105 — LAND AHEAD\nSimulated failures ... THROTTLE ONLY, SLOWLY"
+  "text": "# Today\nRunway available ... {tora}\nWind (headwind / tailwind) ... {dep.hw} KT\nTakeoff distance over 50 ft ... {tob.todist} FT\nAccelerate-stop distance ... {tob.asd} FT\nSingle-engine rate of climb ... {tob.seroc} FPM\nSingle-engine service ceiling ... {tob.secl} FT\n# Speeds (MPH CAS)\nVr (short: 75 flaps 0° · 70 flaps 25°) ... 80–85\nVx / Vy ... 90 / 105\nVmc — red radial ... 80\nVyse — blue radial ... 105\n# If an engine fails\nOn the runway, below 100 MPH ... CLOSE BOTH — STOP\nAirborne, gear down, runway left ... CLOSE BOTH — LAND\nAirborne below Vmc 80 ... REDUCE GOOD ENG. · NOSE DOWN\nGear up ... CONTROL · CONFIGURE · CLIMB\n# Gear up — memory items\nAirspeed ... 105 MPH (BLUE LINE)\nMixtures / props / throttles ... FULL FORWARD\nFlaps / gear · fuel pumps ... UP · ON\nIdentify · verify ... DEAD FOOT · RETARD THROTTLE\nProp — inop engine ... FEATHER\nBank ... 5° TOWARD GOOD ENGINE\nChecklist ... AT 400 FT AGL\nCannot climb ... HOLD 105 — LAND AHEAD\nSimulated failures ... THROTTLE ONLY, SLOWLY"
  },
  {
   "title": "Takeoff",
