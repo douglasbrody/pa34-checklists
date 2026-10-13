@@ -148,6 +148,18 @@
   .wx-rest { flex: 1 1 auto; min-width: 0; margin-left: .3em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
   .wx.empty { border-style: dashed; border-color: var(--next); color: var(--next); }
   .home .wx { margin: 14px 0 0; }
+  .foot { flex: none; display: flex; align-items: stretch; margin: 0 16px 12px; }
+  .home .foot { margin: 14px 0 0; }
+  .foot .wx { flex: 1 1 auto; min-width: 0; margin: 0 12px 0 0; }
+  .emerg-tile {
+    flex: none; margin-left: auto; min-height: 60px; padding: 0 20px; border-radius: 14px;
+    background: #c62828; color: #fff; font-size: 22px; font-weight: 850; letter-spacing: .5px;
+    filter: var(--tile-filter); box-shadow: 0 2px 6px rgba(0,0,0,.15);
+  }
+  .emerg-tile:active { transform: scale(.97); }
+  [data-theme="red"] .emerg-tile { background: #3a0000; color: var(--fg); border: 2px solid #8a1a14; box-shadow: none; }
+  .data-foot { position: -webkit-sticky; position: sticky; bottom: 0; padding: 10px 0 12px; background: var(--bg); }
+  .data-foot .foot { margin: 0; }
   .tabs { display: flex; margin: 0 0 14px; }
   .tabs > * + * { margin-left: 10px; }
   .tab { flex: 1; min-height: 66px; border-radius: 14px; font-size: 19px; font-weight: 800; background: var(--card); border: 2px solid var(--line); line-height: 1.15; }
@@ -182,6 +194,10 @@
 
   /* Phone-width screens: let the top tiles share the width instead of running off screen. */
   @media (max-width: 600px) {
+    .emerg-tile { padding: 0 12px; font-size: 17px; letter-spacing: 0; }
+    .foot .wx { margin-right: 8px; font-size: 16px; padding: 8px 10px; display: block; white-space: normal; line-height: 1.25; }
+    .foot .wx-key { white-space: normal; }
+    .foot .wx-rest { display: none; }   /* phones: runway + components only, wrapping if needed */
     .bar { padding: 10px 12px; }
     .bar > * + * { margin-left: 8px; }
     .home-tile { min-width: 0; padding: 0 16px; font-size: 24px; }
@@ -428,6 +444,19 @@ function wxLine(forced) {
     + (rest.length ? `<span class="wx-rest">· ${esc(rest.join(' · '))}</span>` : '') + `</button>`;
 }
 
+// Bottom row on every screen outside the home screen and the Emergency tree:
+// the wind line plus a red EMERGENCY tile that jumps straight to the Emergency screen.
+function emergencyRoot() {
+  const g = groups('').find(x => !x.list && isEmergency(x.name));
+  return g ? g.path : '';
+}
+function footer(wx, inEmergency) {
+  const root = emergencyRoot();
+  const btn = root && !inEmergency ? `<button class="emerg-tile" data-go="${groupHash(root)}">⚠ EMERGENCY</button>` : '';
+  if (!btn) return wx;
+  return `<div class="foot">${wx}${btn}</div>`;
+}
+
 /* ---------- Keypad ---------- */
 let pad = null;   // { keys, i, buf }
 function openPad(keys, start) {
@@ -538,6 +567,7 @@ function renderData(tab) {
       <button class="small-btn danger" data-act="newflight">New flight (clear all)</button>
     </div>
     ${tab !== 'tob' ? `<p style="color:var(--muted);font-size:16px">This ATIS is shown in the wind line at the bottom of the checklists.</p>` : ''}
+    <div class="data-foot">${footer('', false)}</div>
   </div>`;
 }
 
@@ -601,7 +631,7 @@ function renderGroup(path) {
       <h1 class="group-title">${esc(lastPart(path))}</h1>
     </div>
     <div class="tiles">${items.map(groupTile).join('')}</div>
-    ${wxLine()}
+    ${footer(wxLine(), isEmergency(path))}
   </div>`;
   layout();
 }
@@ -653,7 +683,7 @@ function renderList(id) {
     <h2 class="list-title">${esc(l.title)}</h2>
     <div class="fit"><div class="sheet">${body || '<div class="empty">This checklist is empty.</div>'}</div></div>
     ${choiceHtml ? `<div class="choices">${choiceHtml}</div>` : ''}
-    ${wxLine(phaseSide(l))}
+    ${footer(wxLine(phaseSide(l)), isEmergency(l.group))}
   </div>`;
   layout();
 }
