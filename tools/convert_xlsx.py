@@ -18,7 +18,7 @@ rmap={r.get('Id'):r.get('Target') for r in ET.fromstring(z.read('xl/_rels/workbo
 
 GROUP_BY_SHEET={'Outside and Prestart':'Preflight','Engine Start Taxi Runup':'Start & Taxi','Basic Flight':'Flight',
   'After Landing and Shutdown':'After Landing','Emergencies 1':'Emergency','Emergencies 2':'Emergency','Emergencies 3':'Emergency'}
-GROUP_COLOR={'Preflight':'#4a4f57','Start & Taxi':'#1e5bd8','Flight':'#138a4a','After Landing':'#6b3fc7','Emergency':'#c62828','Briefings':'#0f7f8a'}
+GROUP_COLOR={'Maneuvers':'#a37800','Preflight':'#4a4f57','Start & Taxi':'#1e5bd8','Flight':'#138a4a','After Landing':'#6b3fc7','Emergency':'#c62828','Briefings':'#0f7f8a'}
 TITLES={
  'PREFLIGHT INSPECTION — AIRPLANE STATUS':'Airplane Status','PREFLIGHT INSPECTION — INSIDE COCKPIT':'Inside Cockpit',
  'PREFLIGHT INSPECTION — RIGHT WING':'Right Wing','PREFLIGHT INSPECTION — RIGHT ENGINE NACELLE':'Right Engine Nacelle',
@@ -110,35 +110,44 @@ insert('Airplane Status','VOR Accuracy every 30 days (IFR only) ... CHECK',['Rad
 by_title['Right Wing']['lines'].insert(0,'General Condition ... CHECKED')
 by_title['Right Engine Nacelle']['lines'][0:0]=['General Condition ... CHECK','Cowling ... OPEN']
 by_title['Nose Section']['lines'].insert(0,'General Condition ... CHECKED')
-by_title['Starting Engine']['lines']+=['# Flooded engine / hot start','Refer to the Quick Reference Handbook or Pilot Operating Handbook.']
+# Hot and flooded starts are separate (hidden) checklists, opened with buttons from Starting Engine.
+by_title['Starting Engine']['lines']+=['-> HOT START | POH 6-3 : Hot Start','-> FLOODED START | POH 6-4 : Flooded Start']
 by_title['Before Takeoff']['lines'].insert(0,'Flight Instruments ... CHECK')
 insert('Cruise','Engine Instruments ... MONITOR',['Electric Fuel Pumps ... OFF (ONE AT A TIME) — CHECK FUEL FLOW'],after=False)
+by_title['Cruise']['lines'].append('-> POWER TABLE | MP / RPM — POH 8-16 : Cruise Power Settings')
+replace('Cruise Climb (above 1000\' AGL)','Electric Fuel Pumps ... OFF (ALT? ONE AT A TIME) — CHECK FUEL PR',['Electric Fuel Pumps ... OFF (ONE AT A TIME) — CHECK FUEL PRESSURE'])
+# Before Taxi: heading indicator checked against the compass, altimeter from the ATIS, then bugs.
+replace('Before Taxi','Heading Indicator ... SET TO COMPASS',['Heading Indicator ... CHECK VS. COMPASS'])
+replace('Before Taxi','Altimeter ... SET TO ATIS or APT. ELEV.',['Altimeter ... SET TO ATIS ({dep.alt})','Altitude ... BUG','Heading ... BUG'])
+replace('Before Taxi','Avionics ... Checked Start Screen & DB',['Avionics ... CHECK START SCREEN & DATABASE'])
+replace('Before Taxi','RAIM ... Check in System',['RAIM ... CHECK IN SYSTEM'])
+# Takeoff: contact the tower first.
+tk=by_title['Takeoff']['lines']; tk.insert(0, tk.pop(tk.index('Contact Tower ... PATTERN / VFR / IFR')))
+# The right wing has no gear limit switches (the left wing has the squat switch, added below).
+by_title['Right Wing']['lines'].remove('Limit Switches ... CHECKED / NO DAMAGE')
+# Wording fixes.
+replace('Air Start / Unfeathering',"If engine does'nt start, prime w/ Fuel Pump INOP Engine ON 3 sec, then repeat the steps above.",
+    ['If the engine does not start, prime with Fuel Pump INOP Engine ON 3 sec, then repeat the steps above.'])
+replace('Vacuum Failure','RPM ... INCREASE 2700',['RPM ... INCREASE TO 2700'])
 replace('Before Takeoff','Trims ... ELEVATOR T/O, RUDDER AS REQUIRED',['Elevator Trim ... SET FOR T/O','Rudder Trim ... SET'])
-# Approach: the full Avia pre-landing check, then GUMPS. Keeps this checklist's own
-# "& Pumps" in G and the OEI 25° flap limit.
+# Approach: speeds first, the pre-landing items, first notch of flaps, then GUMPS (the gear line pulses).
 by_title['Approach / GUMPS']['lines']=[
+    'Approach Speed ... 110 DWNWD · 100 BASE · 90 FINAL',
     'Brakes ... PRESSURE CHECK',
-    'Seat Backs ... ERECT',
-    'Seat Belts and Harness ... FASTENED',
-    'Electric Fuel Pump ... ON',
     'Strobe Lights ... ON',
     'Navigation Lights ... NIGHT ONLY',
     'Landing Light ... ON',
     'Pitot Heat ... AS REQUIRED',
-    'Throttle Control ... SET (as necessary)',
-    'Mixture Control ... RICH',
-    'Fuel Selectors ... ON',
-    'Approach Speed ... ADJUST AS REQUIRED',
-    'Flaps ... AS REQUIRED',
+    'Flaps ... 1ST NOTCH, THEN AS REQ (OEI MAX 25°)',
     '# GUMPS',
     'G — Fuel Selectors & Pumps ... ON',
-    'U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR',
+    '^ U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR',
     'M — Mixture Controls ... FULL RICH',
-    'P — Propeller Controls ... FULL FORWARD',
+    'P — Propeller Controls ... FULL FORWARD (HIGH RPM)',
     'S — Seat Belt & Switches ... CHECK',
-    'Approach Speed ... ADJUST AS REQUIRED',
-    'Landing Lights ... ON',
-    'Flaps ... SET AS NEEDED, OEI MAX 25°']
+    '-> GO AROUND | if needed : Go Around']
+# Go Around is a branch: it has a tile, but Next on Approach leads to After Landing.
+by_title['Go Around']['lines']=['@BRANCH']+by_title['Go Around']['lines']+['-> APPROACH | back to Approach / GUMPS : Approach / GUMPS']
 by_title['Left Engine Nacelle']['lines']=list(by_title['Right Engine Nacelle']['lines'])
 rw=by_title['Right Wing']['lines']
 lw=[]
@@ -170,6 +179,13 @@ by_title['Engine Failure — Memory Items']['lines'] = [
     "-> FEATHER | Feathering procedure : Feathering Procedure"]
 by_title["Engine Failure — If Altitude Permits (3,500')"]['lines'] += [
     "-> FEATHER | If the engine doesn't start : Feathering Procedure"]
+# Takeoff and climb failures: always show the departure ATIS line (you may land back on the runway),
+# and the ones that end in feathering get a FEATHER button.
+for t in ['Engine Failure on Takeoff — 100 MPH or Below','Engine Failure on Takeoff — 100 MPH or Above',
+          'Engine Failure in Climb — Below 80 MPH','Engine Failure in Climb — Above 80 MPH']:
+    by_title[t]['lines'].insert(0,'@ATIS DEP')
+    if t!='Engine Failure on Takeoff — 100 MPH or Below':
+        by_title[t]['lines'].append('-> FEATHER | Feathering procedure : Feathering Procedure')
 # ATIS lines show the entered ATIS (tap to enter it): departure before taxi, arrival in the descent.
 replace('Before Taxi','ATIS ... OBTAIN',['ATIS ... {dep.sum}'])
 replace('Descent','ATIS ... OBTAIN',['ATIS ... {arr.sum}'])
@@ -188,18 +204,18 @@ PAX="""# S — Seat belts & shoulder harness
 Fasten / unfasten ... DEMONSTRATE
 Worn for ... TAXI, TAKEOFF, LANDING — AND KEEP ON
 Front seats ... SHOULDER HARNESS (INERTIA REEL)
-# A — Air vents & Action in an emergency
+# A — Air vents
 Overhead fresh-air vents ... TWIST RIM: CW LESS · CCW MORE
-In an emergency I will tell you what is happening and what to do. Stay belted until the airplane has stopped.
 # F — Fire extinguisher & Follow instructions
 Fire extinguisher ... SEAT BEHIND PILOT
 Smoking ... NONE
-# E — Exits & Equipment
+# E — Exits, Emergencies & Equipment
 Exits ... FRONT CABIN DOOR · REAR DOOR (L)
 Latches ... UPPER + SIDE — SHOW BOTH
 Upper latch ... ENGAGED BEFORE FLIGHT
 Right front seat ... CATCH ON TOP — SLIDES FWD
 Door opens in flight ... NOISY, NOT DANGEROUS — WE RETURN & LAND
+In an emergency I will tell you what is happening and what to do. Stay belted until the airplane has stopped.
 Evacuation ... UNLATCH WHEN TOLD, EXIT, MOVE WELL AWAY
 Headsets / intercom ... VOLUME & MIC CHECK
 # T — Traffic & Talking
@@ -215,13 +231,13 @@ Questions? ... BEFORE WE START ENGINES"""
 # The {tokens} show values entered on the ATIS & Takeoff Data screen; tapping the line enters them.
 CREW="""# Today
 Runway available ... {tora}
-Wind (headwind / tailwind) ... {dep.hw} KT
+Wind (headwind / tailwind) ... {dep.hw}
 Takeoff distance over 50 ft ... {tob.todist} FT
 Accelerate-stop distance ... {tob.asd} FT
 Single-engine rate of climb ... {tob.seroc} FPM
 Single-engine service ceiling ... {tob.secl} FT
 # Speeds (MPH CAS)
-Vr (short: 75 flaps 0° · 70 flaps 25°) ... 80–85
+Vr (short: 80 flaps 0° · 70 flaps 25°) ... 80–85
 Vx / Vy ... 90 / 105
 Vmc — red radial ... 80
 Vyse — blue radial ... 105
@@ -241,12 +257,181 @@ Checklist ... AT 400 FT AGL
 Cannot climb ... HOLD 105 — LAND AHEAD
 Simulated failures ... THROTTLE ONLY, SLOWLY"""
 
+# Hidden checklists (no tile, not in Next/Previous), opened with buttons from the normal checklists.
+HOT="""@HIDDEN
+Mixture Controls ... IDLE CUT-OFF
+Throttle Controls ... OPEN 1/2 INCH
+Propeller Controls ... FORWARD
+Master Switch ... ON
+Ignition Switches ... ON
+Electric Fuel Pumps ... OFF (NO PRIMING)
+# Each engine (left, then right)
+Propeller ... CLEAR
+Starter ... ENGAGE
+Mixture Control ... ADVANCE AS ENGINE STARTS
+If an engine does not start this way (no priming), use the normal starting procedure, which includes priming.
+-> NORMAL START | Starting Engine : Starting Engine"""
+FLOODED="""@HIDDEN
+Mixture Control ... IDLE CUT-OFF
+Throttle Control ... FULL FORWARD
+Propeller Control ... FORWARD
+Master Switch ... ON
+Ignition Switches ... ON
+Electric Fuel Pump ... OFF
+Propeller ... CLEAR
+Starter ... ENGAGE
+When Engine Fires ... RETARD THROTTLE, ADVANCE MIXTURE SLOWLY
+! Limit cranking to 30-second periods. If the engine does not start, let the starter cool for several minutes.
+-> NORMAL START | Starting Engine : Starting Engine"""
+POWER="""@HIDDEN
+| Press. alt | Std °F | 55% 2100 | 55% 2400 | 65% 2100 | 65% 2400 | 75% 2400 |
+| SL | 59 | 22.9 | 20.4 | 25.9 | 22.9 | 25.5 |
+| 1,000 | 55 | 22.7 | 20.2 | 25.6 | 22.7 | 25.2 |
+| 2,000 | 52 | 22.4 | 20.0 | 25.4 | 22.5 | 25.0 |
+| 3,000 | 48 | 22.2 | 19.8 | 25.1 | 22.2 | 24.7 |
+| 4,000 | 45 | 21.9 | 19.5 | 24.8 | 22.0 | 24.4 |
+| 5,000 | 41 | 21.7 | 19.3 | FT | 21.7 | FT |
+| 6,000 | 38 | 21.4 | 19.1 | — | 21.5 | — |
+| 7,000 | 34 | 21.2 | 18.9 | — | 21.3 | — |
+| 8,000 | 31 | 21.0 | 18.7 | — | 21.0 | — |
+| 9,000 | 27 | FT | 18.5 | — | FT | — |
+| 10,000 | 23 | — | 18.3 | — | — | — |
+| 11,000 | 19 | — | 18.1 | — | — | — |
+| 12,000 | 16 | — | 17.8 | — | — | — |
+| 13,000 | 12 | — | 17.6 | — | — | — |
+| 14,000 | 9 | — | FT | — | — | — |
+! Manifold pressure (in Hg): ±0.16" per 10°F from standard — add above standard, subtract below. FT = full throttle. Avoid continuous 2200–2400 RPM.
+-> BACK TO CRUISE | Cruise : Cruise"""
+
+# Maneuvers (behind a small button on the home screen). Speeds MPH CAS, from the POH and the
+# checkride maneuver sheets: the big items only.
+MANEUVERS=[
+('Pre-Maneuver Checklist',"""Altitude ... ≥ 3,000 FT AGL (Vmc DEMO ≥ 3,500)
+Landing Site ... IDENTIFIED
+Seat Belts / Loose Items ... SECURE
+Fuel Selectors ... ON
+Electric Fuel Pumps ... ON
+Mixtures ... RICH
+Propellers ... FULL FORWARD
+Cowl Flaps ... AS REQUIRED
+Engine Gauges ... IN THE GREEN
+Clearing Turns ... COMPLETE
+Entry Heading / Altitude ... NOTED / BUGGED"""),
+('Steep Turns',"""Gear / Flaps ... UP / UP
+Airspeed ... ≤ 133 MPH (AT OR BELOW Va)
+Entry Heading / Landmark ... NOTED
+Roll In ... COORDINATED, 45° BANK
+Back Pressure / Power ... HOLD ALTITUDE / ADD AS REQ
+Turn ... 360° — ROLL OUT ON ENTRY HEADING
+Reverse ... OPPOSITE DIRECTION
+# Tolerances
+Altitude · Airspeed ... ± 100 FT · ± 10 KT
+Bank · Rollout Heading ... ± 5° · ± 10°
+! Engine quits in the turn: WINGS LEVEL · REDUCE POWER · then MEMORY ITEMS"""),
+('Slow Flight',"""# Entry
+Throttles ... REDUCE
+Gear / Flaps ... AS SPECIFIED (GEAR ≤ 150 · FLAPS ≤ 125)
+Pitch ... HOLD ALTITUDE AS SPEED DECAYS
+Airspeed ... JUST ABOVE STALL WARNING
+Power / Trim ... HOLD ALTITUDE / AS REQUIRED
+# Maneuver
+Level, Turns, Climbs, Descents ... NO STALL WARNING
+Coordination ... BALL CENTERED
+# Recovery
+Throttles ... FULL FORWARD
+Flaps ... RETRACT IN STAGES (≤ 125)
+Gear (if down) ... UP — POSITIVE RATE"""),
+('Power-Off Stall',"""# Entry (landing configuration)
+Throttles ... REDUCE
+Gear ... DOWN — 3 GREEN (≤ 150)
+Flaps ... AS SPECIFIED (≤ 125)
+Stabilized Descent ... THEN THROTTLES IDLE
+Pitch ... SMOOTHLY UP — RECOVER AT FULL STALL
+# Recovery
+Pitch · Wings ... REDUCE AOA · LEVEL
+Throttles ... FULL FORWARD
+Flaps ... 40° → 25°
+Positive Rate ... GEAR UP
+Flaps (below 125 MPH) ... RETRACT
+Airspeed ... Vx 90 / Vy 105"""),
+('Power-On Stall',"""# Entry (takeoff / departure configuration)
+Gear / Flaps ... AS SPECIFIED (T/O = UP / UP)
+Power ... ≥ 65% (4,000 FT: 22.0" @ 2400)
+Pitch ... T/O ATTITUDE, THEN TO STALL
+Coordination ... BALL CENTERED
+Cues ... ANNOUNCE — RECOVER AT FULL STALL
+# Recovery
+Pitch · Wings ... REDUCE AOA · LEVEL
+Throttles ... FULL FORWARD
+Airspeed ... Vx 90 / Vy 105
+Gear / Flaps (if extended) ... UP — POSITIVE RATE"""),
+('Vmc Demo — Setup',"""Altitude ... ≥ 3,500 FT AGL
+Gear / Flaps ... UP / UP
+Cowl Flaps ... OPEN
+Stabilator Trim ... TAKEOFF RANGE
+Mixtures / Propellers ... RICH / FULL FORWARD
+Airspeed ... ≥ 105 MPH BEFORE POWER CUT
+Throttle — Engine to Fail ... IDLE, SLOWLY
+Prop — Engine to Fail ... WINDMILLING — NO FEATHER
+Throttle — Operating Engine ... FULL
+Rudder / Bank ... TOWARD GOOD ENGINE / ≤ 5°
+! Expect the gear warning horn (gear up, MP below 14")."""),
+('Vmc Demo — Recover',"""# Maneuver
+Pitch ... RAISE SLOWLY — ≈ 1 MPH / SEC
+Rudder ... INCREASE — HOLD HEADING
+Red Line ... 80 MPH
+# Recover at the first of
+Loss of directional control · stall horn · buffet
+# Recovery
+Throttle — Operating Engine ... REDUCE IMMEDIATELY
+Pitch ... LOWER — REDUCE AOA
+Heading ... WITHIN 20° OF ENTRY
+Throttle — Operating Engine ... ADVANCE SMOOTHLY
+Airspeed ... Vyse 105
+Both Throttles ... SYMMETRICAL POWER
+! Spin: BOTH THROTTLES IDLE · FULL OPPOSITE RUDDER · WHEEL FORWARD · AILERONS NEUTRAL"""),
+('Short-Field Takeoff',"""# POH 6-7
+Flaps 0° ... ROTATE 80 · 85 AT 50 FT
+Flaps 25° ... ROTATE 70 · 80 AT 50 FT
+Fuel Pumps · Mixtures · Props ... ON · RICH · FULL FWD
+Position ... MAX RUNWAY, CENTERLINE
+Brakes ... HOLD
+Throttles ... FULL — 2700 RPM, GAUGES GREEN
+Brakes ... RELEASE
+Climb Over Obstacle ... Vx 90 MPH
+Gear ... UP — NO RUNWAY REMAINS
+Then ... Vy 105 MPH
+Flaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE
+! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN"""),
+('Short-Field Landing',"""# POH 6-11
+Flaps ... FULL (40°)
+Final Approach Speed ... 87 MPH
+Aim Point ... SELECTED
+Throttles ... IDLE BEFORE TOUCHDOWN
+Touchdown ... MAIN WHEELS FIRST, MIN. FLOAT
+After Touchdown ... RAISE FLAPS
+Back Pressure · Brakes ... APPLY · MAXIMUM
+! Maximum demonstrated crosswind for landing: 15 MPH."""),
+('One Engine Inoperative Approach',"""# POH 3-13
+Inoperative Engine ... FEATHERED
+Altitude & Airspeed ... EXTRA — LAND THE FIRST TIME
+Gear ... DOWN WHEN LANDING IS ASSURED
+Flaps ... NOT UNTIL CERTAIN OF FIELD (MAX 25°)
+Final Approach Speed ... 105 MPH
+Rudder Trim ... ADJUST AS POWER CHANGES
+! Single-engine go-around only if unavoidable.
+-> FEATHER | Feathering procedure : Feathering Procedure
+-> SE GO AROUND | if unavoidable : Single-Engine Go Around"""),
+]
+
 out_lists=[]
 def add(title, group, text): out_lists.append({'title':title,'group':group,'color':GROUP_COLOR[group],'text':text})
 for l in normal:
     add(l['title'], l['group'], '\n'.join(l['lines']))
     if l['title']=='Before Starting Engine': add('Passenger Briefing','Start & Taxi',PAX)
+    if l['title']=='Starting Engine': add('Hot Start','Start & Taxi',HOT); add('Flooded Start','Start & Taxi',FLOODED)
     if l['title']=='Before Takeoff': add('Crew Takeoff Briefing','Start & Taxi',CREW)
+    if l['title']=='Cruise': add('Cruise Power Settings','Flight',POWER)
 # Emergency checklists are split into categories (shown as a second tile screen).
 # Memory Items stays at the top level so it is one tap from the Emergency screen.
 EMER_CAT={
@@ -263,8 +448,9 @@ EMER_CAT={
 for l in emer:
     cat=EMER_CAT[l['title']]
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
+for title, text in MANEUVERS: add(title, 'Maneuvers', text)
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=17
+DEFAULTS_VERSION=18
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")
