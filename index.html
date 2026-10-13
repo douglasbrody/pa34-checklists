@@ -180,8 +180,9 @@
   .pad-val { font-size: 56px; font-weight: 850; text-align: center; min-height: 76px; line-height: 76px; }
   .pad-val .was { color: var(--muted); font-weight: 600; font-size: 40px; }
   .pad-val .unit { font-size: 26px; color: var(--muted); margin-left: 8px; }
-  .keys { display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 10px; }
-  .keys.letters { grid-template-columns: repeat(7, 1fr); }
+  .keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-gap: 10px; }
+  .keys .key { min-width: 0; padding: 0; overflow: hidden; }
+  .keys.letters { grid-template-columns: repeat(7, minmax(0, 1fr)); }
   .key { min-height: 74px; border-radius: 16px; background: var(--card); border: 2px solid var(--line); font-size: 34px; font-weight: 800; }
   .keys.letters .key { min-height: 62px; font-size: 28px; }
   .key:active, .pad-act button:active { transform: scale(.96); }
@@ -193,16 +194,16 @@
   .taxi-read .was, .taxi-show .was { color: var(--muted); font-weight: 600; font-size: 22px; }
   .taxi-modes { display: flex; margin-bottom: 10px; }
   .taxi-modes > * + * { margin-left: 8px; }
-  .taxi-modes .key { flex: 1; min-height: 62px; font-size: 19px; }
+  .taxi-modes .key { flex: 1 1 0; min-width: 0; padding: 0 2px; min-height: 62px; font-size: 19px; line-height: 1.1; }
   .taxi-modes .key.on { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .kp-label { font-size: 14px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; margin: 8px 2px 6px; }
-  .keys.rwy36 { grid-template-columns: repeat(9, 1fr); }
+  .keys.rwy36 { grid-template-columns: repeat(9, minmax(0, 1fr)); }
   .keys.rwy36 .key { min-height: 58px; font-size: 26px; }
-  .keys.twnum { grid-template-columns: repeat(10, 1fr); margin-top: 8px; }
+  .keys.twnum { grid-template-columns: repeat(10, minmax(0, 1fr)); margin-top: 8px; }
   .keys.twnum .key { min-height: 50px; font-size: 22px; }
-  .keys.pairs { grid-template-columns: repeat(6, 1fr); }
+  .keys.pairs { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .keys.pairs .key { min-height: 54px; font-size: 21px; }
-  .keys.sfx { grid-template-columns: repeat(4, 1fr); margin-top: 10px; }
+  .keys.sfx { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 10px; }
   .keys.sfx .key { min-height: 56px; font-size: 26px; }
   .keys.sfx .key.wide { grid-column: span 4; }
   .keys.sfx .key.wide2 { grid-column: span 1; font-size: 19px; }
@@ -213,6 +214,25 @@
 
   /* Phone-width screens: let the top tiles share the width instead of running off screen. */
   @media (max-width: 600px) {
+    #pad .sheet2 { padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); }
+    .pad-top { font-size: 18px; }
+    .pad-top small { display: none; }
+    .pad-val { font-size: 44px; min-height: 58px; line-height: 58px; }
+    .taxi-read { font-size: 21px; min-height: 0; padding: 4px 2px 8px; }
+    .keys, .keys.letters, .keys.rwy36, .keys.twnum, .keys.pairs, .keys.sfx { grid-gap: 6px; }
+    .key { min-height: 52px; font-size: 26px; border-radius: 12px; }
+    #pad .keys.letters .key { min-height: 36px; font-size: 19px; }
+    .keys.twnum .key { min-height: 34px; font-size: 17px; }
+    .keys.rwy36 .key { min-height: 42px; font-size: 18px; }
+    .keys.pairs .key { min-height: 36px; font-size: 14px; letter-spacing: -.3px; }
+    .keys.sfx .key { min-height: 44px; font-size: 20px; }
+    .keys.sfx .key.wide2 { font-size: 13px; }
+    .taxi-modes { margin-bottom: 6px; }
+    .taxi-modes > * + * { margin-left: 5px; }
+    .taxi-modes .key { min-height: 46px; font-size: 13px; }
+    .kp-label { font-size: 11px; margin: 6px 2px 4px; }
+    .pad-act { margin-top: 8px; }
+    .pad-act button { min-height: 52px; font-size: 21px; }
     .emerg-tile { padding: 0 12px; font-size: 17px; letter-spacing: 0; }
     .foot .wx { margin-right: 8px; font-size: 16px; padding: 8px 10px; display: block; white-space: normal; line-height: 1.25; }
     .foot .wx-key { white-space: normal; }
