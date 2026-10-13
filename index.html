@@ -219,7 +219,7 @@
   .field small { display: block; font-size: 14px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
   .field span { font-size: 30px; font-weight: 850; color: var(--tok); }
   .field span.blank { color: var(--muted); font-weight: 600; font-size: 22px; }
-  .field span.long { font-size: 21px; overflow-wrap: anywhere; }
+  .field .val { display: block; overflow-wrap: break-word; word-wrap: break-word; }
   .field span small { display: inline; color: var(--muted); font-size: 16px; }
   .big-go { width: 100%; min-height: 76px; border-radius: 16px; background: var(--accent); color: var(--accent-fg); font-size: 26px; font-weight: 850; margin: 0 0 12px; }
   .big-go.alt { background: var(--card); color: var(--fg); border: 2px solid var(--line); font-size: 22px; min-height: 64px; }
@@ -334,6 +334,7 @@
     .tabs > * + * { margin-left: 6px; }
     .tab { font-size: 14px; min-height: 56px; }
     .home-head .group-title { font-size: 26px !important; }
+    .field.wide { grid-column: 1 / -1; }
     #pad .sheet2 { padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); }
     .pad-label { font-size: 26px; }
     .pad-step { font-size: 13px; }
@@ -573,11 +574,13 @@ const $app = document.getElementById('app');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Checklist text: wrapping is allowed after slashes in long words (Mixture/Prop/Throttle) but never inside
 // short abbreviations (T/O), at a hyphen (X-FEED) or inside a number range (80–85, 0°–10°).
-const brk = s => esc(s).replace(/(^|[^\w])(\w{1,2})\/(\w{1,2})(?=$|[^\w])/g, '$1$2\u0000$3').replace(/\//g, '/<wbr>').replace(/\u0000/g, '/')
+const brk = s => esc(seps(s)).replace(/(^|[^\w])(\w{1,2})\/(\w{1,2})(?=$|[^\w])/g, '$1$2\u0000$3').replace(/\//g, '/<wbr>').replace(/\u0000/g, '/')
   .replace(/(\w)-(\w)/g, '$1\u2011$2').replace(/(\d°?)–(\d)/g, '$1\u2060–\u2060$2')
-  .replace(/(\d|\}) (FT|FPM|MPH|KT|KTS|RPM|AGL|MSL|SM|QTS|PSI|SEC|GREENS?|AMPS)\b/g, '$1\u00a0$2');
-const nob = s => esc(s).replace(/(\w)-(\w)/g, '$1\u2011$2').replace(/(\d°?)–(\d)/g, '$1\u2060–\u2060$2')
-  .replace(/(\d|\}) (FT|FPM|MPH|KT|KTS|RPM|AGL|MSL|SM|QTS|PSI|SEC|GREENS?|AMPS|in)\b/g, '$1\u00a0$2');
+  .replace(/(\d|\}) (FT|FPM|MPH|KT|KTS|RPM|AGL|MSL|SM|QTS|PSI|SEC|GREENS?|AMPS)\b/g, '$1\u00a0$2')
+  .replace(/\b(Vmc|Vyse|Vxse|Vx|Vy|Vr|Va|Vso|Vs|Vfe|Vlo) (\d)/g, '$1\u00a0$2');
+const nob = s => esc(seps(s)).replace(/(\w)-(\w)/g, '$1\u2011$2').replace(/(\d°?)–(\d)/g, '$1\u2060–\u2060$2')
+  .replace(/(\d|\}) (FT|FPM|MPH|KT|KTS|RPM|AGL|MSL|SM|QTS|PSI|SEC|GREENS?|AMPS|in)\b/g, '$1\u00a0$2')
+  .replace(/\b(Vmc|Vyse|Vxse|Vx|Vy|Vr|Va|Vso|Vs|Vfe|Vlo) (\d)/g, '$1\u00a0$2');
 function find(id) {
   return lists.find(l => l.id === id) || lists.find(l => l.id === (read(IDMAP_KEY, {}) || {})[id]);
 }
@@ -738,11 +741,12 @@ function timesText(when) {
     }
     return txt;
   }).filter(Boolean);
-  return parts.join(' · ');
+  return parts.join(SEP);
 }
 
 const thousands = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 const SEP = '\u00a0· ';   // a list separator that never starts a line
+const seps = t => String(t).replace(/ · /g, SEP);
 // Sky condition: "CLR", or layers like "FEW25 BKN80" (heights in hundreds of feet); older values were just "25".
 function skyLayers(v) {
   if (!v || v === 'CLR') return [];
@@ -822,14 +826,14 @@ function compText(c) { return !c ? '' : (c.calm || c.vrb) ? headText(c) : xwText
 function compHtml(c) {
   if (!c) return '';
   if (c.calm || c.vrb) return esc(headText(c));
-  return `<span class="${xwHigh(c) ? 'warn' : ''}">${esc(xwText(c))}</span> · <span class="${isTail(c) ? 'warn' : ''}">${esc(headText(c))}</span>`;
+  return `<span class="${xwHigh(c) ? 'warn' : ''}">${esc(xwText(c))}</span>${SEP}<span class="${isTail(c) ? 'warn' : ''}">${esc(headText(c))}</span>`;
 }
 const atisAgeMin = side => fd[side + '._t'] ? Math.floor((Date.now() - fd[side + '._t']) / 60000) : 0;
 const ageText = m => m >= 120 ? Math.floor(m / 60) + ' H OLD' : m + ' MIN OLD';
 function atisRwyText(side) {
   const d = fd[side + '.drwy'], l = fd[side + '.rwy'];
-  if (side === 'dep') return d ? 'DEP RWY\u00a0' + d : l ? 'RWY\u00a0' + l : fd[side + '.appr'] ? fmt(side + '.appr') : '';
-  return [fd[side + '.appr'] ? fmt(side + '.appr') : '', l ? 'LDG RWY\u00a0' + l : ''].filter(Boolean).join(SEP);
+  if (side === 'dep') return d ? 'DEP\u00a0RWY\u00a0' + d : l ? 'RWY\u00a0' + l : fd[side + '.appr'] ? fmt(side + '.appr') : '';
+  return [fd[side + '.appr'] ? fmt(side + '.appr') : '', l ? 'LDG\u00a0RWY\u00a0' + l : ''].filter(Boolean).join(SEP);
 }
 function atisSummary(side) {
   return [fd[side + '.apt'] || '', fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', atisRwyText(side),
@@ -854,8 +858,8 @@ function lenOk() {
 }
 function toraText() {
   const { rwy, at } = takeoffRunway(), apt = aptKey(fd['dep.apt']);
-  const label = 'RWY ' + (rwy || '—') + (at ? ' at ' + at : '');
-  if (lenOk()) return label + ' · ' + thousands(fd['tob.len']) + ' FT (entered)';
+  const label = 'RWY\u00a0' + (rwy || '—') + (at ? ' at\u00a0' + at : '');
+  if (lenOk()) return label + SEP + thousands(fd['tob.len']) + '\u00a0FT (entered)';
   if (fd['tob.len']) {
     const was = String(fd['tob.lenFor'] || '').split('|');
     return label + SEP + 'entered ' + thousands(fd['tob.len']) + '\u00a0FT was for RWY\u00a0' + (was[1] || '—') + (was[2] ? ' at\u00a0' + was[2] : ' full length') + ' — re\u2011enter';
@@ -864,10 +868,10 @@ function toraText() {
   const full = aptRunwayLen(apt, rwy);
   if (at) {
     const est = ((twCache[apt] || {}).ints || {})[at + '|' + rwy];
-    if (est !== undefined) return label + ' · ≈' + thousands(est) + ' FT';
-    return label + ' · ' + (full ? 'full ' + thousands(full) + ' FT, intersection unknown' : 'length unknown');
+    if (est !== undefined) return label + SEP + '≈' + thousands(est) + '\u00a0FT';
+    return label + SEP + (full ? 'full ' + thousands(full) + '\u00a0FT, intersection unknown' : 'length unknown');
   }
-  return full ? label + ' · ' + thousands(full) + ' FT' : label;
+  return full ? label + SEP + thousands(full) + '\u00a0FT' : label;
 }
 const toraFeet = () => {
   const { rwy, at } = takeoffRunway(), apt = aptKey(fd['dep.apt']);
@@ -880,7 +884,7 @@ function asdText() {
   const asd = +fd['tob.asd'], av = toraFeet();
   if (!asd || !av) return '';
   const m = av - asd;
-  return thousands(asd) + ' / ' + thousands(av) + ' FT · ' + (m >= 0 ? 'MARGIN ' + thousands(m) : 'SHORT ' + thousands(-m));
+  return thousands(asd) + ' / ' + thousands(av) + '\u00a0FT' + SEP + (m >= 0 ? 'MARGIN\u00a0' + thousands(m) : 'SHORT\u00a0' + thousands(-m));
 }
 
 // Values for {tokens} in checklist text, whether to show them as a caution, and which fields a tap edits.
@@ -892,9 +896,9 @@ function tokenValue(key) {
   if (key === 'times.out' || key === 'times.in') return timesText(key.split('.')[1]) || 'TAP TO RECORD';
   const [side, f] = key.split('.');
   if (SIDES.includes(side)) {
-    if (f === 'hw') { const c = windComp(side); return c ? 'RWY\u00a0' + sideRwy(side) + ' · ' + headText(c) + (c.calm ? '' : '\u00a0KT') + (xwHigh(c) ? ' · ' + xwText(c) + '\u00a0KT' : '') : ''; }
-    if (f === 'comp') { const c = windComp(side); return [windText(side), compText(c)].filter(Boolean).join(' · '); }
-    if (f === 'sum') return hasAtis(side) ? atisSummary(side) : [atisPending(side), 'TAP TO ENTER'].filter(Boolean).join(' · ');
+    if (f === 'hw') { const c = windComp(side); return c ? 'RWY\u00a0' + sideRwy(side) + SEP + headText(c) + (c.calm ? '' : '\u00a0KT') + (xwHigh(c) ? SEP + xwText(c) + '\u00a0KT' : '') : ''; }
+    if (f === 'comp') { const c = windComp(side); return [windText(side), compText(c)].filter(Boolean).join(SEP); }
+    if (f === 'sum') return hasAtis(side) ? atisSummary(side) : [atisPending(side), 'TAP TO ENTER'].filter(Boolean).join(SEP);
   }
   return FIELD[key] ? fmt(key) : '';
 }
@@ -957,8 +961,8 @@ function wxLine(side, prompt) {
   const comp = c ? compHtml(c) : (rwy ? 'XW —' : 'XW — enter runway');
   const rest = [windText(side), fd[side + '.apt'] || '', fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', fmt(side + '.alt')].filter(Boolean);
   const atisNote = side === 'dep' && takeoffRunway().fromClearance && depAtisRwy() && depAtisRwy() !== rwy ? ` <span class="warn">(ATIS ${esc(depAtisRwy())})</span>` : '';
-  return `<button class="wx" data-go="#/data/${side}"><b>${side.toUpperCase()}</b> <span class="wx-key">${age > 60 ? `<span class="warn">${ageText(age)}</span> · ` : ''}RWY\u00a0${esc(rwy || '—')}${atisNote} · <span class="wx-xw">${comp}</span></span>`
-    + (rest.length ? `<span class="wx-rest">· ${esc(rest.join(' · '))}</span>` : '') + `</button>`;
+  return `<button class="wx" data-go="#/data/${side}"><b>${side.toUpperCase()}</b> <span class="wx-key">${age > 60 ? `<span class="warn">${ageText(age)}</span>${SEP}` : ''}RWY\u00a0${esc(rwy || '—')}${atisNote}${SEP}<span class="wx-xw">${comp}</span></span>`
+    + (rest.length ? `<span class="wx-rest">· ${esc(rest.join(SEP))}</span>` : '') + `</button>`;
 }
 
 /* ---------- Airport runways & taxiways ---------- */
@@ -1182,10 +1186,10 @@ function taxiText(parts) {
   if (r || a) bits.push((r ? 'RWY\u00a0' + r.v : 'RWY\u00a0—') + (a ? ' at\u00a0' + a.v : ''));
   parts.forEach(p => {
     if (p.k === 'via') bits.push('via ' + p.v.map(nb).join(', '));
-    else if (p.k === 'cross') bits.push('cross RWY\u00a0' + p.v);
-    else if (p.k === 'hs') bits.push('hold short ' + nb(p.v));
+    else if (p.k === 'cross') bits.push('cross\u00a0RWY\u00a0' + p.v);
+    else if (p.k === 'hs') bits.push('hold\u00a0short\u00a0' + nb(p.v));
   });
-  return bits.join(' · ');
+  return bits.join(SEP);
 }
 const taxiNames = parts => { const s = []; parts.forEach(p => {
   if (p.k === 'at' || (p.k === 'hs' && !/^RWY /.test(p.v))) s.push(p.v);
@@ -1194,6 +1198,7 @@ let taxi = null;   // builder state: { mode, side, all, before, fresh }
 function openTaxi(side) {
   side = side === 'arr' && fd['arr.apt'] ? 'arr' : 'dep';
   const parts = taxiParts();
+  if (!document.getElementById('pad')) noteOpener();
   taxi = { mode: parts.some(p => p.k === 'rwy') ? parts[parts.length - 1].k : 'rwy', all: false, side, before: taxiNames(parts), fresh: true };
   loadTaxiways(aptKey(fd[side + '.apt']));
   renderTaxi();
@@ -1207,7 +1212,7 @@ function closeTaxi() {
   if (fd.taxi) { rebindLen(); saveFd(); }
   taxi = null; padTimerClear();
   const el = document.getElementById('pad'); if (el) el.remove();
-  rerender();
+  rerender(); refocusOpener();
 }
 function taxiInput(a) {
   const key = aptKey(fd[taxi.side + '.apt']) || '';
@@ -1331,7 +1336,8 @@ document.addEventListener('click', e => {
   if (e.target.id === 'pad') return closeTaxi();
   const b = e.target.closest('[data-taxi]'); if (!b) return;
   const a = b.dataset.taxi;
-  taxi.kb = '';
+  if (taxi.kb) typedExact(taxi, c => taxiInput(c));
+  taxi.kb = ''; taxi.twEnd = false;
   if (a === 'done') return closeTaxi();
   if (a === 'clear') { delete fd.taxi; delete fd.taxiApt; saveFd(); taxi.mode = 'rwy'; taxi.fresh = true; taxi.before = []; return renderTaxi(); }
   if (a === 'forget') {                  // drop taxiway names learned at this airport
@@ -1392,6 +1398,7 @@ function openPad(keys, start, after) {
   keys = (keys || []).filter(k => FIELD[k]);
   if (!keys.length) return;
   padTimerClear();
+  if (!document.getElementById('pad')) noteOpener();
   pad = { keys, i: Math.min(start || 0, keys.length - 1), buf: '', after, allRwy: false, kb: '' };
   onFieldShown(); renderPad();
 }
@@ -1406,7 +1413,20 @@ function closePad() {
   pad = null;
   const el = document.getElementById('pad'); if (el) el.remove();
   if (after) return after();
-  rerender();
+  rerender(); refocusOpener();
+}
+// After a keypad opened from the keyboard closes, put focus back on the row or field that opened it.
+let opener = null, keyboardUsed = false;
+document.addEventListener('keydown', () => { keyboardUsed = true; }, true);
+document.addEventListener('pointerdown', () => { keyboardUsed = false; }, true);
+function noteOpener() {
+  const a = document.activeElement;
+  opener = a && a.closest && a.closest('[data-keys], .field[data-i]') ? (a.dataset.keys ? '[data-keys="' + a.dataset.keys + '"]' : '.field[data-i="' + a.dataset.i + '"]') : null;
+}
+function refocusOpener() {
+  if (!opener || !keyboardUsed) return;
+  const el = $app.querySelector(opener); opener = null;
+  if (el) { try { el.focus({ preventScroll: true }); } catch (err) { el.focus(); } }
 }
 function shake() { const v = document.querySelector('.pad-val'); if (!v) return; v.classList.remove('shake'); void v.offsetWidth; v.classList.add('shake'); }
 function commitPad() {
@@ -1583,11 +1603,19 @@ document.addEventListener('click', e => {
   if (!pad) return;
   if (e.target.id === 'pad') { padTimerClear(); if (commitPad()) closePad(); return; }   // tap outside the keypad
   const b = e.target.closest('[data-pad]'); if (!b || b.disabled) return;
+  if (pad.kb) {   // a value still being typed is taken first; if that already moved to the next field, the tap is done
+    const code = b.dataset.pad, i0 = pad.i, p0 = pad;
+    typedExact(pad, c => padKey(c));
+    if (!pad || pad !== p0) return;
+    if (pad.i !== i0 && code !== 'done') return;
+    if (code !== 'next' && code !== 'prev' && code !== 'done' && !padCodes('pad', code).length) return;
+  }
   padKey(b.dataset.pad);
 });
 // Hardware keyboard (desktop, iPad keyboard): type into the keypad; Enter = Next, Esc = Done.
 // Keys that hold a whole value (visibility, runway ends, approach types, taxiway names) are matched as
 // you type: a unique match is pressed at once; when several start the same way, Enter takes the exact one.
+let kbTab = false;
 function padCodes(attr, prefix) {
   const out = [];
   document.querySelectorAll('#pad [data-' + attr + ']').forEach(b => { const c = b.dataset[attr]; if (c.indexOf(prefix) === 0 && !b.disabled && out.indexOf(c.slice(prefix.length)) < 0) out.push(c.slice(prefix.length)); });
@@ -1621,11 +1649,11 @@ function typedPick(attr, prefix, ch, st, press, eager) {
   st.kb = t; st.kbP = prefix; st.kbAll = all;
   return true;
 }
-function typedExact(st, press) {
+function typedExact(st, press, keep) {
   if (!st.kb) return false;
   const t = st.kb, p = st.kbP, ex = (st.kbAll || []).filter(c => keyForms(p, c).some(f => f === t));
+  if (ex.length !== 1) { if (!keep) st.kb = ''; return false; }
   st.kb = '';
-  if (ex.length !== 1) return false;
   press(p + ex[0]); return true;
 }
 function padKeyDown(e, k, retried) {
@@ -1639,13 +1667,23 @@ function padKeyDown(e, k, retried) {
     if (r === 'retry' && !retried && pad) return padKeyDown(e, k, true);
     return r;
   };
+  // a key typed during the short automatic-advance pause belongs to the next field
+  if (padTimer && up && !retried) { padTimerClear(); advancePad(false, true); if (!pad) return; return padKeyDown(e, k, true); }
   // letters still being typed after a word was recognised from its first letters ("OVC", "RNAV", "VISUAL")
   if (pad.rest && up && up === pad.rest[0]) { e.preventDefault(); pad.rest = pad.rest.slice(1); return; }
   pad.rest = '';
+  // number pad: R / L just taken as a runway suffix, followed by N / O, was really RNAV / LOC
+  if (pad.sfx && (up === 'N' && pad.sfx === 'R' || up === 'O' && pad.sfx === 'L')) {
+    e.preventDefault();
+    const segs = apprSegs(pad.buf); segs[segs.length - 1] = segs[segs.length - 1].replace(/[LR]$/, '');
+    pad.buf = segs.join(' / '); const t = up === 'N' ? 'RNAV' : 'LOC'; pad.sfx = '';
+    padKey('Q' + t); if (pad) pad.rest = t.slice(2); return;
+  }
+  pad.sfx = '';
   if (k === 'Enter') {
     e.preventDefault();
-    if (typedExact(pad, press)) return;
-    if (!pad.buf && pad.autoT && Date.now() - pad.autoT < 1500) { pad.autoT = 0; return; }   // that value already moved on
+    if (typedExact(pad, press)) { if (pad) pad.autoT = 0; return; }
+    if (!pad.buf && pad.autoT) { pad.autoT = 0; return; }   // that value already moved on by itself
     return padKey('next');
   }
   if (k === 'Escape') { e.preventDefault(); typedExact(pad, press); if (pad) padKey('done'); return; }
@@ -1670,7 +1708,7 @@ function padKeyDown(e, k, retried) {
       }
       const cur = apprSegs(pad.buf).pop() || '', curR = cur.split(' ')[1] || '';
       if (/[LCR]/.test(up) && pad.kb && pad.kbP === 'E' && typedPick('pad', 'E', up, pad, press) === true) { e.preventDefault(); return; }
-      if (/[LCR]/.test(up) && !endsShown && curR && !/[LCR]$/.test(curR)) return tryCodes(['X' + up]);   // number pad: runway suffix
+      if (/[LCR]/.test(up) && !endsShown && curR && !/[LCR]$/.test(curR)) { const r = tryCodes(['X' + up]); if (r && pad) pad.sfx = up; return r; }   // number pad: runway suffix
       if (/[A-Z]/.test(up)) {
         const before = pad.buf, r = pick('Q', true);
         if (r === true && pad && pad.buf !== before) {   // a type was chosen: swallow the rest of its name if it is typed
@@ -1694,7 +1732,7 @@ function taxiKeyDown(e, k, retried) {
   if (k === 'Enter') { e.preventDefault(); if (typedExact(taxi, press)) return; return closeTaxi(); }
   if (k === 'Escape') { e.preventDefault(); typedExact(taxi, press); return closeTaxi(); }
   if (k === 'Backspace') { e.preventDefault(); if (taxi.kb) { taxi.kb = ''; return; } return taxiInput('back'); }
-  if (k === ' ' || k === ',') { e.preventDefault(); typedExact(taxi, press); return; }
+  if (k === ' ' || k === ',') { e.preventDefault(); if (taxi.kb && !typedExact(taxi, press, true)) return; taxi.twEnd = true; return; }
   if (!up) return;
   const has = c => padCodes('taxi', c).indexOf('') >= 0;
   const pick = (prefix, eager) => {
@@ -1704,7 +1742,8 @@ function taxiKeyDown(e, k, retried) {
   };
   e.preventDefault();
   const parts = taxiParts(), last = parts[parts.length - 1];
-  const lastTw = last && (last.k === 'via' ? last.v[last.v.length - 1] : last.k === 'hs' || last.k === 'at' ? last.v : '');
+  const lastTw = !taxi.twEnd && last && last.k === taxi.mode ? (last.k === 'via' ? last.v[last.v.length - 1] : last.v) : '';
+  if (/[A-Z]/.test(up) && !/[LCR]/.test(up)) taxi.twEnd = false;
   const lastRwy = last && (last.k === 'cross' ? last.v : last.k === 'hs' && /^RWY /.test(last.v) ? last.v : last.k === 'via' && /^RWY /.test(lastTw) ? lastTw : '');
   // a pending runway number followed by L / C / R completes a parallel runway (15 + L = 15L/33R)
   if (/[LCR]/.test(up) && taxi.kb && (taxi.kbP === 'P' || taxi.kbP === 'N') && pick(taxi.kbP) === true) return;
@@ -1714,12 +1753,17 @@ function taxiKeyDown(e, k, retried) {
     return;
   }
   // L / C / R right after a runway without a suffix makes it a parallel runway
-  if (/[LCR]/.test(up) && lastRwy && !/[LCR]\b/.test(lastRwy.replace(/^RWY /, '')) && has('S' + up)) { taxi.kb = ''; return taxiInput('S' + up); }
-  if (taxi.mode === 'cross') { pick('P'); return; }
+  if (/[LCR]/.test(up) && lastRwy && !/[LCR]\b/.test(lastRwy.replace(/^RWY /, '')) && has('S' + up)) {
+    // the suffix belongs to the end that was typed: 33 + L on 15/33 is 15R/33L
+    const pair = lastRwy.replace(/^RWY /, '').split('/'), hi = pair[1] && taxi.typedNum === pair[1];
+    taxi.kb = ''; return taxiInput('S' + (hi ? OPP[up] : up));
+  }
+  if (taxi.mode === 'cross') { if (/\d/.test(up)) taxi.typedNum = (taxi.kbP === 'P' && taxi.kb ? taxi.kb : '') + up; pick('P'); return; }
   // AT / VIA / HOLD SHORT: taxiway names (or letters + digits); digits not continuing a taxiway are runway pairs
   if (padCodes('taxi', 'W').length && /[A-Z]/.test(up) && pick('W')) return;
   if (/[A-Z]/.test(up) && has('L' + up)) { taxi.kb = ''; return taxiInput('L' + up); }
   if (/\d/.test(up)) {
+    taxi.typedNum = (taxi.kbP === 'P' && taxi.kb ? taxi.kb : '') + up;
     if (taxi.kb && taxi.kbP === 'W' && pick('W')) return;
     if (lastTw && /^[A-Z]{1,2}\d?$/.test(lastTw) && has('T' + up) && !(taxi.kb && taxi.kbP === 'P')) { taxi.kb = ''; return taxiInput('T' + up); }
     if (taxi.mode !== 'at') pick('P');
@@ -1730,14 +1774,17 @@ document.addEventListener('keydown', e => {
   if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
   if (e.key === 'Tab') {   // keep keyboard focus inside the keypad, cycling through its buttons
-    e.preventDefault();
+    e.preventDefault(); kbTab = true;
     const bs = [...document.querySelectorAll('#pad button:not([disabled])')]; if (!bs.length) return;
     let i = bs.indexOf(document.activeElement);
     i = e.shiftKey ? (i <= 0 ? bs.length - 1 : i - 1) : (i + 1) % bs.length;
     bs[i].focus(); return;
   }
-  // a keypad button that has keyboard focus is pressed with Enter / Space as usual
-  if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.tagName === 'BUTTON' && document.activeElement.closest('#pad')) return;
+  // a keypad button reached with Tab is pressed with Enter / Space, as long as nothing has been typed since
+  const ae = document.activeElement, onBtn = ae && ae.tagName === 'BUTTON' && ae.closest('#pad');
+  if ((e.key === 'Enter' || e.key === ' ') && onBtn && kbTab && !(pad && (pad.buf || pad.kb)) && !(taxi && taxi.kb)) return;
+  kbTab = false;
+  if (onBtn) { const sh = document.querySelector('#pad .sheet2'); if (sh) sh.focus(); }   // typing goes to the keypad, not to a stale focused key
   if (pad) return padKeyDown(e, e.key);
   return taxiKeyDown(e, e.key);
 });
@@ -1775,6 +1822,15 @@ function renderTaxiTab() {
     <div class="data-foot">${footer('', false)}</div>
   </div>`;
 }
+// Flight Data card values: the biggest size (30 px down to 18 px) at which each value fits its card.
+function fitFields() {
+  $app.querySelectorAll('.field .val').forEach(v => {
+    for (let px = 30; px >= 18; px -= 2) {
+      v.style.fontSize = px + 'px';
+      if (v.scrollWidth <= v.clientWidth + 1 && v.offsetHeight <= px * 1.3 * 2 + 2) break;
+    }
+  });
+}
 function renderData(tab) {
   if (!/^(dep|taxi|tob|arr)$/.test(tab)) tab = 'tob';
   if (tab === 'taxi') return renderTaxiTab();
@@ -1785,7 +1841,7 @@ function renderData(tab) {
     calc = `<div class="calc"><small>Runway available · wind for that runway</small><span class="${tokenWarn('tora') ? 'warn' : ''}">${esc(toraText() || '—')}</span><br>${c ? compHtml(c) : '—'}${asdText() ? `<br><span class="${tokenWarn('asd') ? 'warn' : ''}">ACCEL-STOP ${esc(asdText())}</span>` : ''}</div>`;
   } else {
     const c = windComp(tab), age = atisAgeMin(tab), cig = ceilingOf(fd[tab + '.ceil']);
-    calc = `<div class="calc">${sideWx(tab) ? `<div class="calc-freq">${esc(sideWx(tab))}</div>` : ''}<small>Wind · components for RWY ${esc(sideRwy(tab) || '—')}${age > 60 ? ` · <span class="warn">${ageText(age)}</span>` : ''}</small>${[esc(windText(tab)), c ? compHtml(c) : ''].filter(Boolean).join(' · ') || '—'}${atisRwyText(tab) ? `<small>${esc(atisRwyText(tab))}</small>` : ''}${cig !== null ? `<small>Ceiling ${thousands(cig)} FT</small>` : ''}</div>`;
+    calc = `<div class="calc">${sideWx(tab) ? `<div class="calc-freq">${esc(sideWx(tab))}</div>` : ''}<small>Wind · components for RWY\u00a0${esc(sideRwy(tab) || '—')}${age > 60 ? ` · <span class="warn">${ageText(age)}</span>` : ''}</small>${[esc(windText(tab)), c ? compHtml(c) : ''].filter(Boolean).join(' · ') || '—'}${atisRwyText(tab) ? `<small>${esc(atisRwyText(tab))}</small>` : ''}${cig !== null ? `<small>Ceiling ${thousands(cig)} FT</small>` : ''}</div>`;
   }
   $app.innerHTML = `<div class="wrap data">
     ${dataHead()}
@@ -1795,7 +1851,9 @@ function renderData(tab) {
     ${calc}
     <div class="fields">${fields.map((f, i) => {
       const v = fmt(f.k), u = unitFor(f, v);
-      return `<button class="field" data-act="padfrom" data-tab="${tab}" data-i="${i}"><small>${esc(f.label)}</small><span class="${v ? (v.length > 11 ? 'long' : '') : 'blank'}">${v ? esc(v) + (u ? ' <small>' + esc(u) + '</small>' : '') : 'tap to enter'}</span></button>`;
+      const wide = /\.(appr|ceil)$/.test(f.k) ? ' wide' : '';   // multi-part values get the whole row on phones
+      const shown = String(v).replace(/\u00a0RWY/g, ' RWY');   // cards may break between an approach type and its runway
+      return `<button class="field${wide}" data-act="padfrom" data-tab="${tab}" data-i="${i}"><small>${esc(f.label)}</small><span class="${v ? 'val' : 'blank'}">${v ? esc(shown) + (u ? '\u00a0<small>' + esc(u) + '</small>' : '') : 'tap to enter'}</span></button>`;
     }).join('')}</div>
     <div class="actions" style="margin-top:16px">
       <button class="small-btn" data-act="clearfd" data-tab="${tab}">Clear ${tab === 'tob' ? 'takeoff data' : SIDE_NAME[tab].toLowerCase() + ' ATIS'}</button>
@@ -1804,6 +1862,7 @@ function renderData(tab) {
     <p style="color:var(--muted);font-size:16px">${tab !== 'tob' ? 'This ATIS is shown in the wind line at the bottom of the checklists. ' : ''}Frequencies, runway lengths and taxiway names come from community data (OurAirports, OpenStreetMap): check them against the Chart Supplement.</p>
     <div class="data-foot">${footer('', false)}</div>
   </div>`;
+  fitFields();
 }
 
 /* ---------- Groups and flow ---------- */
@@ -1853,7 +1912,7 @@ const prevOf = l => nextOf(l, -1);
 
 /* ---------- Screens ---------- */
 // Tile labels never break at a hyphen ("Run-up") or between a number and its unit ("80 MPH").
-const tileLabel = t => esc(String(t).replace(/(\w)-(\w)/g, '$1\u2011$2').replace(/(\d'?) (MPH|AGL|FT|KT)\b/g, '$1\u00a0$2'));
+const tileLabel = t => esc(seps(t).replace(/(\w)-(\w)/g, '$1\u2011$2').replace(/(\d'?) (MPH|AGL|FT|KT)\b/g, '$1\u00a0$2'));
 const tileHtml = (label, color, hash) =>
   `<button class="tile" style="background:${esc(color)}" data-go="${esc(hash)}"><span class="tl">${tileLabel(label)}</span></button>`;
 const groupTile = g => g.list ? tileHtml(g.list.title, g.list.color, `#/list/${g.list.id}`) : tileHtml(g.name, g.color, groupHash(g.path));
@@ -1981,7 +2040,7 @@ function renderList(id) {
       ${prev ? `<button class="next-tile" data-go="#/list/${prev.id}" aria-label="Previous: ${esc(prev.title)}"><small>← Previous</small><span data-full="${esc(prev.title)}">${tileLabel(prev.title)}</span></button>` : ''}
       ${next ? `<button class="next-tile" data-go="#/list/${next.id}" aria-label="Next: ${esc(next.title)}"><small>Next →</small><span data-full="${esc(next.title)}">${tileLabel(next.title)}</span></button>` : ''}
     </div>
-    <h2 class="list-title">${esc(l.title)}</h2>
+    <h2 class="list-title">${nob(l.title).replace(/(\d) (MPH|AGL|FT)/g, '$1\u00a0$2')}</h2>
     <div class="fit"><div class="sheet">${body || '<div class="empty-msg">This checklist is empty.</div>'}</div></div>
     ${choices.length ? `<div class="choices">${choiceButtons(choices)}</div>` : ''}
     ${footer(wx, emer)}
@@ -2059,19 +2118,19 @@ function layoutList() {
     while (hi - lo > 1) { const mid = (lo + hi) >> 1; fits(cols, mid, wrap) ? lo = mid : hi = mid; }
     return lo;
   };
-  // An alternative must be clearly bigger to win. Near the minimum 2 px is enough, but not for a two-column
-  // layout whose labels get squeezed onto three or more lines.
-  const squeezed = k => { set(k.cols, k.px, k.wrap, PAD); return items.some(r => [...r.children].some(x => x.offsetHeight > k.px * 1.3 * 2.4)); };
+  // An alternative must be clearly bigger to win. Near the minimum 2 px is enough, except for a two-column layout
+  // that squeezes more than one label onto three or more lines (bigger text wins over one-item-per-line otherwise).
+  const squeezed = k => { set(k.cols, k.px, k.wrap, PAD); return items.filter(r => [...r.children].some(x => x.offsetHeight > k.px * 1.3 * 2.4)).length > 1; };
   const bigger = (k, cur, ratio) => !!k.px && (!cur.px || k.px > cur.px * ratio
-    || (cur.px < WRAP_BELOW && k.px >= cur.px + 2 && !(k.cols === 2 && cur.px >= 18 && squeezed(k))));   // at 16-17 px anything bigger wins
+    || (cur.px < WRAP_BELOW && k.px >= cur.px + 2 && !(k.cols === 2 && k.wrap && cur.px >= 18 && squeezed(k))));
   const pick = wrap => {
     const one = { cols: 1, px: best(1, wrap), wrap }, two = { cols: 2, px: W >= 600 && one.px * 1.2 < MAX ? best(2, wrap) : 0, wrap };
-    return bigger(two, one, 1.2) ? two : one;
+    return { pick: bigger(two, one, 1.2) ? two : one, one: one.px };
   };
-  const plain = pick(false);
+  const p0 = pick(false), plain = p0.pick;
   let c = plain;
-  if (plain.px < WRAP_BELOW) {   // small with every item on one line: try letting long lines wrap
-    const w = pick(true); if (bigger(w, c, 1.15)) c = w;
+  if (p0.one < WRAP_BELOW) {   // small with every item on one line in one column: try letting long lines wrap
+    const w = pick(true).pick; if (bigger(w, c, 1.15)) c = w;
     const save = allowWrapped; allowWrapped = Infinity;
     const one = { cols: 1, px: best(1, true), wrap: true }, two = { cols: 2, px: W >= 600 && one.px < MAX ? best(2, true) : 0, wrap: true };
     const f = two.px > one.px ? two : one;
@@ -2099,9 +2158,11 @@ function layoutBar() {
     const b = sp.parentElement, cs = getComputedStyle(b);
     const max = b.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
     const start = Math.round(parseFloat(cs.fontSize)) || 20;
-    const tryFit = () => { for (let px = start; px >= 12; px--) { sp.style.fontSize = px + 'px'; if (sp.scrollHeight <= sp.clientHeight + 1 && wordsFit(sp, px, max)) return true; } return false; };
+    const minPx = innerWidth <= 360 ? 10 : 12;
+    sp.style.overflowWrap = '';
+    const tryFit = () => { for (let px = start; px >= minPx; px--) { sp.style.fontSize = px + 'px'; if (sp.scrollHeight <= sp.clientHeight + 1 && wordsFit(sp, px, max)) return true; } return false; };
     if (!tryFit() && sp.dataset.full && /\(/.test(sp.dataset.full)) { sp.innerHTML = tileLabel(sp.dataset.full.replace(/\s*\([^)]*\)/g, '')); tryFit(); }
-    if (!wordsFit(sp, 12, max) && sp.dataset.full) { sp.textContent = sp.dataset.full; tryFit(); }
+    if (!wordsFit(sp, minPx, max) && sp.dataset.full) { sp.textContent = sp.dataset.full; if (!tryFit()) sp.style.overflowWrap = 'anywhere'; }
   });
 }
 
@@ -2126,6 +2187,7 @@ function placeScan() {
   else if (title) { const t = title.getBoundingClientRect(); r = { left: t.left + 8, top: t.top + 2, width: t.width - 16, height: Math.max(t.height - 2, 30) }; }
   else return;
   sc.classList.toggle('intitle', !inBar);
+  sc.style.whiteSpace = !inBar && r.height < 50 ? 'nowrap' : 'normal';
   sc.textContent = !inBar && r.width < 560 ? SCAN_SHORT : SCAN_TEXT;
   sc.style.left = Math.round(r.left) + 'px'; sc.style.top = Math.round(r.top) + 'px';
   sc.style.width = Math.round(r.width) + 'px'; sc.style.height = Math.round(r.height) + 'px';
@@ -2134,7 +2196,7 @@ function placeScan() {
     if (sc.scrollHeight <= sc.clientHeight + 1 && sc.scrollWidth <= sc.clientWidth + 1) break;
   }
 }
-function layout() { layoutBar(); layoutTiles(); layoutList(); placeScan(); }
+function layout() { layoutBar(); layoutTiles(); layoutList(); placeScan(); fitFields(); }
 let rt, lastSize = innerWidth + 'x' + innerHeight;
 addEventListener('resize', () => {
   clearTimeout(rt);
