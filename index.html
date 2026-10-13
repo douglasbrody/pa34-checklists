@@ -166,6 +166,11 @@
   .tab.on { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .calc { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 12px 16px; font-size: 28px; font-weight: 850; margin: 0 0 12px; text-align: center; line-height: 1.25; }
   .calc-freq { font-size: 22px; font-weight: 850; color: var(--next); margin-bottom: 6px; }
+  .near-row { display: flex; margin-bottom: 8px; min-height: 58px; }
+  .near-row > * + * { margin-left: 8px; }
+  .apt-pick { flex: 1 1 0; min-width: 0; min-height: 58px; font-size: 24px; font-weight: 850; line-height: 1.05; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .apt-pick small { font-size: 13px; font-weight: 700; color: var(--muted); margin-top: 2px; }
+  .near-note { align-self: center; color: var(--muted); font-size: 16px; font-weight: 600; }
   .pad-freq { text-align: center; font-size: 22px; font-weight: 850; color: var(--next); margin-top: 2px; }
   .calc small { display: block; font-size: 15px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
   .fields { display: grid; grid-template-columns: 1fr 1fr; grid-gap: 10px; }
@@ -236,6 +241,8 @@
     .keys.rwy36 .key { min-height: 42px; font-size: 18px; }
     .keys.pairs .key { min-height: 36px; font-size: 14px; letter-spacing: -.3px; }
     .keys.twlist .key { min-height: 40px; font-size: 17px; }
+    .apt-pick { min-height: 48px; font-size: 19px; }
+    .near-row { min-height: 48px; margin-bottom: 4px; }
     .apt-chip { min-height: 34px; padding: 0 8px; font-size: 13px; margin-left: 6px; }
     .keys.sfx .key { min-height: 44px; font-size: 20px; }
     .keys.sfx .key.wide2 { font-size: 13px; }
@@ -661,6 +668,42 @@ function learnTaxiways(key) {
   write(TW_KEY, twCache);
 }
 
+/* ---------- Nearest & recent airports (for the Airport field) ---------- */
+// Position from the device (GPS on iPhone and cellular iPads; works without internet there).
+let geo = { pos: null, t: 0, busy: false, denied: false };
+function locate() {
+  if (geo.busy || !navigator.geolocation || (geo.pos && Date.now() - geo.t < 120000)) return;
+  geo.busy = true;
+  navigator.geolocation.getCurrentPosition(
+    p => { geo = { pos: [p.coords.latitude, p.coords.longitude], t: Date.now(), busy: false, denied: false }; if (pad) renderPad(); },
+    e => { geo.busy = false; geo.denied = e.code === 1; if (pad) renderPad(); },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 120000 });
+}
+function nearestAirports(n) {
+  if (!geo.pos || typeof AIRPORT_POS === 'undefined') return [];
+  const [la, lo] = geo.pos, k = Math.cos(la * Math.PI / 180), out = [];
+  for (const id in AIRPORT_POS) {
+    const p = AIRPORT_POS[id], dy = p[0] - la, dx = (p[1] - lo) * k;
+    out.push([id, Math.sqrt(dx * dx + dy * dy) * 60]);   // nautical miles
+  }
+  return out.sort((a, b) => a[1] - b[1]).slice(0, n);
+}
+const RECENT_KEY = 'recentAirports.v1';
+const recentAirports = () => read(RECENT_KEY, []) || [];
+function rememberAirport(id) {
+  if (!id) return;
+  write(RECENT_KEY, [id].concat(recentAirports().filter(x => x !== id)).slice(0, 6));
+}
+function airportChips() {
+  const near = nearestAirports(3), nearIds = near.map(x => x[0]);
+  const recent = recentAirports().filter(x => !nearIds.includes(x)).slice(0, 3);
+  const chip = (id, sub) => `<button class="key apt-pick" data-pad="A${esc(id)}">${esc(id)}<small>${esc(sub)}</small></button>`;
+  const nearHtml = near.length ? near.map(([id, nm]) => chip(id, (nm < 10 ? nm.toFixed(1) : Math.round(nm)) + ' nm')).join('')
+    : `<span class="near-note">${geo.denied ? 'Location is off for this app (Settings › Privacy › Location)' : 'Finding nearest airports…'}</span>`;
+  return `<div class="kp-label">Nearest</div><div class="near-row">${nearHtml}</div>`
+    + (recent.length ? `<div class="kp-label">Recent</div><div class="near-row">${recent.map(id => chip(id, aptWx(id) || 'recent')).join('')}</div>` : '');
+}
+
 /* ---------- Taxi clearance ---------- */
 // Stored as a list of parts, in the order given:
 //   { k: 'rwy', v: '24L' }                departure runway (one end)
@@ -850,7 +893,7 @@ function closePad() {
 function commitPad() {
   if (!pad || pad.buf === '') return true;
   const k = pad.keys[pad.i], f = FIELD[k], b = pad.buf;
-  if (f.kind === 'ident') { fd[k] = b; saveFd(); loadTaxiways(aptKey(b)); return true; }   // fetch its taxiways now, while online
+  if (f.kind === 'ident') { fd[k] = b; saveFd(); rememberAirport(aptKey(b) || b); loadTaxiways(aptKey(b)); return true; }   // fetch its taxiways now, while online
   const bad = (f.k.endsWith('.wdir') && b !== 'VRB' && +b > 360) || (f.kind === 'rwy' && !(parseInt(b, 10) >= 1 && parseInt(b, 10) <= 36))
     || (f.k.endsWith('.alt') && b.length !== 4);
   if (bad) { const v = document.querySelector('.pad-val'); v.classList.remove('shake'); void v.offsetWidth; v.classList.add('shake'); return false; }
@@ -870,7 +913,7 @@ function renderPad() {
   const group = side === 'tob' ? 'Takeoff data' : side === 'out' ? 'Start times' : side === 'in' ? 'Shutdown times' : SIDE_NAME[side] + ' ATIS';
   let keys;
   if (f.kind === 'letter') keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => `<button class="key" data-pad="L${c}">${c}</button>`).join('') + `<button class="key" data-pad="back">⌫</button>`;
-  else if (f.kind === 'ident') keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(c => `<button class="key" data-pad="I${c}">${c}</button>`).join('') + `<button class="key" data-pad="back">⌫</button>`;
+  else if (f.kind === 'ident') { locate(); keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(c => `<button class="key" data-pad="I${c}">${c}</button>`).join('') + `<button class="key" data-pad="back">⌫</button>`; }
   else if (f.kind === 'rwy' && aptRunways(aptKey(fd[side + '.apt'])).length) {
     const ends = [].concat(...aptRunways(aptKey(fd[side + '.apt'])).map(p => p.split('/'))).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
     keys = ends.map(e => `<button class="key" data-pad="E${e}">${e}</button>`).join('') + `<button class="key" data-pad="back">⌫</button>`;
@@ -892,6 +935,7 @@ function renderPad() {
     <div class="pad-top"><span>${esc(f.label)}</span><small>${esc(group)} · ${pad.i + 1} of ${pad.keys.length}</small></div>
     ${(side === 'dep' || side === 'arr') && f.kind !== 'ident' && sideWx(side) ? `<div class="pad-freq">${esc(sideWx(side))}</div>` : ''}
     <div class="pad-val">${shown}${f.unit && f.kind !== 'letter' && !(pad.buf === '' && fmt(k).includes('°')) ? `<span class="unit">${esc(f.unit)}</span>` : ''}</div>
+    ${f.kind === 'ident' ? airportChips() : ''}
     <div class="keys${f.kind === 'letter' || f.kind === 'ident' ? ' letters' : ''}">${keys}</div>
     <div class="pad-act"><button data-pad="prev"${pad.i === 0 ? ' disabled' : ''}>← Back</button><button data-pad="done">Done</button><button class="go" data-pad="next">${last ? 'Save' : 'Next →'}</button></div>
   </div>`;
@@ -911,6 +955,7 @@ document.addEventListener('click', e => {
   }
   if (a[0] === 'L') { pad.buf = a.slice(1); return advancePad(); }        // ATIS letter
   if (a[0] === 'E') { pad.buf = a.slice(1); return advancePad(); }        // runway end from the airport's list
+  if (a[0] === 'A') { pad.buf = a.slice(1); return advancePad(); }        // nearest / recent airport
   if (a[0] === 'I') {                                                      // airport identifier
     if (pad.buf.length < 4) pad.buf += a.slice(1);
     if (pad.buf.length >= 4) { renderPad(); setTimeout(advancePad, 120); return; }

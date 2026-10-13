@@ -9,18 +9,22 @@ airports_csv, runways_csv, freqs_csv, out = sys.argv[1:5]
 KEEP_TYPES = {'small_airport', 'medium_airport', 'large_airport'}
 RWY = re.compile(r'^0*(\d{1,2})([LCR]?)$')   # "06L" -> ("6", "L"); skips H1, 18W, N, etc.
 
-idents = {}
+idents, info = {}, {}
 with open(airports_csv, newline='', encoding='utf-8') as f:
     for a in csv.DictReader(f):
         if a['iso_country'] == 'US' and a['type'] in KEEP_TYPES:
             idents[a['ident']] = a.get('icao_code') or a.get('gps_code') or a['ident']
+            info[a['ident']] = a
 
-runways = {}
+runways, paved = {}, set()
+PAVED = re.compile(r'(?i)^(asp|asph|con|conc|pem|bit|paved|ac)')
 with open(runways_csv, newline='', encoding='utf-8') as f:
     for r in csv.DictReader(f):
         ident = r['airport_ident']
         if ident not in idents or r['closed'] == '1':
             continue
+        if PAVED.match(r['surface'] or '') and r['length_ft'] and float(r['length_ft']) >= 2000:
+            paved.add(ident)
         le, he = RWY.match(r['le_ident'] or ''), RWY.match(r['he_ident'] or '')
         if not le or not he:
             continue
@@ -34,7 +38,7 @@ with open(runways_csv, newline='', encoding='utf-8') as f:
 
 # Weather broadcast for each airport: ATIS if it has one, else AWOS / ASOS.
 WX_PREF = ['ATIS', 'D-ATIS', 'AWOS', 'ASOS', 'AWOS-3', 'AWOS-3P', 'AWOS-3PT', 'AWOS-1', 'AWOS-2', 'ASOS/AWOS']
-weather = {}
+weather, has_wx = {}, set()
 with open(freqs_csv, newline='', encoding='utf-8') as f:
     for q in csv.DictReader(f):
         ident = q['airport_ident']; kind = (q['type'] or '').upper()
@@ -44,6 +48,7 @@ with open(freqs_csv, newline='', encoding='utf-8') as f:
         mhz = mhz + '0' if mhz.endswith('.') else mhz            # 123 -> 123.0, 124.075 stays
         label = 'ATIS' if 'ATIS' in kind else 'ASOS' if kind == 'ASOS' else 'AWOS'
         key = idents[ident]
+        has_wx.add(ident)
         rank = WX_PREF.index(kind)
         if key not in weather or rank < weather[key][0]:
             weather[key] = (rank, label, [mhz])
@@ -60,5 +65,12 @@ with open(out, 'w', encoding='utf-8') as f:
     # up to two frequencies, voice-band (118-137 MHz) first, VOR-broadcast ATIS after
     wx = {k: v[1] + ' ' + ' / '.join(sorted(v[2], key=lambda m: (not 118 <= float(m) < 137, float(m)))[:2]) for k, v in weather.items()}
     json.dump(wx, f, separators=(',', ':'), sort_keys=True)
+    # Positions for the "nearest airport" buttons: airports with a weather frequency, a paved
+    # runway of 2,000 ft or more, or a medium/large airport (keeps private grass strips out).
+    pos = {idents[i]: [round(float(info[i]['latitude_deg']), 3), round(float(info[i]['longitude_deg']), 3)]
+           for i in idents if idents[i] in runways and (i in paved or i in has_wx or info[i]['type'] != 'small_airport')
+           and info[i]['latitude_deg'] and info[i]['longitude_deg']}
+    f.write(';\nconst AIRPORT_POS = ')
+    json.dump(pos, f, separators=(',', ':'), sort_keys=True)
     f.write(';\n')
 print(len(runways), 'airports')
