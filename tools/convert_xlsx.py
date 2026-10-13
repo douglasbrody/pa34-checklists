@@ -123,6 +123,26 @@ replace('Before Taxi','Avionics ... Checked Start Screen & DB',['Avionics ... CH
 replace('Before Taxi','RAIM ... Check in System',['RAIM ... CHECK IN SYSTEM'])
 # Inside Cockpit: lights and pitot heat were switched on for the walk-around check; off again before the master.
 insert('Inside Cockpit','Master Switch ... OFF',['All Light Switches, Pitot Heat ... OFF'],after=False)
+# Open Door: word for word as the Avia emergency checklist.
+replace('Open Door','Airspeed ... SLOW TO 100 MPH',['Slow Airspeed ... 100 MPH'])
+replace('Open Door','Side Latch Open ... PULL ARMREST / LATCH',['Side Latch Open ... PULL ARMREST/LATCH'])
+# Single-Engine Landing: the Avia lines unchanged, plus the operating-engine set-up before them (fuel lines from
+# Avia's single-engine fuel management, landing). The gear line pulses, as in GUMPS.
+by_title['Single-Engine Landing']['lines']=[
+    'Feather inoperative engine when certain of making the field.',
+    '# Operating engine',
+    'Fuel Selector Operating Engine ... ON',
+    'Fuel Selector INOP Engine ... OFF',
+    'Electric Fuel Pump Operating Engine ... ON',
+    'Mixture Control (operating engine) ... RICH',
+    'Propeller Control (operating engine) ... FULL FORWARD',
+    'Landing Light ... ON',
+    'Seat Belts & Switches ... CHECK',
+    '# Landing',
+    '^ Gear ... DOWN',
+    'Flaps (max 25°) ... AS REQUIRED',
+    'Final Approach Speed ... MAINTAIN',
+    '-> SE GO AROUND | only if unavoidable : Single-Engine Go Around']
 # Takeoff: contact the tower first.
 tk=by_title['Takeoff']['lines']; tk.insert(0, tk.pop(tk.index('Contact Tower ... PATTERN / VFR / IFR')))
 tk.append('-> SHORT FIELD | POH 6-7 : Short-Field Takeoff')
@@ -477,7 +497,7 @@ for l in emer:
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 for title, text in MANEUVERS: add(title, 'Maneuvers', text)
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=21
+DEFAULTS_VERSION=22
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

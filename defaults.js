@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 21;
+const DEFAULTS_VERSION = 22;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -239,7 +239,7 @@ const DEFAULTS = [
   "title": "Single-Engine Landing",
   "group": "Emergency/Single Engine Operations",
   "color": "#c62828",
-  "text": "Feather inoperative engine when certain of making the field.\nGear ... DOWN\nFlaps (max 25°) ... AS REQUIRED\nFinal Approach Speed ... MAINTAIN"
+  "text": "Feather inoperative engine when certain of making the field.\n# Operating engine\nFuel Selector Operating Engine ... ON\nFuel Selector INOP Engine ... OFF\nElectric Fuel Pump Operating Engine ... ON\nMixture Control (operating engine) ... RICH\nPropeller Control (operating engine) ... FULL FORWARD\nLanding Light ... ON\nSeat Belts & Switches ... CHECK\n# Landing\n^ Gear ... DOWN\nFlaps (max 25°) ... AS REQUIRED\nFinal Approach Speed ... MAINTAIN\n-> SE GO AROUND | only if unavoidable : Single-Engine Go Around"
  },
  {
   "title": "Single-Engine Go Around",
@@ -329,7 +329,7 @@ const DEFAULTS = [
   "title": "Open Door",
   "group": "Emergency/Prop · Vacuum · Pitot · Door",
   "color": "#c62828",
-  "text": "Airspeed ... SLOW TO 100 MPH\nCabin Vents ... CLOSE\nStorm Window ... OPEN\nUpper Latch Open ... LATCH\nSide Latch Open ... PULL ARMREST / LATCH\nUpper/Side Latch Open ... UNLATCH"
+  "text": "Slow Airspeed ... 100 MPH\nCabin Vents ... CLOSE\nStorm Window ... OPEN\nUpper Latch Open ... LATCH\nSide Latch Open ... PULL ARMREST/LATCH\nUpper/Side Latch Open ... UNLATCH"
  },
  {
   "title": "Pre-Maneuver Checklist",
