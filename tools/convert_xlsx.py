@@ -312,7 +312,6 @@ POWER="""@HIDDEN
 | 13,000 | 12 | — | 17.6 | — | — | — |
 | 14,000 | 9 | — | FT | — | — | — |
 ! MP (in Hg): ±0.16" per 10°F from standard temperature — add above standard, subtract below. FT = full throttle.
-! POH 3-1: propellers without the damper (Hartzell HC-C2YK-2( )E / -2( )LE) — avoid continuous operation between 2200 and 2400 RPM. Damper models (-2CG / -2CLG): no restriction.
 -> BACK TO CRUISE | Cruise : Cruise"""
 
 SFTO="""@HIDDEN
@@ -478,7 +477,7 @@ for l in emer:
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 for title, text in MANEUVERS: add(title, 'Maneuvers', text)
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=20
+DEFAULTS_VERSION=21
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")
