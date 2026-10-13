@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 13;
+const DEFAULTS_VERSION = 14;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -77,7 +77,7 @@ const DEFAULTS = [
   "title": "Taxi",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "Taxi Area ... CLEAR\nParking Brake ... RELEASE\nThrottle Control ... ADVANCE UNTIL MOVING\nThrottle ... IDLE\nBrakes ... CHECK\nCompass ... SWINGING FREELY\nHeading Indicator & Turn Coordinator ... MOVEMENT IN PROPER DIRECTION\nArtificial Horizon ... LEVEL / NO MOVEMENT"
+  "text": "* Taxi clearance: {taxi}\nTaxi Area ... CLEAR\nParking Brake ... RELEASE\nThrottle Control ... ADVANCE UNTIL MOVING\nThrottle ... IDLE\nBrakes ... CHECK\nCompass ... SWINGING FREELY\nHeading Indicator & Turn Coordinator ... MOVEMENT IN PROPER DIRECTION\nArtificial Horizon ... LEVEL / NO MOVEMENT"
  },
  {
   "title": "Engine Run-up",

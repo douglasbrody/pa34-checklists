@@ -173,6 +173,8 @@ by_title["Engine Failure — If Altitude Permits (3,500')"]['lines'] += [
 # ATIS lines show the entered ATIS (tap to enter it): departure before taxi, arrival in the descent.
 replace('Before Taxi','ATIS ... OBTAIN',['ATIS ... {dep.sum}'])
 replace('Descent','ATIS ... OBTAIN',['ATIS ... {arr.sum}'])
+# Taxi clearance (tap to enter it with the taxi keypad) at the top of the Taxi checklist.
+by_title['Taxi']['lines'].insert(0,'* Taxi clearance: {taxi}')
 fm=by_title['Single-Engine Fuel Management']['lines']
 fm[:]=fm[:fm.index('Electric Fuel Pump Operating Engine ... ON')+1]
 
@@ -259,7 +261,7 @@ for l in emer:
     cat=EMER_CAT[l['title']]
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=13
+DEFAULTS_VERSION=14
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")
