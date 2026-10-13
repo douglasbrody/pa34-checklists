@@ -162,7 +162,7 @@
   .data-foot .foot { margin: 0; }
   .tabs { display: flex; margin: 0 0 14px; }
   .tabs > * + * { margin-left: 10px; }
-  .tab { flex: 1; min-height: 66px; border-radius: 14px; font-size: 19px; font-weight: 800; background: var(--card); border: 2px solid var(--line); line-height: 1.15; }
+  .tab { flex: 1 1 0; min-width: 0; padding: 0 2px; min-height: 66px; border-radius: 14px; font-size: 19px; font-weight: 800; background: var(--card); border: 2px solid var(--line); line-height: 1.15; }
   .tab.on { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .calc { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 12px 16px; font-size: 28px; font-weight: 850; margin: 0 0 12px; text-align: center; line-height: 1.25; }
   .calc small { display: block; font-size: 15px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
@@ -202,6 +202,10 @@
   .keys.twnum { grid-template-columns: repeat(10, minmax(0, 1fr)); margin-top: 8px; }
   .keys.twnum .key { min-height: 50px; font-size: 22px; }
   .keys.pairs { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .keys.twlist { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+  .keys.twlist .key { min-height: 54px; font-size: 22px; }
+  .apt-chip { flex: none; margin-left: 8px; min-height: 40px; padding: 0 14px; border-radius: 10px; font-size: 16px; font-weight: 800; background: var(--card); border: 2px solid var(--line); }
+  .apt-chip.on { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .keys.pairs .key { min-height: 54px; font-size: 21px; }
   .keys.sfx { grid-template-columns: repeat(4, minmax(0, 1fr)); margin-top: 10px; }
   .keys.sfx .key { min-height: 56px; font-size: 26px; }
@@ -214,6 +218,9 @@
 
   /* Phone-width screens: let the top tiles share the width instead of running off screen. */
   @media (max-width: 600px) {
+    .tabs > * + * { margin-left: 6px; }
+    .tab { font-size: 14px; min-height: 56px; }
+    .home-head .group-title { font-size: 26px !important; }
     #pad .sheet2 { padding: 10px 10px calc(10px + env(safe-area-inset-bottom)); }
     .pad-top { font-size: 18px; }
     .pad-top small { display: none; }
@@ -225,6 +232,8 @@
     .keys.twnum .key { min-height: 34px; font-size: 17px; }
     .keys.rwy36 .key { min-height: 42px; font-size: 18px; }
     .keys.pairs .key { min-height: 36px; font-size: 14px; letter-spacing: -.3px; }
+    .keys.twlist .key { min-height: 40px; font-size: 17px; }
+    .apt-chip { min-height: 34px; padding: 0 8px; font-size: 13px; margin-left: 6px; }
     .keys.sfx .key { min-height: 44px; font-size: 20px; }
     .keys.sfx .key.wide2 { font-size: 13px; }
     .taxi-modes { margin-bottom: 6px; }
@@ -292,6 +301,7 @@
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
 <script src="defaults.js"></script>
+<script src="airports-us.js"></script>
 <script>
 'use strict';
 
@@ -374,7 +384,7 @@ async function setWake(on) {
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) setWake(true); });
 
 /* ---------- Flight data: ATIS and takeoff data ---------- */
-// Entered with a big keypad and kept on this iPad. Checklist text can show a value with a
+// Fields follow the order an ATIS is read (runway in use last). Entered with a big keypad and kept on this iPad. Checklist text can show a value with a
 // token like {dep.wspd}; tapping that line opens the keypad for it.
 const FD_KEY = 'flightdata.v1';
 let fd = read(FD_KEY, {});
@@ -382,8 +392,8 @@ if (!fd || typeof fd !== 'object') fd = {};
 const saveFd = () => write(FD_KEY, fd);
 const SIDE_NAME = { dep: 'Departure', arr: 'Arrival' };
 const atisFields = side => [
+  { k: side + '.apt', label: 'Airport (e.g. KBDR)', kind: 'ident', max: 4 },
   { k: side + '.info', label: 'ATIS information', kind: 'letter' },
-  { k: side + '.rwy', label: 'Runway', kind: 'rwy' },
   { k: side + '.wdir', label: 'Wind direction', max: 3, unit: '°', extra: 'VRB' },
   { k: side + '.wspd', label: 'Wind speed', max: 2, unit: 'KT' },
   { k: side + '.gust', label: 'Gusts (Next if none)', max: 2, unit: 'KT' },
@@ -391,7 +401,8 @@ const atisFields = side => [
   { k: side + '.ceil', label: 'Ceiling (hundreds of feet)', max: 3, unit: '00 FT', extra: 'CLR' },
   { k: side + '.temp', label: 'Temperature', max: 2, unit: '°C', extra: '−' },
   { k: side + '.dew', label: 'Dew point', max: 2, unit: '°C', extra: '−' },
-  { k: side + '.alt', label: 'Altimeter', max: 4, unit: 'IN HG' }];
+  { k: side + '.alt', label: 'Altimeter', max: 4, unit: 'IN HG' },
+  { k: side + '.rwy', label: 'Runway in use', kind: 'rwy' }];
 const TOB_FIELDS = [
   { k: 'tob.len', label: 'Runway length', max: 5, unit: 'FT' },
   { k: 'tob.todist', label: 'Takeoff distance over 50 ft', max: 4, unit: 'FT' },
@@ -434,7 +445,7 @@ function components(side, headOnly) {
   return 'XW ' + rng(xw(sp), g ? xw(g) : null) + side2 + ' · ' + head;
 }
 function atisSummary(side) {
-  const parts = [fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', fd[side + '.rwy'] ? 'RWY ' + fd[side + '.rwy'] : '',
+  const parts = [fd[side + '.apt'] || '', fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', fd[side + '.rwy'] ? 'RWY ' + fd[side + '.rwy'] : '',
     windText(side), fmt(side + '.alt')].filter(Boolean);
   return parts.join(' · ');
 }
@@ -485,9 +496,64 @@ function wxLine(forced) {
   if (!has(side)) return '';
   // Runway and wind components always show in full; wind, ATIS letter and altimeter use the space left.
   const comp = components(side) || (fd[side + '.rwy'] ? 'XW —' : 'XW — enter runway');
-  const rest = [windText(side), fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', fmt(side + '.alt')].filter(Boolean);
+  const rest = [windText(side), fd[side + '.apt'] || '', fd[side + '.info'] ? 'INFO ' + fd[side + '.info'] : '', fmt(side + '.alt')].filter(Boolean);
   return `<button class="wx" data-go="#/data/${side}"><span class="wx-key"><b>${side.toUpperCase()}</b> RWY ${esc(fd[side + '.rwy'] || '—')} · <span class="wx-xw">${esc(comp)}</span></span>`
     + (rest.length ? `<span class="wx-rest">· ${esc(rest.join(' · '))}</span>` : '') + `</button>`;
+}
+
+/* ---------- Airport runways & taxiways ---------- */
+// Runways come from the built-in OurAirports file. Taxiway names are looked up on OpenStreetMap
+// when an airport is entered while online, saved for offline use, and topped up with every
+// taxiway name entered at that airport.
+const TW_KEY = 'taxiways.v1';
+let twCache = read(TW_KEY, {}) || {};
+const twLoading = {};
+function aptKey(code) {
+  const c = String(code || '').toUpperCase();
+  if (typeof AIRPORT_RUNWAYS === 'undefined' || !c) return '';
+  return AIRPORT_RUNWAYS[c] ? c : AIRPORT_RUNWAYS['K' + c] ? 'K' + c : '';
+}
+const aptRunways = key => (key && AIRPORT_RUNWAYS[key]) || [];
+const twSort = (a, b) => a.replace(/\d+/, '') === b.replace(/\d+/, '') ? (+(a.match(/\d+/) || [0])[0]) - (+(b.match(/\d+/) || [0])[0]) : a < b ? -1 : 1;
+function aptTaxiways(key) {
+  const c = twCache[key] || {};
+  return [...new Set((c.osm || []).concat(c.learned || []))].sort(twSort);
+}
+async function overpass(query) {
+  const ctl = 'AbortController' in window ? new AbortController() : null;
+  const timer = ctl && setTimeout(() => ctl.abort(), 20000);
+  try {
+    const r = await fetch('https://overpass-api.de/api/interpreter?data=' + encodeURIComponent(query), ctl ? { signal: ctl.signal } : {});
+    const j = await r.json();
+    return [...new Set(j.elements.flatMap(e => String(e.tags.ref || '').split(/[;,]/)).map(x => x.trim().toUpperCase())
+      .filter(x => /^[A-Z]{1,2}\d{0,2}$/.test(x)))];
+  } finally { if (timer) clearTimeout(timer); }
+}
+async function loadTaxiways(key, force) {
+  if (!key || twLoading[key] || (!force && twCache[key] && twCache[key].osm)) return;
+  if (navigator.onLine === false) return;
+  twLoading[key] = true; if (taxi) renderTaxi();
+  try {
+    const q = (tag, v) => `[out:json][timeout:20];area["${tag}"="${v}"]->.a;way(area.a)["aeroway"="taxiway"]["ref"];out tags;`;
+    let names = await overpass(q('icao', key));
+    if (!names.length) names = await overpass(q('faa', key.replace(/^K(?=[A-Z]{3}$)/, '')));
+    twCache[key] = Object.assign({}, twCache[key], { osm: names, t: Date.now() });
+    write(TW_KEY, twCache);
+  } catch (e) { /* offline or server busy: keep what we have */ }
+  twLoading[key] = false;
+  if (taxi) renderTaxi();
+}
+function learnTaxiways(key) {
+  if (!key) return;
+  const names = [];
+  taxiParts().forEach(p => {
+    if (p.k === 'at' || (p.k === 'hs' && !/^RWY /.test(p.v))) names.push(p.v);
+    if (p.k === 'via') p.v.forEach(v => /^RWY /.test(v) || names.push(v));
+  });
+  if (!names.length) return;
+  const c = twCache[key] || {};
+  twCache[key] = Object.assign({}, c, { learned: [...new Set((c.learned || []).concat(names))] });
+  write(TW_KEY, twCache);
 }
 
 /* ---------- Taxi clearance ---------- */
@@ -518,10 +584,12 @@ function taxiText(parts) {
 let taxi = null;   // builder state: { mode }
 function openTaxi() {
   const parts = taxiParts();
-  taxi = { mode: parts.some(p => p.k === 'rwy') ? (parts[parts.length - 1].k) : 'rwy' };
+  taxi = { mode: parts.some(p => p.k === 'rwy') ? (parts[parts.length - 1].k) : 'rwy', all: false };
+  loadTaxiways(aptKey(fd['dep.apt']));
   renderTaxi();
 }
 function closeTaxi() {
+  learnTaxiways(aptKey(fd['dep.apt']));
   taxi = null;
   const el = document.getElementById('pad'); if (el) el.remove();
   route();
@@ -531,6 +599,13 @@ function taxiInput(a) {
   const last = () => parts[parts.length - 1];
   const kind = a[0], val = a.slice(1), mode = taxi.mode;
   if (kind === 'M') { taxi.mode = val; return renderTaxi(); }
+  if (kind === 'W') {                                   // a whole taxiway name from the airport list
+    const p = last();
+    if (mode === 'at') { if (p && p.k === 'at') p.v = val; else parts.push({ k: 'at', v: val }); }
+    else if (mode === 'via') { if (p && p.k === 'via') p.v.push(val); else parts.push({ k: 'via', v: [val] }); }
+    else if (mode === 'hs') parts.push({ k: 'hs', v: val });
+    saveFd(); return renderTaxi();
+  }
   if (kind === 'N') {                                   // departure runway end (1-36)
     const r = parts.find(p => p.k === 'rwy');
     if (r) r.v = val; else parts.unshift({ k: 'rwy', v: val });
@@ -554,7 +629,7 @@ function taxiInput(a) {
     else if (p.k === 'hs' && !/^RWY /.test(p.v)) p.v += val;
     else return;
   } else if (kind === 'P') {                            // runway pair
-    const pair = pairOf(+val), p = last();
+    const pair = val.includes('/') ? val : pairOf(+val), p = last();
     if (mode === 'via') { if (p && p.k === 'via') p.v.push('RWY ' + pair); else parts.push({ k: 'via', v: ['RWY ' + pair] }); }
     else if (mode === 'cross') parts.push({ k: 'cross', v: pair });
     else if (mode === 'hs') parts.push({ k: 'hs', v: 'RWY ' + pair });
@@ -582,24 +657,37 @@ function taxiInput(a) {
 function renderTaxi() {
   const txt = taxiText(), mode = taxi.mode, parts = taxiParts();
   const key = (code, label, cls) => `<button class="key${cls ? ' ' + cls : ''}" data-taxi="${code}">${label}</button>`;
-  const letters = `<div class="keys letters">${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => key('L' + c, c)).join('')}</div>`
-    + `<div class="keys twnum">${'1234567890'.split('').map(d => key('T' + d, d)).join('')}</div>`;
-  const pairs = `<div class="keys pairs">${Array.from({ length: 18 }, (_, i) => key('P' + (i + 1), pairOf(i + 1))).join('')}</div>`;
-  const sfx = `<div class="keys sfx">${key('SL', 'L')}${key('SC', 'C')}${key('SR', 'R')}${key('back', '⌫')}</div>`;
-  const back = `<div class="keys sfx">${key('back', '⌫', 'wide')}</div>`;
   const label = t => `<div class="kp-label">${t}</div>`;
+  const apt = aptKey(fd['dep.apt']), rwys = aptRunways(apt), tws = aptTaxiways(apt);
+  const useRwys = rwys.length && !taxi.all, useTws = tws.length && !taxi.all;
+  // taxiways: this airport's names (one tap each), or letters + numbers
+  const allLetters = `<div class="keys letters">${'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => key('L' + c, c)).join('')}</div>`
+    + `<div class="keys twnum">${'1234567890'.split('').map(d => key('T' + d, d)).join('')}</div>`;
+  const letters = useTws ? `<div class="keys twlist">${tws.map(n => key('W' + n, n)).join('')}</div>` : allLetters;
+  // runways: this airport's pairs / ends, or every pair / 1-36
+  const pairs = useRwys ? `<div class="keys pairs">${rwys.map(p => key('P' + p, p)).join('')}</div>`
+    : `<div class="keys pairs">${Array.from({ length: 18 }, (_, i) => key('P' + (i + 1), pairOf(i + 1))).join('')}</div>`;
+  const ends = useRwys ? [].concat(...rwys.map(p => p.split('/'))).sort((a, b) => parseInt(a, 10) - parseInt(b, 10)) : null;
+  const sfx = useRwys ? `<div class="keys sfx">${key('back', '⌫', 'wide')}</div>`
+    : `<div class="keys sfx">${key('SL', 'L')}${key('SC', 'C')}${key('SR', 'R')}${key('back', '⌫')}</div>`;
+  const back = `<div class="keys sfx">${key('back', '⌫', 'wide')}</div>`;
   const dep = parts.find(p => p.k === 'rwy');
+  const twNote = apt && !tws.length ? (twLoading[apt] ? ' — loading names…' : ' — no names on file, tap letters') : '';
   let pad;
-  if (mode === 'rwy') pad = label('Departure runway') + `<div class="keys rwy36">${Array.from({ length: 36 }, (_, i) => key('N' + (i + 1), i + 1)).join('')}</div>` + sfx;
-  else if (mode === 'at') pad = label('Intersection taxiway (letter, then number if any)') + letters + back;
-  else if (mode === 'via') pad = label('Taxiways (letter, then number if any)') + letters + label('Taxi along a runway') + pairs + sfx;
+  if (mode === 'rwy') pad = label('Departure runway') + (ends
+    ? `<div class="keys pairs">${ends.map(e => key('N' + e, e)).join('')}</div>`
+    : `<div class="keys rwy36">${Array.from({ length: 36 }, (_, i) => key('N' + (i + 1), i + 1)).join('')}</div>`) + sfx;
+  else if (mode === 'at') pad = label('Intersection taxiway' + twNote) + letters + back;
+  else if (mode === 'via') pad = label('Taxiways' + twNote) + letters + label('Taxi along a runway') + pairs + sfx;
   else if (mode === 'cross') pad = label('Runway to cross') + pairs + sfx;
-  else pad = label('Hold short of a taxiway') + letters + label('…or a runway') + pairs
-    + `<div class="keys sfx">${dep ? key('D', 'RWY ' + esc(dep.v), 'wide2') : '<span></span><span></span>'}${key('SL', 'L')}${key('SR', 'R')}${key('back', '⌫')}</div>`;
+  else pad = label('Hold short of a taxiway' + twNote) + letters + label('…or a runway') + pairs
+    + `<div class="keys sfx">${dep ? key('D', 'RWY ' + esc(dep.v), 'wide2') : '<span></span>'}${useRwys ? '<span></span><span></span>' : key('SL', 'L') + key('SR', 'R')}${key('back', '⌫')}</div>`;
+  const aptBtn = `<button class="apt-chip" data-taxi="apt">${apt ? esc(apt) : (fd['dep.apt'] ? esc(fd['dep.apt']) + ' ?' : 'Set airport')}</button>`;
+  const allBtn = apt && (rwys.length || tws.length) ? `<button class="apt-chip${taxi.all ? ' on' : ''}" data-taxi="all">${taxi.all ? 'This airport only' : 'All letters / runways'}</button>` : '';
   let el = document.getElementById('pad');
   if (!el) { el = document.createElement('div'); el.id = 'pad'; document.body.appendChild(el); }
   el.innerHTML = `<div class="sheet2">
-    <div class="pad-top"><span>Taxi clearance</span><small>pick the instruction, then tap its parts</small></div>
+    <div class="pad-top"><span>Taxi clearance</span>${aptBtn}${allBtn}</div>
     <div class="taxi-read">${txt ? esc(txt) : '<span class="was">e.g. RWY 24 at A3 · via A, B · cross RWY 11/29 · hold short RWY 24</span>'}</div>
     <div class="taxi-modes">${TAXI_MODES.map(([k, l]) => `<button class="key${mode === k ? ' on' : ''}" data-taxi="M${k}">${l}</button>`).join('')}</div>
     ${pad}
@@ -613,6 +701,11 @@ document.addEventListener('click', e => {
   const a = b.dataset.taxi;
   if (a === 'done') return closeTaxi();
   if (a === 'clear') { delete fd.taxi; saveFd(); taxi.mode = 'rwy'; return renderTaxi(); }
+  if (a === 'all') { taxi.all = !taxi.all; return renderTaxi(); }
+  if (a === 'apt') {                     // set the airport, then come back to the taxi keypad
+    const keep = taxi.mode; taxi = null;
+    return openPad(['dep.apt'], 0, () => { openTaxi(); taxi.mode = keep; renderTaxi(); });
+  }
   taxiInput(a);
 });
 
@@ -631,19 +724,22 @@ function footer(wx, inEmergency) {
 
 /* ---------- Keypad ---------- */
 let pad = null;   // { keys, i, buf }
-function openPad(keys, start) {
+function openPad(keys, start, after) {
   if (!keys.length) return;
-  pad = { keys, i: start || 0, buf: '' };
+  pad = { keys, i: start || 0, buf: '', after };
   renderPad();
 }
 function closePad() {
+  const after = pad && pad.after;
   pad = null;
+  if (after) { const el = document.getElementById('pad'); if (el) el.remove(); return after(); }
   const el = document.getElementById('pad'); if (el) el.remove();
   route();
 }
 function commitPad() {
   if (!pad || pad.buf === '') return true;
   const k = pad.keys[pad.i], f = FIELD[k], b = pad.buf;
+  if (f.kind === 'ident') { fd[k] = b; saveFd(); if (k === 'dep.apt') loadTaxiways(aptKey(b)); return true; }
   const bad = (f.k.endsWith('.wdir') && b !== 'VRB' && +b > 360) || (f.kind === 'rwy' && !(parseInt(b, 10) >= 1 && parseInt(b, 10) <= 36))
     || (f.k.endsWith('.alt') && b.length !== 4);
   if (bad) { const v = document.querySelector('.pad-val'); v.classList.remove('shake'); void v.offsetWidth; v.classList.add('shake'); return false; }
@@ -663,6 +759,11 @@ function renderPad() {
   const group = side === 'tob' ? 'Takeoff data' : SIDE_NAME[side] + ' ATIS';
   let keys;
   if (f.kind === 'letter') keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => `<button class="key" data-pad="L${c}">${c}</button>`).join('') + `<button class="key" data-pad="back">⌫</button>`;
+  else if (f.kind === 'ident') keys = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.split('').map(c => `<button class="key" data-pad="I${c}">${c}</button>`).join('') + `<button class="key" data-pad="back">⌫</button>`;
+  else if (f.kind === 'rwy' && aptRunways(aptKey(fd[side + '.apt'])).length) {
+    const ends = [].concat(...aptRunways(aptKey(fd[side + '.apt'])).map(p => p.split('/'))).sort((a, b) => parseInt(a, 10) - parseInt(b, 10));
+    keys = ends.map(e => `<button class="key" data-pad="E${e}">${e}</button>`).join('') + `<button class="key" data-pad="back">⌫</button>`;
+  }
   else {
     const extra = f.kind === 'rwy' ? ['L', 'C', 'R'] : f.extra ? [f.extra] : [];
     const digits = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
@@ -679,7 +780,7 @@ function renderPad() {
   el.innerHTML = `<div class="sheet2">
     <div class="pad-top"><span>${esc(f.label)}</span><small>${esc(group)} · ${pad.i + 1} of ${pad.keys.length}</small></div>
     <div class="pad-val">${shown}${f.unit && f.kind !== 'letter' && !(pad.buf === '' && fmt(k).includes('°')) ? `<span class="unit">${esc(f.unit)}</span>` : ''}</div>
-    <div class="keys${f.kind === 'letter' ? ' letters' : ''}">${keys}</div>
+    <div class="keys${f.kind === 'letter' || f.kind === 'ident' ? ' letters' : ''}">${keys}</div>
     <div class="pad-act"><button data-pad="done">Done</button><button class="go" data-pad="next">${last ? 'Save' : 'Next →'}</button></div>
   </div>`;
 }
@@ -696,6 +797,12 @@ document.addEventListener('click', e => {
     return renderPad();
   }
   if (a[0] === 'L') { pad.buf = a.slice(1); return advancePad(); }        // ATIS letter
+  if (a[0] === 'E') { pad.buf = a.slice(1); return advancePad(); }        // runway end from the airport's list
+  if (a[0] === 'I') {                                                      // airport identifier
+    if (pad.buf.length < 4) pad.buf += a.slice(1);
+    if (pad.buf.length >= 4) { renderPad(); setTimeout(advancePad, 120); return; }
+    return renderPad();
+  }
   if (a[0] === 'X') {
     const x = a.slice(1);
     if (x === '−') { pad.buf = pad.buf.startsWith('-') ? pad.buf.slice(1) : '-' + pad.buf; return renderPad(); }
