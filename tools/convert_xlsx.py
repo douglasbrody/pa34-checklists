@@ -121,6 +121,8 @@ replace('Before Taxi','Heading Indicator ... SET TO COMPASS',['Heading Indicator
 replace('Before Taxi','Altimeter ... SET TO ATIS or APT. ELEV.',['Altimeter ... SET TO ATIS ({dep.alt})','Altitude ... BUG','Heading ... BUG'])
 replace('Before Taxi','Avionics ... Checked Start Screen & DB',['Avionics ... CHECK START SCREEN & DATABASE'])
 replace('Before Taxi','RAIM ... Check in System',['RAIM ... CHECK IN SYSTEM'])
+# Inside Cockpit: lights and pitot heat were switched on for the walk-around check; off again before the master.
+insert('Inside Cockpit','Master Switch ... OFF',['All Light Switches, Pitot Heat ... OFF'],after=False)
 # Takeoff: contact the tower first.
 tk=by_title['Takeoff']['lines']; tk.insert(0, tk.pop(tk.index('Contact Tower ... PATTERN / VFR / IFR')))
 tk.append('-> SHORT FIELD | POH 6-7 : Short-Field Takeoff')
@@ -309,7 +311,8 @@ POWER="""@HIDDEN
 | 12,000 | 16 | — | 17.8 | — | — | — |
 | 13,000 | 12 | — | 17.6 | — | — | — |
 | 14,000 | 9 | — | FT | — | — | — |
-! Manifold pressure (in Hg): ±0.16" per 10°F from standard — add above standard, subtract below. FT = full throttle. Avoid continuous 2200–2400 RPM.
+! MP (in Hg): ±0.16" per 10°F from standard temperature — add above standard, subtract below. FT = full throttle.
+! POH 3-1: propellers without the damper (Hartzell HC-C2YK-2( )E / -2( )LE) — avoid continuous operation between 2200 and 2400 RPM. Damper models (-2CG / -2CLG): no restriction.
 -> BACK TO CRUISE | Cruise : Cruise"""
 
 SFTO="""@HIDDEN
@@ -475,7 +478,7 @@ for l in emer:
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 for title, text in MANEUVERS: add(title, 'Maneuvers', text)
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=19
+DEFAULTS_VERSION=20
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

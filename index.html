@@ -136,11 +136,14 @@
     margin: .2em 0 .35em; padding: .35em .5em; border-radius: .3em; background: var(--warn-bg); color: var(--warn-fg);
     font-size: .8em; font-weight: 700; break-inside: avoid;
   }
-  .tbl { width: 100%; border-collapse: collapse; break-inside: avoid; margin: .2em 0 .4em; }
-  .tbl th, .tbl td { padding: .25em .35em; text-align: center; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .tbl { width: 100%; border-collapse: collapse; break-inside: avoid; margin: .2em 0 .4em; table-layout: fixed; }
+  .tbl th, .tbl td { padding: .15em .35em; text-align: center; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .tbl td { padding: calc(var(--rp, .22em) * .7) .35em; }   /* spare height becomes row spacing, as in checklists */
   .tbl th { font-size: .72em; font-weight: 850; color: var(--muted); text-transform: uppercase; line-height: 1.15; white-space: normal; }
   .tbl td { font-weight: 750; }
   .tbl td:first-child { font-weight: 850; text-align: left; }
+  .sheet:not(.two) .tbl + .tbl { margin-top: -.4em; }
+  .sheet:not(.two) .tbl + .tbl tr:first-child { display: none; }
   .tbl tr:nth-child(even) td { background: var(--card); }
   .choices { flex: none; display: flex; padding: 0 16px 16px; }
   .choices > * + * { margin-left: 14px; }
@@ -526,7 +529,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 36;
+const APP_VERSION = 37;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -553,7 +556,7 @@ function freshDefaults() {
 // Checklist content updates: a device whose checklists match a published default set (i.e. were
 // never edited) picks up new defaults automatically. Edited checklists are never overwritten.
 const VER_KEY = 'defaults.version', DSIG_KEY = 'defaults.sig', IDMAP_KEY = 'idmap.v1';
-const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9'];
+const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05'];
 const isPristine = ls => { const s = sig(ls); return s === read(DSIG_KEY, '') || KNOWN_SIGS.includes(s); };
 let lists = read(KEY, null);
 function applyDefaults() {
@@ -2013,7 +2016,8 @@ function renderList(id) {
     if (b.type === 'section') return `<div class="sec">${esc(b.text)}</div>`;
     if (b.type === 'note') return `<div class="note">⚠︎ ${nob(b.text)}</div>`;
     if (b.type === 'table') {
-      const tbl = rows => `<table class="tbl">${rows.map((r, i) => `<tr>${r.map(c => i === 0 ? `<th>${esc(c)}</th>` : `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table>`;
+      const cols = `<colgroup><col style="width:${b.rows[0].length > 4 ? 19 : 30}%">${'<col>'.repeat(Math.max(0, b.rows[0].length - 1))}</colgroup>`;   // same widths in both halves
+      const tbl = rows => `<table class="tbl">${cols}${rows.map((r, i) => `<tr>${r.map(c => i === 0 ? `<th>${esc(c)}</th>` : `<td>${esc(c)}</td>`).join('')}</tr>`).join('')}</table>`;
       const body = b.rows.slice(1), half = Math.ceil(body.length / 2);
       return body.length > 10 ? tbl([b.rows[0]].concat(body.slice(0, half))) + tbl([b.rows[0]].concat(body.slice(half))) : tbl(b.rows);
     }
@@ -2070,9 +2074,9 @@ function layoutList() {
   const H = fit.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   const W = fit.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
   if (!(H > 0 && W > 0)) return;
-  const rowEls = [...sheet.querySelectorAll('.row')], items = rowEls.filter(r => !r.classList.contains('text'));
+  const rowEls = [...sheet.querySelectorAll('.row')], items = rowEls.filter(r => !r.classList.contains('text')), tables = [...sheet.querySelectorAll('.tbl')];
   const set = (cols, px, wrap, pad) => {
-    sheet.style.columnCount = cols; sheet.style.fontSize = px + 'px';
+    sheet.style.columnCount = cols; sheet.style.fontSize = px + 'px'; sheet.classList.toggle('two', cols > 1);
     sheet.style.maxWidth = cols > 1 ? 'none' : Math.min(W, 1000) + 'px';   // one column: no metre-long dot leaders
     sheet.style.setProperty('--rp', pad + 'em'); sheet.classList.toggle('wrapr', !!wrap);
   };
@@ -2080,6 +2084,11 @@ function layoutList() {
   const fits = (cols, px, wrap, pad) => {
     set(cols, px, wrap, pad === undefined ? PAD : pad);
     if (sheet.scrollHeight > H + 1 || sheet.scrollWidth > W + 1) return false;
+    if (tables.length) {
+      const cs = getComputedStyle(sheet), colW = (sheet.clientWidth - (cols - 1) * (parseFloat(cs.columnGap) || 0)) / cols;
+      if (tables.some(t => t.getBoundingClientRect().width > colW + 1)) return false;
+      if (tables.some(t => [...t.querySelectorAll('td, th')].some(c => c.scrollWidth > c.clientWidth + 1))) return false;   // a number wider than its cell
+    }
     if (wrap && allowWrapped !== Infinity && items.filter(r => [...r.children].some(x => x.offsetHeight > px * 1.95)).length > allowWrapped) return false;
     const padR = rowEls.length ? parseFloat(getComputedStyle(rowEls[0]).paddingRight) : 0;
     return !rowEls.some(r => r.lastElementChild.getBoundingClientRect().right > r.getBoundingClientRect().right - padR + 0.5);

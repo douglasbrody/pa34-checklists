@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 19;
+const DEFAULTS_VERSION = 20;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -11,7 +11,7 @@ const DEFAULTS = [
   "title": "Inside Cockpit",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "Alternate Static Source ... CLOSED\nParking Brake ... SET\nAvionics Master Switch ... OFF\nElectrical Switches ... OFF\nLanding Gear Handle ... DOWN\nMixture Controls ... IDLE/CUTOFF\nIgnition Switches ... OFF\nCowl Flaps ... OPEN\nTrim Indicators ... NEUTRAL\nFuel Selectors ... ON\nMaster Switch ... ON\nLanding Gear Lights ... 3 GREEN\nFlaps ... DOWN\nFuel Quantity ... ADEQUATE + RESERVE\nAll Light Switches, Pitot Heat ... ON\nStrobe, Nav, Landing, Beacon Lights ... CHECK\nPitot Heat ... WARM\nOutboard Stall Detector (0°–10° flaps) ... HORN SOUNDS\nInboard Stall Detector (25°–40° flaps) ... HORN SOUNDS\nMaster Switch ... OFF\nCross Feeds ... DRAINED"
+  "text": "Alternate Static Source ... CLOSED\nParking Brake ... SET\nAvionics Master Switch ... OFF\nElectrical Switches ... OFF\nLanding Gear Handle ... DOWN\nMixture Controls ... IDLE/CUTOFF\nIgnition Switches ... OFF\nCowl Flaps ... OPEN\nTrim Indicators ... NEUTRAL\nFuel Selectors ... ON\nMaster Switch ... ON\nLanding Gear Lights ... 3 GREEN\nFlaps ... DOWN\nFuel Quantity ... ADEQUATE + RESERVE\nAll Light Switches, Pitot Heat ... ON\nStrobe, Nav, Landing, Beacon Lights ... CHECK\nPitot Heat ... WARM\nOutboard Stall Detector (0°–10° flaps) ... HORN SOUNDS\nInboard Stall Detector (25°–40° flaps) ... HORN SOUNDS\nAll Light Switches, Pitot Heat ... OFF\nMaster Switch ... OFF\nCross Feeds ... DRAINED"
  },
  {
   "title": "Right Wing",
@@ -143,7 +143,7 @@ const DEFAULTS = [
   "title": "Cruise Power Settings",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "@HIDDEN\n| Press. alt | Std °F | 55% 2100 | 55% 2400 | 65% 2100 | 65% 2400 | 75% 2400 |\n| SL | 59 | 22.9 | 20.4 | 25.9 | 22.9 | 25.5 |\n| 1,000 | 55 | 22.7 | 20.2 | 25.6 | 22.7 | 25.2 |\n| 2,000 | 52 | 22.4 | 20.0 | 25.4 | 22.5 | 25.0 |\n| 3,000 | 48 | 22.2 | 19.8 | 25.1 | 22.2 | 24.7 |\n| 4,000 | 45 | 21.9 | 19.5 | 24.8 | 22.0 | 24.4 |\n| 5,000 | 41 | 21.7 | 19.3 | FT | 21.7 | FT |\n| 6,000 | 38 | 21.4 | 19.1 | — | 21.5 | — |\n| 7,000 | 34 | 21.2 | 18.9 | — | 21.3 | — |\n| 8,000 | 31 | 21.0 | 18.7 | — | 21.0 | — |\n| 9,000 | 27 | FT | 18.5 | — | FT | — |\n| 10,000 | 23 | — | 18.3 | — | — | — |\n| 11,000 | 19 | — | 18.1 | — | — | — |\n| 12,000 | 16 | — | 17.8 | — | — | — |\n| 13,000 | 12 | — | 17.6 | — | — | — |\n| 14,000 | 9 | — | FT | — | — | — |\n! Manifold pressure (in Hg): ±0.16\" per 10°F from standard — add above standard, subtract below. FT = full throttle. Avoid continuous 2200–2400 RPM.\n-> BACK TO CRUISE | Cruise : Cruise"
+  "text": "@HIDDEN\n| Press. alt | Std °F | 55% 2100 | 55% 2400 | 65% 2100 | 65% 2400 | 75% 2400 |\n| SL | 59 | 22.9 | 20.4 | 25.9 | 22.9 | 25.5 |\n| 1,000 | 55 | 22.7 | 20.2 | 25.6 | 22.7 | 25.2 |\n| 2,000 | 52 | 22.4 | 20.0 | 25.4 | 22.5 | 25.0 |\n| 3,000 | 48 | 22.2 | 19.8 | 25.1 | 22.2 | 24.7 |\n| 4,000 | 45 | 21.9 | 19.5 | 24.8 | 22.0 | 24.4 |\n| 5,000 | 41 | 21.7 | 19.3 | FT | 21.7 | FT |\n| 6,000 | 38 | 21.4 | 19.1 | — | 21.5 | — |\n| 7,000 | 34 | 21.2 | 18.9 | — | 21.3 | — |\n| 8,000 | 31 | 21.0 | 18.7 | — | 21.0 | — |\n| 9,000 | 27 | FT | 18.5 | — | FT | — |\n| 10,000 | 23 | — | 18.3 | — | — | — |\n| 11,000 | 19 | — | 18.1 | — | — | — |\n| 12,000 | 16 | — | 17.8 | — | — | — |\n| 13,000 | 12 | — | 17.6 | — | — | — |\n| 14,000 | 9 | — | FT | — | — | — |\n! MP (in Hg): ±0.16\" per 10°F from standard temperature — add above standard, subtract below. FT = full throttle.\n! POH 3-1: propellers without the damper (Hartzell HC-C2YK-2( )E / -2( )LE) — avoid continuous operation between 2200 and 2400 RPM. Damper models (-2CG / -2CLG): no restriction.\n-> BACK TO CRUISE | Cruise : Cruise"
  },
  {
   "title": "Descent",
