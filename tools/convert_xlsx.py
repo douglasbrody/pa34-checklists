@@ -264,10 +264,10 @@ Questions? ... BEFORE WE START ENGINES"""
 CREW="""# Today
 Runway available ... {tora}
 Wind (head / cross) ... {dep.hw}
-Takeoff distance over 50 ft ... {tob.todist} FT
-Accelerate-stop distance ... {tob.asd} FT
-Single-engine rate of climb ... {tob.seroc} FPM
-Single-engine service ceiling ... {tob.secl} FT
+Takeoff distance over 50 ft ... {tob.todist}
+Accelerate-stop distance ... {tob.asd}
+Single-engine rate of climb ... {tob.seroc}
+Single-engine service ceiling ... {secl}
 # Speeds (MPH CAS)
 Vr (short: 80 flaps 0° · 70 flaps 25°) ... 80–85
 Vx / Vy ... 90 / 105
@@ -498,7 +498,7 @@ for l in emer:
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 for title, text in MANEUVERS: add(title, 'Maneuvers', text)
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=24
+DEFAULTS_VERSION=25
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

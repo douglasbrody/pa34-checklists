@@ -216,6 +216,71 @@
   .dsec-head .small-btn { margin-left: 10px; }
   .field .val small { white-space: nowrap; }
   .small-btn.go { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+  .pmeta { color: var(--muted); font-size: 15px; font-weight: 600; margin: 4px 0 10px; line-height: 1.4; }
+  .pmeta b { color: var(--fg); }
+  .ok { color: #138a4a; }
+  [data-theme="red"] .ok { color: var(--fg); }
+  .link { display: inline-block; vertical-align: middle; color: var(--next); font-weight: 800; text-decoration: underline; padding: 0 6px; min-height: 44px; min-width: 44px; line-height: 44px; }
+  .prow { display: flex; align-items: center; padding: 10px 12px; margin: 0 0 8px; background: var(--card); border: 2px solid var(--line); border-radius: 14px; }
+  .prow > * + * { margin-left: 10px; }
+  .plab { flex: 1 1 auto; min-width: 0; font-weight: 750; font-size: 18px; }
+  .pnote { display: block; color: var(--muted); font-size: 14px; font-weight: 600; margin-top: 2px; }
+  .pval { flex: none; text-align: right; font-size: 26px; font-weight: 850; color: var(--tok); }
+  .pval small { display: block; font-size: 14px; font-weight: 700; color: var(--muted); }
+  .pval small.ok, .pval small .ok { color: #138a4a; } .pval small .warn { color: var(--warnc); }
+  [data-theme="red"] .pval small.ok, [data-theme="red"] .pval small .ok, [data-theme="red"] .pmeta.ok { color: var(--fg); }
+  [data-theme="red"] .seg button.on, [data-theme="red"] .key.on { background: #ff3b2b; color: #000; }
+  .field span .why { font-size: 18px; font-weight: 800; }
+  .field span.val.warn { color: var(--warnc); }
+  .fit.scroll { overflow-x: hidden; }
+  .seg { display: flex; flex: none; }
+  .seg button { min-height: 50px; min-width: 50px; padding: 0 14px; border: 2px solid var(--line); background: var(--bg); font-weight: 800; font-size: 16px; }
+  .seg button:first-child { border-radius: 12px 0 0 12px; } .seg button:last-child { border-radius: 0 12px 12px 0; margin-left: -2px; }
+  .seg button.on { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+  .wbt { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 16px; }
+  .wbt th { text-align: right; color: var(--muted); font-size: 13px; text-transform: uppercase; padding: 6px 8px; }
+  .wbt td { text-align: right; padding: 6px 8px; border-top: 1px solid var(--line); font-weight: 650; }
+  .wbt th:first-child, .wbt td:first-child { text-align: left; }
+  .wbt tr.tot td { font-weight: 850; background: var(--card); }
+  .flags { list-style: none; padding: 0; margin: 0 0 10px; }
+  .flags li { padding: 7px 10px; margin: 0 0 6px; border-radius: 10px; font-weight: 750; font-size: 16px; background: var(--card); }
+  .flags li.good { color: #138a4a; } .flags li.bad { color: #fff; background: #c62828; }
+  [data-theme="red"] .flags li.good { color: var(--fg); } [data-theme="red"] .flags li.bad { background: #3a0000; color: var(--fg); border: 2px solid #8a1a14; }
+  .cg-plot { width: 100%; height: auto; display: block; background: var(--card); border: 2px solid var(--line); border-radius: 14px; margin-bottom: 8px; }
+  .cg-grid { stroke: var(--line); stroke-width: 1; } .cg-tick { fill: var(--muted); font-size: 17px; font-weight: 650; }
+  .cg-env { fill: rgba(19, 138, 74, .14); stroke: #138a4a; stroke-width: 2.5; } .cg-mlw { stroke: #b45309; stroke-width: 2; stroke-dasharray: 6 5; }
+  [data-theme="red"] .cg-env { fill: rgba(255, 80, 60, .1); stroke: var(--fg); } [data-theme="red"] .cg-mlw { stroke: var(--fg); }
+  .cg-burn { stroke: var(--tok); stroke-width: 2.5; } .cg-pt { fill: var(--tok); } .cg-lab { fill: var(--fg); font-size: 17px; font-weight: 850; }
+  .arrd summary { cursor: pointer; font-weight: 750; color: var(--next); padding: 12px 0 14px; min-height: 44px; }
+  .chartbox { position: relative; background: #fff; border: 2px solid var(--line); border-radius: 12px; overflow: hidden; margin-bottom: 10px; }
+  .chartbox img { display: block; width: 100%; height: auto; filter: var(--tile-filter); }
+  /* night: the white scan inverted to light lines on black; red: dim red lines on black, the reading in bright red */
+  [data-theme="night"] .chartbox, [data-theme="red"] .chartbox { background: #000; }
+  [data-theme="night"] .chartbox img { filter: invert(.9) hue-rotate(180deg); }
+  [data-theme="red"] .chartbox img { filter: invert(1) brightness(.6); }
+  .chartin { position: relative; }
+  [data-theme="red"] .chartbox:not(.clean) .chartin::after { content: ''; position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: #ff0000; mix-blend-mode: multiply; pointer-events: none; z-index: 1; }
+  [data-theme="red"] .chartbox .pc-svg { z-index: 2; }
+  [data-theme="red"] .pc-svg .pc-path, [data-theme="red"] .pc-svg .pc-input, [data-theme="red"] .pc-svg .pc-ceil { stroke: #ff3b2b !important; }
+  [data-theme="red"] .pc-svg .pc-dot, [data-theme="red"] .pc-svg .pc-label { fill: #ff3b2b !important; }
+  .pad-err { color: var(--warnc); font-weight: 800; font-size: 17px; margin-top: 4px; }
+  .chartbox.clean { background: var(--card); padding: 4px 2px; }
+
+  .chartbox .pc-clean { display: block; width: 100%; height: auto; }
+  [data-theme="night"] .pc-svg .pc-path, [data-theme="night"] .pc-svg .pc-input, [data-theme="night"] .pc-svg .pc-ceil,
+  [data-theme="night"] .pc-clean .pc-path, [data-theme="night"] .pc-clean .pc-input, [data-theme="night"] .pc-clean .pc-ceil { stroke: #ff5a4f !important; }
+  [data-theme="night"] .pc-dot, [data-theme="night"] .pc-tag rect { fill: #e0352b !important; }
+  [data-theme="night"] .pc-mid rect { fill: #000 !important; stroke: #ff5a4f !important; } [data-theme="night"] .pc-mid text { fill: #ff8a80 !important; }
+  [data-theme="red"] .pc-clean .pc-path, [data-theme="red"] .pc-clean .pc-input, [data-theme="red"] .pc-clean .pc-ceil { stroke: #ff3b2b !important; }
+  [data-theme="red"] .pc-clean .pc-curve, [data-theme="red"] .pc-clean .pc-frame, [data-theme="red"] .pc-clean .pc-guide { stroke: #9a2a20 !important; }
+  [data-theme="red"] .pc-clean .pc-grid { stroke: #3a0d08 !important; }
+  [data-theme="red"] .pc-tag rect { fill: #ff3b2b !important; } [data-theme="red"] .pc-tag text { fill: #000 !important; }
+  [data-theme="red"] .pc-mid rect { fill: #000 !important; stroke: #ff3b2b !important; } [data-theme="red"] .pc-mid text { fill: #ff3b2b !important; }
+  [data-theme="red"] .pc-dot { fill: #ff3b2b !important; }
+  [data-theme="red"] .pc-ceiltag rect, [data-theme="night"] .pc-ceiltag rect { fill: #000 !important; stroke: #ff5a4f; stroke-width: 3px; }
+  [data-theme="red"] .pc-ceiltag text, [data-theme="night"] .pc-ceiltag text { fill: #ff6a5e !important; }
+  .chartbox .pc-svg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; pointer-events: none; }
+  .chartbox { isolation: isolate; z-index: 0; }   /* its layers stay below the EMERGENCY bar */
   .calc { background: var(--card); border: 2px solid var(--line); border-radius: 16px; padding: 12px 16px; font-size: 28px; font-weight: 850; margin: 0 0 12px; text-align: center; line-height: 1.25; }
   .calc small { display: block; font-size: 15px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .5px; }
   .fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-gap: 10px; }
@@ -257,6 +322,9 @@
   .key.on { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .key.big { grid-column: 1 / -1; min-height: 84px; font-size: 40px; background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .key.span2 { grid-column: span 2; }
+  .keys.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .key.ref { font-size: 18px; min-height: 52px; }
+  .pad-note { text-align: center; font-size: 17px; font-weight: 750; color: var(--muted); margin-top: 2px; }
   .key:active, .pad-act button:active { transform: scale(.96); }
   .keys + .keys { margin-top: 10px; }
   .pad-act { flex: none; display: flex; margin-top: 10px; }
@@ -290,6 +358,12 @@
     .dsec-head h2 { flex: 1 0 100%; margin-bottom: 8px; font-size: 21px; }
     .dsec-head .small-btn { margin: 0 10px 0 0; }
     .key.big.same { font-size: 20px; }
+    .prow { flex-wrap: wrap; } .prow .pval { margin-left: auto; flex: 0 1 auto; max-width: 100%; } .pval small { white-space: normal; }
+    .cg-tick, .cg-lab { font-size: 24px; }
+    .chartbox { overflow-x: auto; -webkit-overflow-scrolling: touch; } .chartin { min-width: 660px; }
+    .pval { font-size: 22px; }
+    .seg button { padding: 0 10px; font-size: 14px; }
+    .wbt { font-size: 14px; }
     #pad .sheet2 { padding: 10px calc(10px + env(safe-area-inset-right)) calc(10px + env(safe-area-inset-bottom)) calc(10px + env(safe-area-inset-left)); }
     .pad-label { font-size: 26px; }
     .pad-step { font-size: 13px; }
@@ -423,12 +497,14 @@
 <input type="file" id="importFile" accept=".json,application/json" hidden>
 
 <script src="defaults.js"></script>
+<script src="perf.js"></script>
+<script src="charts.js"></script>
 <script>
 'use strict';
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 41;
+const APP_VERSION = 42;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -455,7 +531,7 @@ function freshDefaults() {
 // Checklist content updates: a device whose checklists match a published default set (i.e. were
 // never edited) picks up new defaults automatically. Edited checklists are never overwritten.
 const VER_KEY = 'defaults.version', DSIG_KEY = 'defaults.sig', IDMAP_KEY = 'idmap.v1';
-const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd'];
+const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4'];
 const isPristine = ls => { const s = sig(ls); return s === read(DSIG_KEY, '') || KNOWN_SIGS.includes(s); };
 let lists = read(KEY, null);
 function applyDefaults() {
@@ -472,7 +548,8 @@ if (!Array.isArray(lists) || (read(VER_KEY, 1) !== DEFAULTS_VERSION && isPristin
 (function cleanLists() {
   let ch = false;
   lists.forEach(l => {
-    const t = String(l.text || '').split('\n').filter(x => !/\{taxi\}/.test(x)).join('\n').replace(/\s*\(\{dep\.alt\}\)/g, '').replace(/\{(dep|arr)\.alt\}/g, '');
+    const t = String(l.text || '').split('\n').filter(x => !/\{taxi\}/.test(x)).join('\n').replace(/\s*\(\{dep\.alt\}\)/g, '').replace(/\{(dep|arr)\.alt\}/g, '')
+      ;   // (a unit written after {tob.todist} / {tob.asd} / {tob.seroc} / {tob.secl} is dropped when shown: fillTokens)
     if (t !== l.text) { l.text = t; ch = true; }
   });
   if (ch) saveLists();
@@ -586,7 +663,7 @@ if (fd._t && Date.now() - fd._t > STALE_MS) fd = {};   // last flight's data is 
   ['dep', 'arr'].forEach(sd => {
     if (keep[sd] && fd[sd + '.rwy'] !== keep[sd]) { fd[sd + '.rwy'] = keep[sd]; changed = true; }
     Object.keys(fd).forEach(k => {
-      if (k.startsWith(sd + '.') && !/\.(wdir|wspd|gust|rwy|_t)$/.test(k)) { delete fd[k]; changed = true; }
+      if (k.startsWith(sd + '.') && !/\.(wdir|wspd|gust|rwy|wref|_t)$/.test(k)) { delete fd[k]; changed = true; }
     });
   });
   ['taxi', 'taxiApt'].forEach(k => { if (k in fd) { delete fd[k]; changed = true; } });
@@ -618,12 +695,15 @@ windFields('dep').concat(windFields('arr'), TOB_FIELDS, timeFields('out'), timeF
 
 // Store a value and apply the knock-on rules (new wind = no old gust...).
 function setField(k, v) {
+  if (k.indexOf('cfg.') === 0) { planCfg[k.slice(4)] = +v; planCfg.src = ''; write(PLAN_CFG_KEY, planCfg); return; }
   const [side, f] = k.split('.'), now = Date.now(), old = fd[k];
   if ((f === 'wspd' || f === 'wdir') && v !== old) delete fd[side + '.gust'];
   // a new start time at or past the recorded shutdown time means those shutdown times were from the last flight
   if (side === 'out' && fd['in.' + f] !== undefined && +v >= +fd['in.' + f]) Object.keys(fd).forEach(x => { if (x.startsWith('in.')) delete fd[x]; });
   fd[k] = v;
   if (k === 'tob.len') fd['tob.lenFor'] = fd['dep.rwy'] || '';   // the runway it was entered for
+  if (k === 'dep.rwy' && fd['tob.len'] && !fd['tob.lenFor']) fd['tob.lenFor'] = v;   // a length typed before the runway
+  if (side === 'tob' && fd['tob.auto'] && fd['tob.auto'][k] !== undefined) { delete fd['tob.auto'][k]; if (fd['tob.note']) delete fd['tob.note'][k]; }
   if ((side === 'dep' || side === 'arr') && f !== 'rwy') fd[side + '._t'] = now;   // the wind's age
   fd._t = now;
   saveFd();
@@ -645,12 +725,18 @@ function timesText(when) {
 const thousands = v => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 const SEP = '\u00a0· ';   // a list separator that never starts a line
 const seps = t => String(t).replace(/ · /g, SEP);
+// A value: this flight's data, or (cfg.*) the aircraft settings that persist across flights.
+const getV = k => k === 'cfg.magvar' ? String(magVar()) : k.indexOf('cfg.') === 0 ? (planCfg[k.slice(4)] !== undefined ? String(planCfg[k.slice(4)]) : undefined) : fd[k];
+function delV(k) { if (k.indexOf('cfg.') === 0) { delete planCfg[k.slice(4)]; write(PLAN_CFG_KEY, planCfg); } else { delete fd[k]; saveFd(); } }
 function fmt(k) {
-  const v = fd[k];
+  const v = getV(k);
   if (v === undefined || v === '') return '';
   const f = k.split('.')[1];
-  if (f === 'wdir') return v === 'VRB' ? 'VRB' : v.padStart(3, '0') + '°';
-  if (/^(len|secl|todist|asd)$/.test(f)) return thousands(v);
+  if (f === 'wdir') return v === 'VRB' ? 'VRB' : v.padStart(3, '0') + '°' + (isTrue(k.split('.')[0]) ? 'T' : '');   // T = true (METAR)
+  if (f === 'ew') return thousands((+v).toFixed(1));
+  if (/^(len|secl|todist|asd|pa|apa|ldglen|em)$/.test(f)) return String(v).replace(/^(-?)(\d+)/, (m, sg, d) => (sg ? '−' : '') + thousands(d));
+  if (/^(oat|aoat)$/.test(f)) return String(v).replace('-', '−');
+  if (f === 'magvar') return varText(+v);
   return v;
 }
 function windText(side) {
@@ -661,17 +747,26 @@ function windText(side) {
 }
 const sideRwy = side => fd[side + '.rwy'] || '';
 
-// Headwind / crosswind for a runway (runway number × 10 = magnetic heading, as ATIS winds are).
+// Headwind / crosswind for a runway. Runway numbers are magnetic (heading ÷ 10), and so are ATIS and tower winds;
+// a written METAR / TAF wind is TRUE, so with side.wref = 'T' it is turned to magnetic with the magnetic variation
+// (magnetic = true + west variation; KBDR 13° W).
 const XW_LIMIT = 13;   // POH maximum demonstrated crosswind 15 MPH ≈ 13 kt
+const MAGVAR_DEFAULT = 13;   // ° west, KBDR
+const okVar = v => typeof v === 'number' || (typeof v === 'string' && v.trim() !== '') ? (isFinite(+v) && Math.abs(+v) <= 30 ? +v : null) : null;
+const magVar = () => { const v = typeof planCfg !== 'undefined' && planCfg ? okVar(planCfg.magvar) : null; return v === null ? MAGVAR_DEFAULT : v; };
+const pad3 = n => String(n).padStart(3, '0');
+const varText = v => Math.abs(v) + '°\u00a0' + (v >= 0 ? 'W' : 'E');
+const isTrue = side => fd[side + '.wref'] === 'T';
+const magDir = side => { const d = fd[side + '.wdir']; if (!d || d === 'VRB') return d; const m = isTrue(side) ? ((+d + magVar()) % 360 + 360) % 360 : +d; return m === 0 ? 360 : m; };
 function windComp(side, rwy) {
   const r = parseInt(rwy || sideRwy(side), 10), d = fd[side + '.wdir'], spRaw = fd[side + '.wspd'];
   if (spRaw !== undefined && +spRaw === 0) return { calm: true };
   if (!r || !d || spRaw === undefined) return null;
   const sp = +spRaw, g = +fd[side + '.gust'] || 0;
   if (d === 'VRB') return { vrb: true, sp, g };
-  const a = (+d - r * 10) * Math.PI / 180, s = Math.sin(a), c = Math.cos(a);
+  const a = (magDir(side) - r * 10) * Math.PI / 180, s = Math.sin(a), c = Math.cos(a);
   const hw = v => Math.round(v * c) || 0, xw = v => Math.round(Math.abs(v * s));
-  return { xw: xw(sp), xwG: g ? xw(g) : null, xside: s > 0.01 ? 'R' : s < -0.01 ? 'L' : '', h: hw(sp), hG: g ? hw(g) : null };
+  return { xw: xw(sp), xwG: g ? xw(g) : null, xside: s > 0.01 ? 'R' : s < -0.01 ? 'L' : '', h: hw(sp), hG: g ? hw(g) : null, hx: sp * c };
 }
 const WJ = '\u2060';   // word joiner: keeps "10–15" together when the line wraps
 const rng = (a, b) => (b === null || b === undefined || b === a ? String(a) : a + WJ + '–' + WJ + b);
@@ -719,6 +814,7 @@ const hasWind = sd => ['rwy', 'wdir', 'wspd'].some(f => fd[sd + '.' + f] !== und
 function tokenValue(key) {
   if (key === 'tora') return toraText();
   if (key === 'asd') return asdText();
+  if (key === 'secl') return fd['tob.secl'] ? thousands(fd['tob.secl']) + '\u00a0FT' + (fd['plan.da'] ? SEP + 'DA\u00a0' + sgn(fd['plan.da']) : '') : (fd['tob.note'] && fd['tob.note']['tob.secl']) || '';
   if (key === 'times.out' || key === 'times.in') return timesText(key.split('.')[1]) || 'TAP TO RECORD';
   const [side, f] = key.split('.');
   if (SIDES.includes(side)) {
@@ -726,18 +822,33 @@ function tokenValue(key) {
     if (f === 'comp') { const c = windComp(side); return [windText(side), compText(c)].filter(Boolean).join(SEP); }
     if (f === 'sum') return hasWind(side) ? windSummary(side) : 'TAP TO ENTER';
   }
+  if (/^tob\.(todist|asd|seroc)$/.test(key)) {   // briefing values carry their unit, or the reason there is no value
+    const v = fmt(key), n = fd['tob.note'] && fd['tob.note'][key];
+    return v ? v + '\u00a0' + (key === 'tob.seroc' ? 'FPM' : 'FT') : n || '';
+  }
+  if (key === 'tob.secl' && !fmt(key) && fd['tob.note'] && fd['tob.note'][key]) return fd['tob.note'][key];
   return FIELD[key] ? fmt(key) : '';
 }
 function tokenWarn(key) {
   const [side, f] = key.split('.');
+  const nk = key === 'secl' ? 'tob.secl' : key;   // a briefing value replaced by the reason it is missing
+  if (/^tob\.(todist|asd|seroc|secl)$/.test(nk) && !fd[nk] && fd['tob.note'] && fd['tob.note'][nk]) return true;
+  if (/^tob\.(todist|asd|seroc|secl)$/.test(nk) && planNow && planNow.rep && (planNow.rep.kept.length || planNow.rep.why)) {   // the pilot's own value
+    const x = planNow.rep.kept.filter(q => q.k === nk)[0]; if (x && keptUnsafe(x, planNow.rep)) return true;
+  }
   if (key === 'asd' || key === 'tob.asd') { const asd = +fd['tob.asd'], av = toraFeet(); return !!(asd && av && asd > av); }
   if (key === 'tora' || key === 'tob.len') return !!fd['tob.len'] && !lenOk();
+  if (key === 'secl') return !!fd['tob.secl'] && !!fd['plan.da'] && +fd['plan.da'] >= +fd['tob.secl'];
+  if (key === 'tob.todist') { const d = +fd['tob.todist'], av = toraFeet(); return !!(d && av && d > av); }
+  if (key === 'tob.secl') return !!fd['tob.secl'] && !!fd['plan.da'] && +fd['plan.da'] >= +fd['tob.secl'];
+  if (key === 'tob.seroc') return fd['tob.seroc'] !== undefined && fd['tob.seroc'] !== '' && +fd['tob.seroc'] <= 0;
   if (SIDES.includes(side) && (f === 'hw' || f === 'comp' || f === 'sum')) { const c = windComp(side); return isTail(c) || xwHigh(c) || (f === 'sum' && windAgeMin(side) > 60); }
   return false;
 }
 function tokenFields(key) {
   let ks = [];
   if (key === 'tora') ks = ['tob.len', 'dep.rwy'];
+  else if (key === 'secl') ks = ['tob.secl'];
   else if (key === 'asd') ks = ['tob.asd', 'tob.len'];
   else if (key === 'times.out' || key === 'times.in') ks = timeFields(key.split('.')[1]).map(f => f.k);
   else {
@@ -748,7 +859,8 @@ function tokenFields(key) {
   return ks.filter(k => FIELD[k]);
 }
 const TOKEN = /\{([a-z]+(?:\.[a-z]+)?)\}/g;
-const fillTokens = html => html.replace(TOKEN, (m, k) => {
+const unitTokens = html => html.replace(/\{tob\.(todist|asd)\}(?:[ \u00a0]|&nbsp;)*(?:FT|FEET)\b\.?/gi, '{tob.$1}').replace(/\{tob\.seroc\}(?:[ \u00a0]|&nbsp;)*(?:FPM|FT\/MIN)\b/gi, '{tob.seroc}').replace(/\{(?:tob\.secl|secl)\}(?:[ \u00a0]|&nbsp;)*(?:FT|FEET)\b\.?/gi, '{secl}');
+const fillTokens = html => unitTokens(html).replace(TOKEN, (m, k) => {
   const v = tokenValue(k);
   if (!v && !tokenFields(k).length) return '';   // a token this version doesn't know (left in an edited checklist)
   return `<span class="fv${v ? '' : ' empty'}${tokenWarn(k) ? ' warn' : ''}">${v ? esc(v) : '____'}</span>`;
@@ -830,7 +942,7 @@ function openPad(keys, start, after) {
   if (!keys.length) return;
   padTimerClear();
   if (!document.getElementById('pad')) noteOpener();
-  pad = { keys, i: Math.min(start || 0, keys.length - 1), buf: '', after, autoT: 0 };
+  pad = { keys, i: Math.min(start || 0, keys.length - 1), buf: '', after, autoT: 0, err: '' };
   renderPad();
 }
 function closePad() {
@@ -860,8 +972,14 @@ function commitPad() {
   const k = pad.keys[pad.i], f = FIELD[k]; if (!f) return true;
   const [side, fld] = k.split('.');
   let b = pad.buf;
-  if (f.kind === 'rwy' || fld === 'wspd' || fld === 'gust') b = b.replace(/^0+(?=\d)/, '');   // '08' -> '8'
+  if (f.kind === 'rwy' || fld === 'wspd' || fld === 'gust' || side === 'plan' || side === 'cfg') b = b.replace(/^(-?)0+(?=\d)/, '$1');   // '08' -> '8'
   const n = parseFloat(b);
+  const range = { pilot: [0, 400], front: [0, 400], ctrl: [0, 400], ctrr: [0, 400], rear: [0, 600], jump: [0, 400], fwdbag: [0, 300], aftbag: [0, 300],
+    fuel: [0, FUEL_MAX], time: [0.1, 12], oat: [-50, 55], aoat: [-50, 55], pa: [-1500, 25000], apa: [-1500, 25000], ldglen: [500, 20000], ew: [1500, 4200], em: [100000, 400000], magvar: [-30, 30] }[fld];
+  if ((side === 'plan' || side === 'cfg') && range && !(n >= range[0] && n <= range[1] && /\d/.test(b) && !/\.$/.test(b))) {
+    pad.err = !/\d$/.test(b) ? 'Finish the number' : fld === 'magvar' ? 'Allowed 30° E to 30° W' : 'Allowed ' + sgn(range[0]) + ' to ' + sgn(range[1]) + (f.unit ? ' ' + f.unit : '');
+    shake(); renderPad(); return false;
+  }
   const bad = (fld === 'wdir' && b !== 'VRB' && !(n >= 0 && n <= 360))
     || (f.kind === 'rwy' && !(parseInt(b, 10) >= 1 && parseInt(b, 10) <= 36))
     || (fld === 'gust' && fd[side + '.wspd'] !== undefined && !(n > +fd[side + '.wspd']))
@@ -875,7 +993,7 @@ function advancePad(skipCommit, auto) {
   if (!pad) return;
   padTimerClear();
   if (!skipCommit && !commitPad()) return;
-  pad.i++; pad.buf = ''; pad.autoT = auto ? Date.now() : 0;
+  pad.i++; pad.buf = ''; pad.err = ''; pad.autoT = auto ? Date.now() : 0;
   if (pad.i >= pad.keys.length) closePad(); else renderPad();
 }
 const unitFor = (f, v) => (!f.unit || v === 'VRB' || /°/.test(v)) ? '' : f.unit;
@@ -883,7 +1001,7 @@ function renderPad() {
   const k = pad.keys[pad.i], f = FIELD[k];
   if (!f) { pad = null; const el = document.getElementById('pad'); if (el) el.remove(); return; }
   const side = k.split('.')[0];
-  const group = side === 'tob' ? 'Takeoff data' : side === 'out' ? 'Start times' : side === 'in' ? 'Shutdown times' : SIDE_NAME[side] + ' wind & runway';
+  const group = side === 'tob' ? 'Takeoff data' : side === 'out' ? 'Start times' : side === 'in' ? 'Shutdown times' : side === 'plan' ? 'Preflight planning' : side === 'cfg' ? 'Aircraft' : SIDE_NAME[side] + ' wind & runway';
   const digits = '123456789'.split('').map(d => keyBtn(d, d)).join('');
   let body;
   if (f.kind === 'rwy') {
@@ -892,17 +1010,19 @@ function renderPad() {
     body = same + `<div class="keys num">${digits}${keyBtn('XL', 'L')}${keyBtn('0', '0')}${keyBtn('XR', 'R')}${keyBtn('XC', 'C')}${keyBtn('back', '⌫', 'span2')}</div>`;
   } else {
     const extra = f.kind === 'decimal' ? '.' : f.extra || '';
-    body = `<div class="keys num">${digits}${extra ? keyBtn('X' + extra, esc(extra)) : '<span></span>'}${keyBtn('0', '0')}${keyBtn('back', '⌫')}</div>`;
+    const ref = /\.wdir$/.test(k) ? `<div class="keys two">${keyBtn('RM', 'ATIS / TOWER · MAG', isTrue(side) ? 'ref' : 'ref on')}${keyBtn('RT', 'METAR · TRUE', isTrue(side) ? 'ref on' : 'ref')}</div>` : '';
+    body = ref + `<div class="keys num">${digits}${extra ? keyBtn('X' + extra, esc(extra)) : '<span></span>'}${keyBtn('0', '0')}${keyBtn('back', '⌫')}</div>`;
   }
   const typing = pad.buf !== '';
   const shownV = typing ? pad.buf : fmt(k);
-  const shown = typing ? esc(shownV) : (fd[k] !== undefined ? `<span class="was">${esc(shownV)}</span>` : '<span class="was">—</span>');
-  const unit = unitFor(f, shownV);
+  const varNum = k === 'cfg.magvar' && typing && /\d/.test(pad.buf);   // the variation reads as '5° E' while it is typed
+  const shown = varNum ? esc(varText(+pad.buf)) : typing ? esc(shownV.replace('-', '−')) : (getV(k) !== undefined ? `<span class="was">${esc(shownV)}</span>` : '<span class="was">—</span>');
+  const unit = varNum ? '' : unitFor(f, shownV);
   const lastF = pad.i === pad.keys.length - 1;
   sheetHtml(`<div class="pad-head">
       <div class="pad-step"><span>${esc(group)} · ${pad.i + 1} of ${pad.keys.length}</span></div>
-      <div class="pad-label">${esc(f.label)}</div>
-      <div class="pad-val">${shown}${unit && (typing || fd[k] !== undefined) ? `<span class="unit">${esc(unit)}</span>` : ''}</div>
+      <div class="pad-label">${esc(f.label)}${/\.wdir$/.test(k) && isTrue(side) ? ' (true)' : ''}</div>
+      <div class="pad-val">${shown}${unit && (typing || getV(k) !== undefined) ? `<span class="unit">${esc(unit)}</span>` : ''}</div>${pad.err ? `<div class="pad-err" role="alert">${esc(pad.err)}</div>` : ''}${/\.wdir$/.test(k) && isTrue(side) ? (() => { const d = typing ? pad.buf : getV(k), n = parseInt(d, 10); const mv = magVar(); return `<div class="pad-note">METAR wind is true: ${n >= 0 && n <= 360 ? pad3(n) + '°T ' + (mv >= 0 ? '+ ' : '− ') + varText(mv) + ' = ' + pad3(((n + mv) % 360 + 360) % 360 || 360) + '° magnetic' : 'converted to magnetic with ' + varText(mv) + ' variation'}</div>`; })() : ''}
     </div>
     ${padMid(body)}
     <div class="pad-act"><button data-pad="prev"${pad.i === 0 ? ' disabled' : ''}>← Back</button><button data-pad="done">Done</button><button class="go" data-pad="next">${lastF ? 'Save' : 'Next →'}</button></div>`, 'pad');
@@ -911,12 +1031,15 @@ function padKey(a) {
   if (!pad) return;
   const f = FIELD[pad.keys[pad.i]];
   if (a === 'next') return advancePad();
-  if (a === 'prev') { padTimerClear(); if (pad.i > 0 && commitPad()) { pad.i--; pad.buf = ''; renderPad(); } return; }
+  if (a === 'prev') { padTimerClear(); if (pad.i > 0 && commitPad()) { pad.i--; pad.buf = ''; pad.err = ''; renderPad(); } return; }
   if (a === 'done') { padTimerClear(); if (commitPad()) closePad(); return; }
+  pad.err = '';
   if (a === 'back') {
     padTimerClear();
     if (pad.buf) pad.buf = pad.buf.slice(0, -1);
-    else { delete fd[pad.keys[pad.i]]; saveFd(); }
+    else if (pad.keys[pad.i].indexOf('cfg.') === 0) { pad.err = 'This setting can be changed, not cleared'; renderPad(); return shake(); }
+    else if (fd['tob.auto'] && fd[pad.keys[pad.i]] !== undefined && fd[pad.keys[pad.i]] === fd['tob.auto'][pad.keys[pad.i]]) { pad.err = 'From Preflight Planning — type your own value to override'; renderPad(); return shake(); }
+    else delV(pad.keys[pad.i]);
     return renderPad();
   }
   if (padTimer) { padTimerClear(); advancePad(false, true); if (!pad) return; return padKey(a); }   // finish the automatic advance first
@@ -924,14 +1047,17 @@ function padKey(a) {
   if (/^\d$/.test(a)) {
     if (f.kind === 'rwy' && /[LCR]$/.test(pad.buf)) return;
     if (pad.buf === 'VRB') pad.buf = '';
-    if (pad.buf.length >= (f.max || 2)) return;
+    const len = pad.buf.replace('-', '').length;
+    if (len >= (f.max || 2)) return;
     pad.buf += a; renderPad();
-    if (f.kind !== 'rwy' && f.kind !== 'decimal' && pad.buf.length >= (f.max || 2)) scheduleAdvance();
+    if (f.kind !== 'rwy' && f.kind !== 'decimal' && f.extra !== '−' && len + 1 >= (f.max || 2)) scheduleAdvance();   // a minus may still follow
     return;
   }
   if (kind === 'E') { pad.buf = val; return advancePad(false, true); }   // SAME AS DEPARTURE
+  if (kind === 'R') { const sd = pad.keys[pad.i].split('.')[0]; if (val === 'T') fd[sd + '.wref'] = 'T'; else delete fd[sd + '.wref']; fd._t = Date.now(); saveFd(); return renderPad(); }   // wind reference
   if (kind === 'X') {
     if (val === '.') { if (!pad.buf.includes('.') && pad.buf.length < (f.max || 8) - 1) pad.buf = (pad.buf || '0') + '.'; return renderPad(); }
+    if (val === '−') { pad.buf = pad.buf.charAt(0) === '-' ? pad.buf.slice(1) : '-' + pad.buf; return renderPad(); }
     if (val === 'NONE') { delete fd[pad.keys[pad.i]]; saveFd(); pad.buf = ''; return advancePad(true, true); }
     if (f.kind === 'rwy') { if (!pad.buf || /[LCR]$/.test(pad.buf)) return; pad.buf += val; return advancePad(false, true); }
     pad.buf = val; return advancePad(false, true);                            // VRB
@@ -976,8 +1102,10 @@ document.addEventListener('keydown', e => {
   if (/\d/.test(up)) code = up;
   else if (f.kind === 'rwy' && /[LCR]/.test(up)) code = 'X' + up;
   else if (/wdir$/.test(f.k || '') && up === 'V') code = 'XVRB';
+  else if (/wdir$/.test(f.k || '') && (up === 'T' || up === 'M')) code = 'R' + up;
   else if (/gust$/.test(f.k || '') && up === 'N') code = 'XNONE';
   else if (k === '.' && f.kind === 'decimal') code = 'X.';
+  else if (k === '-' && f.extra === '−') code = 'X−';
   if (code) { e.preventDefault(); padKey(code); }
 });
 
@@ -1000,8 +1128,8 @@ function fitFields() {
 }
 function fieldCards(tab, fields) {
   return `<div class="fields">${fields.map((f, i) => {
-    const v = fmt(f.k), u = unitFor(f, v);
-    return `<button class="field" data-act="padfrom" data-tab="${tab}" data-i="${i}"><small>${esc(f.label)}</small><span class="${v ? 'val' : 'blank'}">${v ? esc(v) + (u ? '\u00a0<small>' + esc(u) + '</small>' : '') : 'tap to enter'}</span></button>`;
+    const v = fmt(f.k), u = unitFor(f, v), why = !v && fd['tob.note'] && fd['tob.note'][f.k];
+    return `<button class="field" data-act="padfrom" data-tab="${tab}" data-i="${i}"><small>${esc(f.label)}</small><span class="${v ? 'val' + (tab === 'tob' && tokenWarn(f.k) ? ' warn' : '') : 'blank'}">${v ? esc(v) + (u ? '\u00a0<small>' + esc(u) + '</small>' : '') : why ? `<span class="warn why">${esc(why)}</span>` : 'tap to enter'}</span></button>`;
   }).join('')}</div>`;
 }
 function renderData() {
@@ -1013,6 +1141,7 @@ function renderData() {
         <button class="small-btn go" data-act="padall" data-tab="${sd}">Enter</button></div>
       <div class="calc"><small>${sideRwy(sd) ? 'Runway\u00a0' + esc(sideRwy(sd)) : 'Runway —'}${windText(sd) ? SEP + esc(windText(sd)) : ''}${age > 60 ? `${SEP}<span class="warn">${ageText(age)}</span>` : ''}</small>${c ? compHtml(c) : (hasWind(sd) ? (sideRwy(sd) ? 'enter the wind' : 'enter the runway') : '—')}</div>
       ${fieldCards(sd, windFields(sd))}
+      <p class="pmeta">${isTrue(sd) ? `Wind from a <b>METAR (true)</b>: turned to magnetic with ${varText(magVar())} variation${fd[sd + '.wdir'] && fd[sd + '.wdir'] !== 'VRB' ? ' (' + esc(pad3(fd[sd + '.wdir'])) + '°T = ' + pad3(magDir(sd)) + '° magnetic)' : ''} <button class="link" data-act="magvar">change variation</button> <button class="link" data-act="wref" data-tab="${sd}">use ATIS / tower (magnetic)</button>` : `Wind from ATIS / tower (magnetic, like the runway numbers). <button class="link" data-act="wref" data-tab="${sd}">Wind from a METAR (true)?</button>`}</p>
     </section>`;
   };
   const asd = asdText();
@@ -1024,7 +1153,8 @@ function renderData() {
     </div>
     ${wind('dep')}
     <section class="dsec">
-      <div class="dsec-head"><h2>Takeoff data</h2><button class="small-btn go" data-act="padall" data-tab="tob">Enter</button></div>
+      <div class="dsec-head"><h2>Takeoff data</h2><button class="small-btn" data-go="#/plan">Planning ›</button><button class="small-btn go" data-act="padall" data-tab="tob">Enter</button></div>
+      ${(() => { const a = fd['tob.auto'] || {}, from = TOB_AUTO.filter(x => fd[x[0]] !== undefined && fd[x[0]] === a[x[0]]).map(x => x[1]); return from.length ? `<p class="pmeta">From Preflight Planning (POH Section 8): ${esc(from.join(', '))}.</p>` : ''; })()}
       ${asd ? `<div class="calc"><small>Accelerate-stop vs runway available</small><span class="${tokenWarn('asd') ? 'warn' : ''}">${esc(asd)}</span></div>` : ''}
       ${fieldCards('tob', TOB_FIELDS)}
     </section>
@@ -1035,6 +1165,322 @@ function renderData() {
     <div class="data-foot">${footer('', false)}</div>
   </div>`;
   fitFields();
+}
+
+/* ---------- Preflight planning: weight & balance -> POH performance charts -> takeoff briefing ---------- */
+// Before engine start the pilot enters every station weight (each one, every flight — nothing is assumed zero),
+// fuel in gallons, the planned flight time, temperature and pressure altitude. The app works out weight and
+// balance, reads the POH Section 8 charts (perf.js + charts.js) and fills the takeoff briefing data.
+const PLAN_CFG_KEY = 'plan.cfg.v1';
+// N56307 licensed empty weight 2,831.0 lb at CG 85.00 in (pilot, 2026-10-17); editable if the airplane is reweighed.
+const EMPTY_DEFAULT = { ew: 2831.0, em: 2831.0 * 85.00, src: 'N56307' };
+let planCfg = read(PLAN_CFG_KEY, null);
+if (!planCfg || typeof planCfg !== 'object' || !(+planCfg.ew > 0) || !(+planCfg.em > 0)) planCfg = Object.assign({}, EMPTY_DEFAULT, planCfg && typeof planCfg === 'object' && planCfg.magvar !== undefined ? { magvar: planCfg.magvar } : {});
+const ARMS = { front: 85.5, center: 118.1, rear: 155.7, jump: 118.1, fuel: 93.6, fwdbag: 22.5, aftbag: 178.7 };   // POH 4-7
+const PLAN_WB = [
+  { k: 'plan.pilot', label: 'Pilot', arm: 'front' },
+  { k: 'plan.front', label: 'Front passenger', arm: 'front' },
+  { k: 'plan.ctrl', label: 'Center seat left', arm: 'center' },
+  { k: 'plan.ctrr', label: 'Center seat right', arm: 'center' },
+  { k: 'plan.rear', label: 'Rear seats', arm: 'rear' },
+  { k: 'plan.jump', label: 'Jump seat', arm: 'jump' },
+  { k: 'plan.fwdbag', label: 'Forward baggage', arm: 'fwdbag', limit: 100 },
+  { k: 'plan.aftbag', label: 'Aft baggage', arm: 'aftbag', limit: 100 }];
+const PLAN_FUEL = [
+  { k: 'plan.fuel', label: 'Fuel on board', kind: 'decimal', max: 4, unit: 'GAL' },
+  { k: 'plan.time', label: 'Planned flight time', kind: 'decimal', max: 4, unit: 'HR' }];
+const PLAN_WX = [
+  { k: 'plan.oat', label: 'Temperature', max: 2, unit: '°C', extra: '−' },
+  { k: 'plan.pa', label: 'Pressure altitude', max: 5, unit: 'FT', extra: '−' }];
+const PLAN_ARR = [
+  { k: 'plan.aoat', label: 'Destination temperature', max: 2, unit: '°C', extra: '−' },
+  { k: 'plan.apa', label: 'Destination pressure altitude', max: 5, unit: 'FT', extra: '−' },
+  { k: 'plan.ldglen', label: 'Landing runway available', max: 5, unit: 'FT' }];
+const PLAN_CFG = [
+  { k: 'cfg.ew', label: 'Empty weight', kind: 'decimal', max: 7, unit: 'LB' },
+  { k: 'cfg.em', label: 'Empty weight moment', kind: 'decimal', max: 9, unit: 'IN-LB' },
+  { k: 'cfg.magvar', label: 'Magnetic variation (west; − = east)', max: 2, unit: '° W', extra: '−' }];
+PLAN_WB.forEach(s => { FIELD[s.k] = { k: s.k, label: s.label, max: 3, unit: 'LB' }; });
+PLAN_FUEL.concat(PLAN_WX, PLAN_ARR, PLAN_CFG).forEach(f => { FIELD[f.k] = f; });
+const MTOW = 4200, MLW = 4000, MZFW = 4000, AFT_CG = 94.6, FUEL_MAX = 93, LB_GAL = 6, TAXI_GAL = 3;
+const GPH = { 65: 18.3, 75: 20.6 };   // both engines, POH 1-1
+// forward CG limit (POH 3-3): 80.7 in up to 2,780 lb, 82.0 at 3,400, 87.9 at 4,200, straight lines between
+function fwdCg(w) { return w <= 2780 ? 80.7 : w <= 3400 ? 80.7 + (w - 2780) * 1.3 / 620 : 82.0 + (w - 3400) * 5.9 / 800; }
+const pnum = k => { const v = getV(k); return v === undefined || v === '' || isNaN(+v) ? null : +v; };
+const lbs = v => thousands(Math.round(v));
+const lbsOver = (v, lim) => v > lim && v - lim < 10 ? thousands(v.toFixed(v - lim < 0.1 ? 2 : 1)) : lbs(v);   // just over a limit: show the decimals
+const galUp = g => +(Math.ceil(g * 10 - 1e-9) / 10).toFixed(1), galDown = g => +(Math.floor(g * 10 + 1e-9) / 10).toFixed(1);
+function planWB() {
+  const W = { rows: [], missing: [], flags: [] }, ew = +planCfg.ew, em = +planCfg.em;
+  if (!(ew > 0 && em > 0)) W.missing.push('empty weight');
+  else W.rows.push({ label: 'Empty weight', w: ew, arm: em / ew, m: em });
+  PLAN_WB.forEach(s => {
+    const v = pnum(s.k);
+    if (v === null) { W.missing.push(s.label.toLowerCase()); return; }
+    W.rows.push({ label: s.label, w: v, arm: ARMS[s.arm], m: v * ARMS[s.arm] });
+    if (s.limit && v > s.limit) W.flags.push({ bad: true, cat: 'wb', text: s.label + ' ' + lbs(v) + ' LB — limit ' + s.limit + ' LB' });
+  });
+  const gal = pnum('plan.fuel'), hr = pnum('plan.time'), power = fd['plan.power'] === '75' ? 75 : 65;
+  if (gal === null) W.missing.push('fuel'); if (hr === null) W.missing.push('flight time');
+  W.zfw = W.rows.reduce((a, r) => a + r.w, 0); W.zfm = W.rows.reduce((a, r) => a + r.m, 0);
+  if (gal !== null) {
+    W.gal = gal; W.fuelW = gal * LB_GAL;
+    W.rows.push({ label: 'Fuel ' + gal + ' gal', w: W.fuelW, arm: ARMS.fuel, m: W.fuelW * ARMS.fuel, fuel: true });
+    if (gal > FUEL_MAX) W.flags.push({ bad: true, cat: 'fuel', text: 'Fuel ' + gal + ' gal — maximum usable ' + FUEL_MAX + ' gal' });
+  }
+  W.complete = !W.missing.length;
+  if (!W.complete) return W;
+  // ramp (all fuel) -> taxi fuel 3 gal -> takeoff -> flight fuel burn -> landing
+  W.rampW = W.zfw + W.fuelW; W.rampM = W.zfm + W.fuelW * ARMS.fuel;
+  W.taxiGal = Math.min(gal, TAXI_GAL); W.toGal = gal - W.taxiGal;
+  W.tow = W.zfw + W.toGal * LB_GAL; W.tom = W.zfm + W.toGal * LB_GAL * ARMS.fuel; W.cgTo = W.tom / W.tow;
+  W.power = power; W.needGal = hr * GPH[power]; W.burnGal = Math.min(W.toGal, W.needGal); W.ldgGal = W.toGal - W.burnGal;
+  W.lw = W.zfw + W.ldgGal * LB_GAL; W.lm = W.zfm + W.ldgGal * LB_GAL * ARMS.fuel; W.cgLdg = W.lm / W.lw;
+  const lim = (ok, good, bad, cat) => W.flags.push(ok ? { text: good } : { bad: true, cat: cat || 'wb', text: bad });
+  if (gal <= TAXI_GAL) lim(false, '', 'Fuel ' + gal + ' gal — no more than the ' + TAXI_GAL + ' gal taxi allowance: no fuel for takeoff', 'fuel');
+  else lim(W.needGal <= W.toGal + 1e-9, 'Fuel for ' + hr + ' h: ' + galUp(W.needGal) + ' of ' + galDown(W.toGal) + ' gal after taxi (' + galDown(W.toGal - W.needGal) + ' gal left; no reserve check)',
+    'Fuel for ' + hr + ' h: needs ' + galUp(W.needGal) + ' gal, only ' + galDown(W.toGal) + ' gal after taxi — FUEL EXHAUSTION', 'fuel');
+  const over = (v, lim) => v - lim < 0.1 ? 'less than 0.1' : v - lim < 10 ? (v - lim).toFixed(1) : lbs(v - lim);
+  lim(W.tow <= MTOW, 'Takeoff weight ' + lbs(W.tow) + ' LB (max ' + lbs(MTOW) + ', ' + lbs(MTOW - W.tow) + ' under)', 'Takeoff weight ' + lbsOver(W.tow, MTOW) + ' LB — ' + over(W.tow, MTOW) + ' LB OVER the ' + lbs(MTOW) + ' maximum');
+  lim(W.lw <= MLW, 'Landing weight ' + lbs(W.lw) + ' LB (max ' + lbs(MLW) + ')', 'Landing weight ' + lbsOver(W.lw, MLW) + ' LB — ' + over(W.lw, MLW) + ' LB OVER the ' + lbs(MLW) + ' maximum');
+  lim(W.zfw <= MZFW, 'Zero-fuel weight ' + lbs(W.zfw) + ' LB (above ' + lbs(MZFW) + ' must be fuel)', 'Zero-fuel weight ' + lbsOver(W.zfw, MZFW) + ' LB — above ' + lbs(MZFW) + ' must be fuel');
+  const cgOk = (cg, w) => cg >= fwdCg(w) - 1e-6 && cg <= AFT_CG + 1e-6;
+  lim(cgOk(W.cgTo, W.tow), 'Takeoff CG ' + W.cgTo.toFixed(2) + ' in (limits ' + fwdCg(W.tow).toFixed(1) + '–' + AFT_CG + ')', 'Takeoff CG ' + W.cgTo.toFixed(2) + ' in — OUTSIDE ' + fwdCg(W.tow).toFixed(1) + '–' + AFT_CG);
+  lim(cgOk(W.cgLdg, W.lw), 'Landing CG ' + W.cgLdg.toFixed(2) + ' in (limits ' + fwdCg(W.lw).toFixed(1) + '–' + AFT_CG + ')', 'Landing CG ' + W.cgLdg.toFixed(2) + ' in — OUTSIDE ' + fwdCg(W.lw).toFixed(1) + '–' + AFT_CG);
+  W.ok = !W.flags.some(f => f.bad); W.wbBad = W.flags.some(f => f.bad && f.cat === 'wb'); W.fuelBad = W.flags.some(f => f.bad && f.cat === 'fuel');
+  return W;
+}
+// CG envelope plot (weight up, CG across) with the takeoff and landing points
+function cgPlot(W) {
+  const x0 = 79, x1 = 96, y0 = 2600, y1 = 4300, Wd = 640, Hd = 372, pl = 60, pr = 14, pt = 12, pb = 52;
+  const X = v => pl + (v - x0) / (x1 - x0) * (Wd - pl - pr), Y = v => Hd - pb - (v - y0) / (y1 - y0) * (Hd - pt - pb);
+  const env = [[80.7, 2600], [80.7, 2780], [82.0, 3400], [87.9, 4200], [94.6, 4200], [94.6, 2600]];
+  let s = `<svg class="cg-plot" viewBox="0 0 ${Wd} ${Hd}" role="img" aria-label="CG envelope">`;
+  for (let v = 80; v <= 96; v += 2) s += `<line class="cg-grid" x1="${X(v)}" y1="${Y(y0)}" x2="${X(v)}" y2="${Y(y1)}"/><text class="cg-tick" x="${X(v)}" y="${Hd - pb + 18}" text-anchor="middle">${v}</text>`;
+  for (let v = 2600; v <= 4200; v += 200) s += `<line class="cg-grid" x1="${X(x0)}" y1="${Y(v)}" x2="${X(x1)}" y2="${Y(v)}"/><text class="cg-tick" x="${pl - 6}" y="${Y(v) + 5}" text-anchor="end">${thousands(v)}</text>`;
+  s += `<polygon class="cg-env" points="${env.map(p => X(p[0]) + ',' + Y(p[1])).join(' ')}"/>`;
+  s += `<line class="cg-mlw" x1="${X(80.7)}" y1="${Y(MLW)}" x2="${X(94.6)}" y2="${Y(MLW)}"/><text class="cg-tick" x="${X(94.6) - 4}" y="${Y(MLW) - 5}" text-anchor="end">MAX LANDING 4,000</text>`;
+  s += `<text class="cg-tick" x="${(pl + Wd - pr) / 2}" y="${Hd - 4}" text-anchor="middle">CG — inches aft of datum</text>`;
+  if (W && W.complete) {
+    s += `<line class="cg-burn" x1="${X(W.cgTo)}" y1="${Y(W.tow)}" x2="${X(W.cgLdg)}" y2="${Y(W.lw)}"/>`;
+    const dot = (cg, w, lab, dy) => `<circle class="cg-pt" cx="${X(Math.max(x0, Math.min(x1, cg)))}" cy="${Y(Math.max(y0, Math.min(y1, w)))}" r="7"/><text class="cg-lab" x="${X(Math.max(x0, Math.min(x1, cg))) + 10}" y="${Y(Math.max(y0, Math.min(y1, w))) + 5 + (dy || 0)}">${lab}</text>`;
+    const close = Math.abs(Y(W.tow) - Y(W.lw)) < 24 && Math.abs(X(W.cgTo) - X(W.cgLdg)) < 60;
+    s += dot(W.cgTo, W.tow, 'TO', close ? -12 : 0) + dot(W.cgLdg, W.lw, 'LDG', close ? 14 : 0);
+  }
+  return s + '</svg>';
+}
+// Performance from the POH charts. Wind: headwind component (kt -> MPH) of the entered wind and runway; gusts
+// are not credited; with no wind entered, calm is assumed.
+const KT_MPH = 1.1508;
+function planWind(side) {
+  const c = windComp(side);
+  if (!c) return { mph: 0, note: hasWind(side) ? 'no headwind credit: wind or runway missing' : 'no ' + SIDE_NAME[side].toLowerCase() + ' wind entered: calm assumed' };
+  if (c.calm || c.vrb) return { mph: 0, note: c.vrb ? 'variable wind: no headwind credit' : '' };
+  if (c.h >= 0 && c.hG !== null && c.hG < 0) {   // a tailwind in the gusts only: still no chart answer (no tailwind lines)
+    const sp = +fd[side + '.wspd'], gx = sp ? c.hx * (+fd[side + '.gust']) / sp : 0;
+    return { mph: Math.min(-0.1, -Math.ceil(-gx * KT_MPH * 10 - 1e-9) / 10), note: 'tailwind in the gusts' };
+  }
+  if (c.h === 0) return { mph: 0, note: '' };
+  // the steady-wind component, not rounded to the knot (gusts are not credited): headwind rounded down, tailwind up
+  const v = c.hx * KT_MPH;
+  return { mph: v > 0 ? Math.floor(v * 10 + 1e-9) / 10 : -Math.ceil(-v * 10 - 1e-9) / 10, note: '' };
+}
+function planPerf() {
+  const W = planWB(), P = { W: W, missing: W.missing.slice(), res: {} };
+  const oatC = pnum('plan.oat'), pa = pnum('plan.pa');
+  if (oatC === null) P.missing.push('temperature'); if (pa === null) P.missing.push('pressure altitude');
+  if (P.missing.length) return P;
+  const C = typeof POH_CHARTS !== 'undefined' ? POH_CHARTS : null;
+  if (!C || typeof PERFCHART === 'undefined') { P.missing.push('performance charts not loaded'); return P; }
+  const flaps = fd['plan.flaps'] === '25' ? 25 : 0;
+  P.oatC = oatC; P.oatF = oatC * 1.8 + 32; P.pa = pa; P.da = PERFCHART.densityAltitude(pa, oatC); P.flaps = flaps;
+  P.dw = planWind('dep');
+  const aoatC = pnum('plan.aoat') !== null ? pnum('plan.aoat') : oatC, apa = pnum('plan.apa') !== null ? pnum('plan.apa') : pa;
+  P.aoatC = aoatC; P.aoatF = aoatC * 1.8 + 32; P.apa = apa; P.aw = planWind('arr');
+  const to = { oatF: P.oatF, pa: pa, weight: W.tow, wind: P.dw.mph }, ld = { oatF: P.aoatF, pa: apa, weight: W.lw, wind: P.aw.mph };
+  const rd = (id, inp) => C[id] ? Object.assign(PERFCHART.read(C[id], inp), { id: id, inp: inp }) : { id: id, value: null, notes: ['chart ' + id + ' missing'], outOfRange: true };
+  P.res.run = rd(flaps ? '8-3' : '8-2', to);
+  P.res.to50 = rd(flaps ? '8-4' : '8-5', to);
+  P.res.asd = rd('8-6', to);
+  if (flaps) P.res.asd.notes.push('the accelerate-stop chart is for flaps 0°');
+  P.res.me = rd('8-7', { da: P.da, weight: W.tow });
+  P.res.se = rd('8-8', { da: P.da, weight: W.tow });
+  P.ceil = C['8-8'] ? PERFCHART.ceiling(C['8-8'], W.tow, 50) : null;
+  P.res.lrun = rd('8-13', ld);
+  P.res.l50 = rd('8-14', ld);
+  P.ra = toraFeet();
+  P.lra = pnum('plan.ldglen') || 0;   // only a length entered for the landing runway (the app does not know airports)
+  return P;
+}
+// Results go into the takeoff data fields. A value the pilot typed over is left alone. Values that planning filled in
+// follow every change of the inputs; with no answer (no chart answer, W&B or fuel problem, planning no longer
+// complete) they are cleared and the briefing shows the reason instead.
+const TOB_AUTO = [['tob.todist', 'takeoff over 50 ft'], ['tob.asd', 'accelerate-stop'], ['tob.seroc', 'single-engine climb'], ['tob.secl', 'single-engine ceiling']];
+function syncTob(P) {
+  const auto = fd['tob.auto'], rep = { sent: [], kept: [], none: [], why: '', noclimb: false };
+  if (P.missing.length) { if (!auto) return rep; rep.why = P.missing.indexOf('performance charts not loaded') >= 0 ? 'POH CHARTS NOT LOADED' : 'PLANNING INCOMPLETE'; }
+  else if (!P.W.ok) rep.why = P.W.wbBad ? 'W&B OUT OF LIMITS' : 'FUEL PLAN PROBLEM';
+  const r = P.res || {}, have = x => x !== null && x !== undefined;
+  const val = {
+    'tob.todist': r.to50 ? r.to50.value : null, 'tob.asd': r.asd ? r.asd.value : null,
+    'tob.seroc': r.se && !r.se.noClimb ? r.se.value : null, 'tob.secl': P.ceil ? P.ceil.value : null };
+  const a = Object.assign({}, auto || {}), note = Object.assign({}, fd['tob.note'] || {});
+  const before = JSON.stringify([TOB_AUTO.map(x => fd[x[0]]), fd['plan.da'], auto || null, fd['tob.note'] || null]);
+  TOB_AUTO.forEach(([k, label]) => {
+    const v = rep.why || !have(val[k]) ? undefined : String(val[k]);
+    const noClimb = !rep.why && k === 'tob.seroc' && r.se && r.se.noClimb;
+    if (fd[k] !== undefined && fd[k] !== '' && fd[k] !== a[k]) { rep.kept.push({ k: k, label: label, chart: v, noClimb: noClimb }); delete note[k]; delete a[k]; return; }   // the pilot's own value
+    if (v === undefined) {
+      delete fd[k]; delete a[k]; note[k] = rep.why || (noClimb ? 'NO CLIMB — SEE PLANNING' : 'NO CHART ANSWER — SEE PLANNING');
+      if (noClimb) rep.noclimb = true; else if (!rep.why) rep.none.push(label);
+    }
+    else { fd[k] = v; a[k] = v; delete note[k]; rep.sent.push(label); }
+  });
+  if (rep.why || !have(P.da)) delete fd['plan.da']; else fd['plan.da'] = String(Math.round(P.da));
+  fd['tob.auto'] = a;
+  if (Object.keys(note).length) fd['tob.note'] = note; else delete fd['tob.note'];
+  if (JSON.stringify([TOB_AUTO.map(x => fd[x[0]]), fd['plan.da'], a, fd['tob.note'] || null]) !== before) { fd._t = Date.now(); saveFd(); }
+  return rep;
+}
+// Planning runs before every screen is drawn, so the briefing always matches the current inputs.
+let planNow = null, chartView = read('chartview.v1', 'clean') === 'scan' ? 'scan' : 'clean';
+function planRefresh() {
+  try { const P = planPerf(); planNow = { P: P, rep: syncTob(P) }; }
+  catch (e) { planNow = null; }   // planning must never stop the checklists from opening
+}
+const sgn = v => thousands(v).replace(/^-/, '−');
+const negLb = v => Math.round(v) > 0 ? '−' + lbs(v) : '0';
+const windWords = w => (w.mph < 0 ? 'tailwind ' + (-w.mph) + ' MPH' : 'headwind ' + w.mph + ' MPH') + (w.note ? ' (' + w.note + ')' : '');
+const marginHtml = (avail, need, what) => {
+  if (!avail || !need) return '';
+  const m = avail - need;
+  return `<span class="${m < 0 ? 'warn' : 'ok'}">${m >= 0 ? thousands(m) + ' FT spare' : thousands(-m) + ' FT SHORT'} of ${thousands(avail)} ${what}</span>`;
+};
+function perfRow(label, r, extra, chart) {
+  const v = r && r.noClimb ? '<span class="warn">NO CLIMB</span>' : r && r.value !== null && r.value !== undefined ? thousands(r.value) + '\u00a0' + (r.chart === '8-7' || r.chart === '8-8' ? 'FPM' : 'FT') : '<span class="warn">NO ANSWER</span>';
+  const noteCls = r && (r.noClimb || r.value === null || r.value === undefined) ? 'pnote warn' : 'pnote';
+  const notes = r && r.notes && r.notes.length ? `<small class="${noteCls}">${esc(r.notes.join(' · '))}</small>` : '';
+  return `<div class="prow"><div class="plab">${esc(label)}${notes}</div><div class="pval">${v}${extra ? `<small>${extra}</small>` : ''}</div>
+    ${chart ? `<button class="small-btn" data-go="#/plan/chart/${chart}">POH ${chart} ›</button>` : ''}</div>`;
+}
+function planCards(keys) {
+  return `<div class="fields">${keys.map(f => {
+    const v = fmt(f.k), u = unitFor(f, v);
+    return `<button class="field" data-act="planfrom" data-k="${f.k}"><small>${esc(f.label)}</small><span class="${v ? 'val' : 'blank'}">${v ? esc(v) + (u ? '\u00a0<small>' + esc(u) + '</small>' : '') : 'tap to enter'}</span></button>`;
+  }).join('')}</div>`;
+}
+const toggle = (k, opts, cur) => `<div class="seg">${opts.map(o => `<button class="${cur === o[0] ? 'on' : ''}" data-act="planset" data-k="${k}" data-v="${o[0]}" aria-pressed="${cur === o[0]}">${o[1]}</button>`).join('')}</div>`;
+// A value the pilot typed is flagged when planning is blocked, has no answer, or the chart is more conservative.
+function keptUnsafe(x, rep) {
+  const mine = +fd[x.k], ch = x.chart === undefined ? null : +x.chart;
+  return !!rep.why || ch === null || (x.k === 'tob.todist' || x.k === 'tob.asd' ? mine < ch : mine > ch);
+}
+// What went to the briefing, what did not and why, and the pilot's own values that were kept.
+function sentHtml(rep) {
+  if (!rep) return '';
+  let h = '';
+  if (rep.why) h += `<p class="pmeta"><span class="warn">Not sent to the takeoff briefing: ${esc({ 'W&B OUT OF LIMITS': 'weight & balance out of limits', 'FUEL PLAN PROBLEM': 'fuel plan problem', 'POH CHARTS NOT LOADED': 'the POH charts did not load (open the app once with internet)' }[rep.why] || 'planning not complete')}.</span> The briefing shows this instead of the numbers${rep.kept.length ? ', except your own values below' : ''}.</p>`;
+  if (rep.sent.length) h += `<p class="pmeta ok">Sent to the takeoff briefing: ${esc(rep.sent.join(', '))}.</p>`;
+  if (rep.none.length) h += `<p class="pmeta"><span class="warn">No chart answer for ${esc(rep.none.join(', '))}</span> — the briefing says so.</p>`;
+  if (rep.noclimb) h += `<p class="pmeta"><span class="warn">Single-engine: NO CLIMB at this weight and density altitude</span> — the briefing says so.</p>`;
+  rep.kept.forEach(x => {
+    const unit = x.k === 'tob.seroc' ? 'FPM' : 'FT', mine = +fd[x.k], ch = x.chart === undefined ? null : +x.chart;
+    const unsafe = keptUnsafe(x, rep);
+    h += `<p class="pmeta"><span class="${unsafe ? 'warn' : ''}">The briefing keeps your own ${esc(x.label)} ${esc(fmt(x.k))} ${unit} (chart: ${ch === null ? (rep.why ? 'not sent' : x.noClimb ? 'NO CLIMB' : 'no answer') : thousands(ch) + ' ' + unit}).</span>${ch === null ? '' : ` <button class="link" data-act="planuse" data-k="${x.k}">Use the chart value</button>`}</p>`;
+  });
+  return h;
+}
+function renderPlan() {
+  const P = planNow ? planNow.P : planPerf(), rep = planNow ? planNow.rep : null, W = P.W;
+  const isDefault = +planCfg.ew === EMPTY_DEFAULT.ew && +planCfg.em === EMPTY_DEFAULT.em, emptyOk = +planCfg.ew > 0 && +planCfg.em > 0;
+  const emptyCard = `<p class="pmeta">${isDefault ? 'N56307 · ' : ''}${emptyOk ? `empty weight ${thousands((+planCfg.ew).toFixed(1))} LB · CG ${(planCfg.em / planCfg.ew).toFixed(2)} in · moment ${thousands((+planCfg.em).toFixed(1))}` : '<span class="warn">empty weight not set</span>'}
+      <button class="link" data-act="planempty">change</button></p>${isDefault ? '' : '<p class="pmeta"><button class="link" data-act="planreset">use N56307 (2,831.0 LB at 85.00)</button></p>'}`;
+  const wbTable = W.rows.length ? `<table class="wbt"><tr><th>Item</th><th>Weight</th><th>Arm</th><th>Moment</th></tr>
+      ${W.rows.map(r => `<tr><td>${esc(r.label)}</td><td>${lbs(r.w)}</td><td>${r.arm.toFixed(1)}</td><td>${lbs(r.m)}</td></tr>`).join('')}
+      ${W.complete ? `<tr class="tot"><td>Ramp</td><td>${lbs(W.rampW)}</td><td>${(W.rampM / W.rampW).toFixed(2)}</td><td>${lbs(W.rampM)}</td></tr>
+      <tr><td>Taxi fuel ${W.taxiGal} gal</td><td>${negLb(W.taxiGal * LB_GAL)}</td><td>${ARMS.fuel}</td><td>${negLb(W.taxiGal * LB_GAL * ARMS.fuel)}</td></tr>
+      <tr class="tot"><td>Takeoff</td><td>${lbs(W.tow)}</td><td>${W.cgTo.toFixed(2)}</td><td>${lbs(W.tom)}</td></tr>
+      <tr><td>Fuel burn ${(+fd['plan.time']).toString()} h at ${W.power}% (${GPH[W.power]} gph = ${galUp(W.needGal)} gal${W.burnGal < W.needGal - 1e-9 ? `; only ${galDown(W.burnGal)} on board` : ''})</td><td>${negLb(W.burnGal * LB_GAL)}</td><td>${ARMS.fuel}</td><td>${negLb(W.burnGal * LB_GAL * ARMS.fuel)}</td></tr>
+      <tr class="tot"><td>Landing</td><td>${lbs(W.lw)}</td><td>${W.cgLdg.toFixed(2)}</td><td>${lbs(W.lm)}</td></tr>` : ''}</table>` : '';
+  const flags = W.flags.length ? `<ul class="flags">${W.flags.map(f => `<li class="${f.bad ? 'bad' : 'good'}">${f.bad ? '✕' : '✓'} ${esc(f.text)}</li>`).join('')}</ul>` : '';
+  const lenTxt = lenOk() ? thousands(fd['tob.len']) + ' FT' : fd['tob.len'] ? `<span class="warn">${thousands(fd['tob.len'])} FT was for RWY ${esc(fd['tob.lenFor'] || '')} — re‑enter</span>` : 'not entered';
+  let perf;
+  const todo = P.missing.filter(m => m !== 'performance charts not loaded');
+  if (P.missing.length) perf = (todo.length ? `<p class="pmeta">To read the POH charts, complete: <b>${esc(todo.join(', '))}</b>.</p>` : `<p class="pmeta"><span class="warn">The POH charts did not load.</span> Open the app once with internet to finish the offline copy.</p>`) + sentHtml(rep);
+  else {
+    const r = P.res, da = Math.round(P.da);
+    perf = `<p class="pmeta">${sgn(P.oatC)}\u00a0°C = ${sgn(Math.round(P.oatF * 10) / 10)}\u00a0°F · pressure altitude ${sgn(P.pa)} · density altitude ${sgn(da)} · takeoff ${lbs(W.tow)} LB · flaps ${P.flaps}° · ${esc(windWords(P.dw))}</p>
+      ${perfRow('Takeoff ground run', r.run, '', r.run.id)}
+      ${perfRow('Takeoff over 50 ft', r.to50, marginHtml(P.ra, r.to50.value, 'runway available'), r.to50.id)}
+      ${perfRow('Accelerate-stop', r.asd, marginHtml(P.ra, r.asd.value, 'runway available'), r.asd.id)}
+      ${perfRow('All-engine climb', r.me, r.me.speed ? 'best rate ' + r.me.speed + ' MPH' : '', '8-7')}
+      ${perfRow('Single-engine climb', r.se, r.se.speed ? 'best rate ' + r.se.speed + ' MPH' : '', '8-8')}
+      <div class="prow"><div class="plab">Single-engine service ceiling (50 fpm)${P.ceil && P.ceil.note ? `<small class="pnote">${esc(P.ceil.note)}</small>` : ''}</div>
+        <div class="pval">${P.ceil && P.ceil.value !== null ? thousands(P.ceil.value) + '\u00a0FT' : '—'}<small class="${P.ceil && P.ceil.value !== null && P.ceil.value < da ? 'warn' : ''}">density altitude ${sgn(da)}</small></div>
+        <button class="small-btn" data-go="#/plan/chart/8-8">POH 8-8 ›</button></div>
+      <p class="pmeta">Landing at ${lbs(W.lw)} LB · ${sgn(P.aoatC)}\u00a0°C · pressure altitude ${sgn(P.apa)} · ${esc(windWords(P.aw))}</p>
+      ${perfRow('Landing ground run', r.lrun, '', '8-13')}
+      ${perfRow('Landing over 50 ft', P.lra ? r.l50 : Object.assign({}, r.l50, { notes: (r.l50.notes || []).concat('enter the landing runway length under Destination for a margin') }), P.lra ? marginHtml(P.lra, r.l50.value, 'landing runway') : '', '8-14')}
+      ${sentHtml(rep)}`;
+  }
+  $app.innerHTML = `<div class="wrap data plan">
+    <div class="home-head with-back">
+      ${homeTile()}
+      <button class="next-tile" data-go="${esc(dataReturn)}"><small>← Back to</small><span>${esc(returnLabel())}</span></button>
+      <h1 class="group-title">Preflight Planning</h1>
+    </div>
+    ${emptyCard}
+    <section class="dsec">
+      <div class="dsec-head"><h2>Weight &amp; balance</h2><button class="small-btn go" data-act="planall" data-set="wb">Enter</button></div>
+      ${planCards(PLAN_WB.map(s => FIELD[s.k]).concat(PLAN_FUEL))}
+      <div class="prow"><div class="plab">Fuel burn rate (POH 1-1)</div>${toggle('plan.power', [['65', '65% · 18.3 gph'], ['75', '75% · 20.6 gph']], fd['plan.power'] === '75' ? '75' : '65')}</div>
+      ${wbTable}${flags}${cgPlot(W)}
+    </section>
+    <section class="dsec">
+      <div class="dsec-head"><h2>Conditions</h2><button class="small-btn go" data-act="planall" data-set="wx">Enter</button></div>
+      ${planCards(PLAN_WX)}
+      <div class="prow"><div class="plab">Takeoff flaps</div>${toggle('plan.flaps', [['0', '0°'], ['25', '25°']], fd['plan.flaps'] === '25' ? '25' : '0')}</div>
+      <div class="prow"><div class="plab">Departure wind &amp; runway<small class="pnote">${esc(hasWind('dep') ? windSummary('dep') : 'not entered')} · runway available ${lenTxt}</small></div><button class="small-btn" data-go="#/data">Wind &amp; Takeoff Data ›</button></div>
+      <details class="arrd"${pnum('plan.aoat') !== null || pnum('plan.apa') !== null || pnum('plan.ldglen') !== null ? ' open' : ''}><summary>Destination (temperature and altitude default to departure)</summary>${planCards(PLAN_ARR)}</details>
+    </section>
+    <section class="dsec">
+      <div class="dsec-head"><h2>Performance (POH Section 8)</h2></div>
+      ${perf}
+    </section>
+    <div class="data-foot">${footer('', false)}</div>
+  </div>`;
+  fitFields();
+}
+// One chart, with the reading drawn on it in red
+function renderPlanChart(id) {
+  const P = planNow ? planNow.P : planPerf(), C = typeof POH_CHARTS !== 'undefined' ? POH_CHARTS : {}, c = C[id];
+  let r = null;
+  if (P.res) Object.keys(P.res).forEach(k => { if (P.res[k] && P.res[k].id === id) r = P.res[k]; });
+  if (!r && c && !P.missing.length) r = Object.assign(PERFCHART.read(c, c.kind === 'climb' ? { da: P.da, weight: P.W.tow } : { oatF: P.oatF, pa: P.pa, weight: P.W.tow, wind: P.dw.mph }), { id: id });
+  const inp = r && r.inputs ? r.inputs : null, unit = c && c.kind === 'climb' ? 'FPM' : 'FT';
+  // 8-8 also shows the single-engine service ceiling: up the 50 fpm line to the weight, across to the altitude scale
+  const ceil = id === '8-8' && P.ceil && P.ceil.raw && c ? P.ceil : null;
+  const scan = chartView === 'scan', dopts = { ceiling: ceil ? { raw: ceil.raw, value: ceil.value, fpm: 50 } : null };
+  let pic = '';
+  if (c) { try { pic = scan ? `<img src="${esc(c.img)}" alt="POH chart ${esc(id)} (scan)">${r && r.segs ? PERFCHART.overlay(c, r, dopts) : ''}` : PERFCHART.draw(c, r && r.inputs ? r : null, dopts); } catch (e) { pic = `<img src="${esc(c.img)}" alt="POH chart ${esc(id)} (scan)">`; } }
+  const desc = !inp ? (P.missing && !P.missing.length && c ? (c.kind === 'climb' ? `Density altitude ${sgn(Math.round(P.da))} FT · weight ${lbs(P.W.tow)} LB` : `${sgn(P.oatC)} °C (${sgn(Math.round(P.oatF * 10) / 10)} °F) · pressure altitude ${sgn(P.pa)} FT · weight ${lbs(/^8-1[34]$/.test(id) ? P.W.lw : P.W.tow)} LB · ${windWords(/^8-1[34]$/.test(id) ? P.aw : P.dw)}`) : '') : c.kind === 'climb'
+    ? `Density altitude ${sgn(Math.round(inp.da))} FT · weight ${lbs(inp.weight)} LB${ceil ? ' · service ceiling ' + thousands(ceil.value) + ' FT (dotted line)' : ''}`
+    : `${sgn(Math.round((inp.oatF - 32) / 1.8 * 10) / 10)} °C (${sgn(Math.round(inp.oatF * 10) / 10)} °F) · pressure altitude ${sgn(inp.pa)} FT · weight ${lbs(inp.weight)} LB · ${inp.wind < 0 ? 'tailwind ' + (-inp.wind) : 'headwind ' + inp.wind} MPH`;
+  const factor = c && c.factorNote && r && r.value !== null && r.chartValue !== undefined
+    ? `<small>chart line ${thousands(Math.round(r.chartValue))} ${unit} × ${c.factor.toFixed(3)}: this chart is scaled to give the POH's printed example (${thousands(c.example.answer)} ${unit})</small>` : '';
+  $app.innerHTML = `<div class="wrap data">
+    <div class="home-head with-back">
+      ${homeTile()}
+      <button class="next-tile" data-go="#/plan"><small>← Back to</small><span>Planning</span></button>
+      <h1 class="group-title">POH ${esc(id)}</h1>
+    </div>
+    ${c ? `<p class="pmeta"><b>${esc(c.title || '')}</b>${c.conditions ? ' · ' + esc(c.conditions) : ''}</p>
+      <div class="calc"><small>${esc(desc)}</small>${r && r.noClimb ? '<span class="warn">NO CLIMB</span>' : r && r.value !== null ? thousands(r.value) + ' ' + unit + (r.speed ? SEP + 'best rate ' + r.speed + ' MPH' : '') : '<span class="warn">NO ANSWER</span>'}${r && r.notes && r.notes.length ? `<small>${esc(r.notes.join(' · '))}</small>` : ''}${factor}</div>
+      <div class="prow chartview"><div class="plab">${scan ? 'The POH page (scan)' : 'Redrawn from the POH chart'}<small class="pnote">${scan ? 'the original page, low resolution' : 'the traced lines the numbers come from; compare with the POH scan'}</small></div>${toggle('chartview', [['clean', 'Clean'], ['scan', 'POH scan']], scan ? 'scan' : 'clean')}</div>
+      <div class="chartbox${scan ? '' : ' clean'}"><div class="chartin">${pic}</div></div>${typeof window !== 'undefined' && window.innerWidth < 600 ? '<p class="pmeta">Swipe the chart sideways to see all of it.</p>' : ''}`
+      : `<p class="pmeta"><span class="warn">${typeof PERFCHART === 'undefined' || typeof POH_CHARTS === 'undefined' ? 'The POH charts did not load. Open the app once with internet to finish the offline copy.' : 'This chart is not available.'}</span></p>`}
+    <div class="data-foot">${footer('', false)}</div>
+  </div>`;
 }
 
 /* ---------- Groups and flow ---------- */
@@ -1091,7 +1537,7 @@ const groupTile = g => g.list ? tileHtml(g.list.title, g.list.color, `#/list/${g
 const inSafariTab = () => navigator.standalone === false && !(window.matchMedia && matchMedia('(display-mode: standalone)').matches);
 
 function renderHome() {
-  const tiles = groups('').map(groupTile).join('') + tileHtml('Wind & Takeoff Data', '#0f7f8a', '#/data');
+  const tiles = tileHtml('Preflight Planning', '#a37800', '#/plan') + groups('').map(groupTile).join('') + tileHtml('Wind & Takeoff Data', '#0f7f8a', '#/data');
   const banner = (!isPristine(lists) && updateWaiting() ? `<div class="banner">Updated PA-34 checklists are available — Edit › Restore PA-34 defaults (your edits are kept until then).</div>` : '')
     + (inSafariTab() ? `<div class="banner">Running in Safari, not installed — for offline use: Share › Add to Home Screen (its data is kept separately from this tab).</div>` : '')
     + (wakeHint() ? `<button class="banner" data-act="wakehint">This device may let the screen lock in flight: Settings › Display &amp; Brightness › Auto-Lock › Never. (Tap to hide)</button>` : '');
@@ -1412,12 +1858,14 @@ function renderManage() {
     </div>
     <div class="about" id="about">App v${APP_VERSION} · checklists v${read(VER_KEY, DEFAULTS_VERSION)}${isPristine(lists) ? '' : ' (edited)'}${updateWaiting() ? ' · v' + DEFAULTS_VERSION + ' available' : ''} · <span id="offline">checking offline copy…</span></div>
   </div>`;
-  if ('caches' in window) caches.keys().then(ks => Promise.all(ks.map(k => caches.open(k).then(c => c.keys())))).then(all => {
-    const n = [].concat(...all).length, el = document.getElementById('offline');
-    if (el) el.textContent = n >= 6 ? 'offline ready' : 'offline copy incomplete — open once with internet';
+  if ('caches' in window) Promise.all(OFFLINE_FILES.map(f => caches.match(f, { ignoreSearch: true }))).then(hits => {
+    const el = document.getElementById('offline');
+    if (el) el.textContent = hits.every(Boolean) ? 'offline ready' : 'offline copy incomplete — open once with internet';
   }).catch(() => {});
 }
 
+// the files the app needs in airplane mode (sw.js caches them)
+const OFFLINE_FILES = ['./', 'index.html', 'defaults.js', 'perf.js', 'charts.js'].concat(['8-2', '8-3', '8-4', '8-5', '8-6', '8-7', '8-8', '8-13', '8-14'].map(c => 'charts/' + c + '.jpg'));
 let draft = null;
 function renderEditor(id) {
   if (!draft || draft.id !== id) {
@@ -1463,17 +1911,19 @@ function route(keepScroll) {
   if (location.hash !== lastHash) { lastHash = location.hash; Object.keys(layoutKeep).forEach(k => delete layoutKeep[k]); }
   const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
   if (p[0] !== 'edit') draft = null;
-  if (p[0] !== 'data') dataReturn = location.hash || '#/';
+  if (p[0] !== 'data' && p[0] !== 'plan') dataReturn = location.hash || '#/';
   let gpath = '';
   try { gpath = decodeURIComponent(p.slice(1).join('/')); } catch (e) { gpath = ''; }
+  planRefresh();
   if (p[0] === 'list') renderList(p[1]);
   else if (p[0] === 'data') renderData();
+  else if (p[0] === 'plan') { if (p[1] === 'chart') renderPlanChart(p[2]); else renderPlan(); }
   else if (p[0] === 'g') renderGroup(gpath);
   else if (p[0] === 'edit') p[1] ? renderEditor(p[1]) : renderManage();
   else renderHome();
   setWake(p[0] !== 'edit');
   if (!keepScroll) window.scrollTo(0, 0);
-  document.body.style.overflow = p[0] === 'edit' || p[0] === 'data' ? '' : 'hidden';
+  document.body.style.overflow = p[0] === 'edit' || p[0] === 'data' || p[0] === 'plan' ? '' : 'hidden';
   reloadIfSafe();
 }
 addEventListener('hashchange', () => route());
@@ -1548,9 +1998,19 @@ $app.addEventListener('click', e => {
       openPad(keys, t.dataset.act === 'padfrom' ? +t.dataset.i : 0); break;
     }
     case 'copydep':   // pattern work: arrival wind & runway = departure
-      ['wdir', 'wspd', 'gust', 'rwy', '_t'].forEach(f => { if (fd['dep.' + f] !== undefined) fd['arr.' + f] = fd['dep.' + f]; else delete fd['arr.' + f]; });
+      ['wdir', 'wspd', 'gust', 'rwy', 'wref', '_t'].forEach(f => { if (fd['dep.' + f] !== undefined) fd['arr.' + f] = fd['dep.' + f]; else delete fd['arr.' + f]; });
       saveFd(); rerender(); break;
     case 'wakehint': write('wakehint.v1', true); renderHome(); break;
+    case 'planfrom': openPad([t.dataset.k]); break;
+    case 'planall': openPad(t.dataset.set === 'wx' ? PLAN_WX.map(f => f.k) : PLAN_WB.map(x => x.k).concat(PLAN_FUEL.map(f => f.k))); break;
+    case 'planset':
+      if (t.dataset.k === 'chartview') { chartView = t.dataset.v; write('chartview.v1', chartView); rerender(); break; }
+      fd[t.dataset.k] = t.dataset.v; saveFd(); rerender(); break;
+    case 'planempty': openPad(['cfg.ew', 'cfg.em']); break;
+    case 'planuse': delete fd[t.dataset.k]; saveFd(); rerender(); break;
+    case 'planreset': planCfg = Object.assign({}, EMPTY_DEFAULT, planCfg.magvar !== undefined ? { magvar: planCfg.magvar } : {}); write(PLAN_CFG_KEY, planCfg); rerender(); break;
+    case 'magvar': openPad(['cfg.magvar']); break;
+    case 'wref': if (isTrue(t.dataset.tab)) delete fd[t.dataset.tab + '.wref']; else fd[t.dataset.tab + '.wref'] = 'T'; fd._t = Date.now(); saveFd(); rerender(); break;
     case 'newflight': {
       // keeps this flight's Hobbs/tach start times, which are recorded before the wind and takeoff data
       const keep = {}, t0 = fd._t; ['out.hobbs', 'out.ltach', 'out.rtach'].forEach(k => { if (fd[k] !== undefined) keep[k] = fd[k]; });
