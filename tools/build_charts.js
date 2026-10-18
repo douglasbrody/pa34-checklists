@@ -4,14 +4,16 @@
 const fs = require('fs'), path = require('path');
 const root = path.join(__dirname, '..');
 const PC = new Function(fs.readFileSync(path.join(root, 'perf.js'), 'utf8') + '; return PERFCHART;')();
-const IDS = ['8-2', '8-3', '8-4', '8-5', '8-6', '8-7', '8-8', '8-13', '8-14'];
+const IDS = ['8-2', '8-3', '8-4', '8-5', '8-6', '8-7', '8-8', '8-9', '8-10', '8-13', '8-14', '8-16'];   // 8-16: the power setting table (data, no image)
 const out = {};
 for (const id of IDS) {
   const c = JSON.parse(fs.readFileSync(path.join(__dirname, 'charts', id + '.json'), 'utf8'));
   delete c.factor; delete c.factorNote;
+  if (!c.panels) { out[id] = c; console.log(id.padEnd(5), 'table'); continue; }   // a table, not a chart
   c.img = 'charts/' + id + '.jpg';
   c.yTitle = { '8-2': 'TAKEOFF GROUND RUN — FT', '8-3': 'TAKEOFF GROUND RUN — FT', '8-4': 'TAKEOFF DISTANCE OVER 50 FT — FT', '8-5': 'TAKEOFF DISTANCE OVER 50 FT — FT',
     '8-6': 'ACCELERATE-STOP DISTANCE — FT', '8-13': 'LANDING GROUND RUN — FT', '8-14': 'LANDING DISTANCE OVER 50 FT — FT' }[id];
+  if (!c.example) { out[id] = c; console.log(id.padEnd(5), 'no printed example'); continue; }   // 8-9 / 8-10
   const ex = c.example, r = PC.read(JSON.parse(JSON.stringify(c)), ex), raw = r.raw;
   if (raw === null) throw new Error(id + ': the printed example does not read');
   const climb = c.kind === 'climb', f = ex.answer / raw;

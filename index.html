@@ -235,7 +235,7 @@
   .fit.scroll { overflow-x: hidden; }
   .seg { display: flex; flex: none; }
   .seg button { min-height: 50px; min-width: 50px; padding: 0 14px; border: 2px solid var(--line); background: var(--bg); font-weight: 800; font-size: 16px; }
-  .seg button:first-child { border-radius: 12px 0 0 12px; } .seg button:last-child { border-radius: 0 12px 12px 0; margin-left: -2px; }
+  .seg button:first-child { border-radius: 12px 0 0 12px; } .seg button:last-child { border-radius: 0 12px 12px 0; } .seg button + button { margin-left: -2px; }
   .seg button.on { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
   .wbt { width: 100%; border-collapse: collapse; margin: 6px 0 10px; font-size: 16px; }
   .wbt th { text-align: right; color: var(--muted); font-size: 13px; text-transform: uppercase; padding: 6px 8px; }
@@ -264,6 +264,9 @@
   [data-theme="red"] .pc-svg .pc-path, [data-theme="red"] .pc-svg .pc-input, [data-theme="red"] .pc-svg .pc-ceil { stroke: #ff3b2b !important; }
   [data-theme="red"] .pc-svg .pc-dot, [data-theme="red"] .pc-svg .pc-label { fill: #ff3b2b !important; }
   .pad-err { color: var(--warnc); font-weight: 800; font-size: 17px; margin-top: 4px; }
+  .wbt.rng td small { display: block; font-size: 13px; font-weight: 650; color: var(--muted); }
+  .wbt.rng tr.sel td { background: var(--hl-bg); }
+  [data-theme="night"] .wbt.rng tr.sel td small { color: #d0d0d0; } [data-theme="red"] .wbt.rng tr.sel td small { color: #ff9a90; }
   .chartbox.clean { background: var(--card); padding: 4px 2px; }
 
   .chartbox .pc-clean { display: block; width: 100%; height: auto; }
@@ -358,7 +361,7 @@
     .dsec-head h2 { flex: 1 0 100%; margin-bottom: 8px; font-size: 21px; }
     .dsec-head .small-btn { margin: 0 10px 0 0; }
     .key.big.same { font-size: 20px; }
-    .prow { flex-wrap: wrap; } .prow .pval { margin-left: auto; flex: 0 1 auto; max-width: 100%; } .pval small { white-space: normal; }
+    .prow { flex-wrap: wrap; } .prow .pval { margin-left: auto; flex: 0 1 auto; max-width: 100%; } .pval small { white-space: normal; } .prow .seg { margin-left: 0; margin-top: 6px; }
     .cg-tick, .cg-lab { font-size: 24px; }
     .chartbox { overflow-x: auto; -webkit-overflow-scrolling: touch; } .chartin { min-width: 660px; }
     .pval { font-size: 22px; }
@@ -504,7 +507,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 47;
+const APP_VERSION = 48;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -739,8 +742,8 @@ function fmt(k) {
   const f = k.split('.')[1];
   if (f === 'wdir') return v === 'VRB' ? 'VRB' : v.padStart(3, '0') + '°' + (isTrue(k.split('.')[0]) ? 'T' : '');   // T = true (METAR)
   if (f === 'ew') return thousands((+v).toFixed(1));
-  if (/^(len|secl|todist|asd|pa|apa|ldglen|em)$/.test(f)) return String(v).replace(/^(-?)(\d+)/, (m, sg, d) => (sg ? '−' : '') + thousands(d));
-  if (/^(oat|aoat)$/.test(f)) return String(v).replace('-', '−');
+  if (/^(len|secl|todist|asd|pa|apa|cpa|ldglen|em)$/.test(f)) return String(v).replace(/^(-?)(\d+)/, (m, sg, d) => (sg ? '−' : '') + thousands(d));
+  if (/^(oat|aoat|coat|chw)$/.test(f)) return String(v).replace('-', '−');
   if (f === 'magvar') return varText(+v);
   return v;
 }
@@ -980,7 +983,7 @@ function commitPad() {
   if (f.kind === 'rwy' || fld === 'wspd' || fld === 'gust' || side === 'plan' || side === 'cfg') b = b.replace(/^(-?)0+(?=\d)/, '$1');   // '08' -> '8'
   const n = parseFloat(b);
   const range = { pilot: [0, 400], front: [0, 400], ctrl: [0, 400], ctrr: [0, 400], rear: [0, 600], jump: [0, 400], fwdbag: [0, 300], aftbag: [0, 300],
-    fuel: [0, FUEL_MAX], time: [0, 12], oat: [-50, 55], aoat: [-50, 55], pa: [-1500, 25000], apa: [-1500, 25000], ldglen: [500, 20000], ew: [1500, 4200], em: [100000, 400000], magvar: [-30, 30] }[fld];
+    fuel: [0, FUEL_MAX], time: [0, 12], oat: [-50, 55], aoat: [-50, 55], pa: [-1500, 25000], apa: [-1500, 25000], ldglen: [500, 20000], ew: [1500, 4200], em: [100000, 400000], magvar: [-30, 30], cpa: [-1500, 25000], coat: [-60, 50], chw: [-99, 99] }[fld];
   if ((side === 'plan' || side === 'cfg') && range && !(n >= range[0] && n <= range[1] && /\d/.test(b) && !/\.$/.test(b))) {
     pad.err = !/\d$/.test(b) ? 'Finish the number' : fld === 'magvar' ? 'Allowed 30° E to 30° W' : 'Allowed ' + sgn(range[0]) + ' to ' + sgn(range[1]) + (f.unit ? ' ' + f.unit : '');
     shake(); renderPad(); return false;
@@ -1209,7 +1212,7 @@ const PLAN_CFG = [
 PLAN_WB.forEach(s => { FIELD[s.k] = { k: s.k, label: s.label, max: 3, unit: 'LB' }; });
 PLAN_FUEL.concat(PLAN_WX, PLAN_ARR, PLAN_CFG).forEach(f => { FIELD[f.k] = f; });
 const MTOW = 4200, MLW = 4000, MZFW = 4000, AFT_CG = 94.6, FUEL_MAX = 93, LB_GAL = 6, TAXI_GAL = 3;
-const GPH = { 65: 18.3, 75: 20.6 };   // both engines, POH 1-1
+const GPH = { 45: 14.0, 55: 16.0, 65: 18.3, 75: 20.6 };   // both engines, POH 8-10 (and 1-1)
 // forward CG limit (POH 3-3): 80.7 in up to 2,780 lb, 82.0 at 3,400, 87.9 at 4,200, straight lines between
 function fwdCg(w) { return w <= 2780 ? 80.7 : w <= 3400 ? 80.7 + (w - 2780) * 1.3 / 620 : 82.0 + (w - 3400) * 5.9 / 800; }
 const pnum = k => { const v = getV(k); if (v === undefined || v === null || typeof v === 'object' || String(v).trim() === '' || !isFinite(+v)) return null; return WB_KEEP.test(k) && +v < 0 ? null : +v; };
@@ -1225,7 +1228,7 @@ function planWB() {
     W.rows.push({ label: s.label, w: v, arm: ARMS[s.arm], m: v * ARMS[s.arm] });
     if (s.limit && v > s.limit) W.flags.push({ bad: true, cat: 'wb', text: s.label + ' ' + lbs(v) + ' LB — limit ' + s.limit + ' LB' });
   });
-  const gal = pnum('plan.fuel') || 0, hr = pnum('plan.time') || 0, power = fd['plan.power'] === '75' ? 75 : 65;   // blank = 0
+  const gal = pnum('plan.fuel') || 0, hr = pnum('plan.time') || 0, power = { 45: 45, 55: 55, 65: 65, 75: 75 }[fd['plan.power']] || 65;   // blank = 0
   W.hr = hr;
   W.zfw = W.rows.reduce((a, r) => a + r.w, 0); W.zfm = W.rows.reduce((a, r) => a + r.m, 0);
   {
@@ -1371,7 +1374,7 @@ function perfRow(label, r, extra, chart) {
 function planCards(keys) {
   return `<div class="fields">${keys.map(f => {
     if (WB_KEEP.test(f.k) && pnum(f.k) === null) return `<button class="field" data-act="planfrom" data-k="${f.k}"><small>${esc(f.label)}</small><span class="blank">0${f.unit ? '\u00a0<small>' + esc(f.unit) + '</small>' : ''}</span></button>`;   // blank = 0
-    const v = fmt(f.k), u = unitFor(f, v);
+    const v = pnum(f.k) === null ? '' : fmt(f.k), u = unitFor(f, v);
     return `<button class="field" data-act="planfrom" data-k="${f.k}"><small>${esc(f.label)}</small><span class="${v ? 'val' : 'blank'}">${v ? esc(v) + (u ? '\u00a0<small>' + esc(u) + '</small>' : '') : 'tap to enter'}</span></button>`;
   }).join('')}</div>`;
 }
@@ -1406,7 +1409,7 @@ function renderPlan() {
       ${W.complete ? `<tr class="tot"><td>Ramp</td><td>${lbs(W.rampW)}</td><td>${(W.rampM / W.rampW).toFixed(2)}</td><td>${lbs(W.rampM)}</td></tr>
       <tr><td>Taxi fuel ${W.taxiGal} gal</td><td>${negLb(W.taxiGal * LB_GAL)}</td><td>${ARMS.fuel}</td><td>${negLb(W.taxiGal * LB_GAL * ARMS.fuel)}</td></tr>
       <tr class="tot"><td>Takeoff</td><td>${lbs(W.tow)}</td><td>${W.cgTo.toFixed(2)}</td><td>${lbs(W.tom)}</td></tr>
-      <tr><td>Fuel burn ${W.hr} h at ${W.power}% (${GPH[W.power]} gph = ${galUp(W.needGal)} gal${W.burnGal < W.needGal - 1e-9 ? `; only ${galDown(W.burnGal)} on board` : ''})</td><td>${negLb(W.burnGal * LB_GAL)}</td><td>${ARMS.fuel}</td><td>${negLb(W.burnGal * LB_GAL * ARMS.fuel)}</td></tr>
+      <tr><td>Fuel burn ${W.hr} h at ${W.power}% (${GPH[W.power].toFixed(1)} gph = ${galUp(W.needGal)} gal${W.burnGal < W.needGal - 1e-9 ? `; only ${galDown(W.burnGal)} on board` : ''})</td><td>${negLb(W.burnGal * LB_GAL)}</td><td>${ARMS.fuel}</td><td>${negLb(W.burnGal * LB_GAL * ARMS.fuel)}</td></tr>
       <tr class="tot"><td>Landing</td><td>${lbs(W.lw)}</td><td>${W.cgLdg.toFixed(2)}</td><td>${lbs(W.lm)}</td></tr>` : ''}</table>` : '';
   const flags = W.flags.length ? `<ul class="flags">${W.flags.map(f => `<li class="${f.bad ? 'bad' : 'good'}">${f.bad ? '✕' : '✓'} ${esc(f.text)}</li>`).join('')}</ul>` : '';
   const lenTxt = lenOk() ? thousands(fd['tob.len']) + ' FT' : fd['tob.len'] ? `<span class="warn">${thousands(fd['tob.len'])} FT was for RWY ${esc(fd['tob.lenFor'] || '')} — re‑enter</span>` : 'not entered';
@@ -1440,7 +1443,7 @@ function renderPlan() {
       <div class="dsec-head"><h2>Weight &amp; balance</h2><button class="small-btn go" data-act="planall" data-set="wb">Enter</button></div>
       <p class="pmeta">Kept from flight to flight until you clear it. A blank entry counts as 0.</p>
       ${planCards(PLAN_WB.map(s => FIELD[s.k]).concat(PLAN_FUEL))}
-      <div class="prow"><div class="plab">Fuel burn rate (POH 1-1)</div>${toggle('plan.power', [['65', '65% · 18.3 gph'], ['75', '75% · 20.6 gph']], fd['plan.power'] === '75' ? '75' : '65')}</div>
+      <div class="prow"><div class="plab">Cruise power<small class="pnote">fuel burn ${GPH[W.power].toFixed(1)} gph (POH 8-10)</small></div>${toggle('plan.power', [['45', '45%'], ['55', '55%'], ['65', '65%'], ['75', '75%']], String(W.power))}</div>
       ${wbTable}${flags}${cgPlot(W)}
       <div class="actions wbclear"><button class="small-btn danger" data-act="wbclear">Clear W&amp;B entries</button></div>
     </section>
@@ -1455,23 +1458,123 @@ function renderPlan() {
       <div class="dsec-head"><h2>Performance (POH Section 8)</h2></div>
       ${perf}
     </section>
+    ${cruiseHtml(W)}
     <div class="data-foot">${footer('', false)}</div>
   </div>`;
   fitFields();
+}
+// Range & endurance (POH 8-9 true airspeed, 8-10 range, 8-16 power settings) with the fuel left after taxi, at each
+// cruise power. The POH charts are for 4,200 lb, 2400 RPM best economy, leaned; a lighter airplane does a little better.
+const PLAN_CRUISE = [
+  { k: 'plan.cpa', label: 'Cruise pressure altitude', max: 5, unit: 'FT', extra: '−' },
+  { k: 'plan.coat', label: 'Cruise temperature (blank = standard)', max: 2, unit: '°C', extra: '−' },
+  { k: 'plan.chw', label: 'Average headwind (− = tailwind)', max: 2, unit: 'KT', extra: '−' }];
+PLAN_CRUISE.forEach(f => { FIELD[f.k] = f; });
+const POWERS = [75, 65, 55, 45], RES_GAL = 12, USABLE_GAL = 93;   // reserve: 45 min at 55 % (16.0 gph)
+// manifold pressure for a power at 2400 RPM (POH 8-16), corrected 0.16 in per 10 °F from standard temperature
+function mpFor(power, pa, oatC) {
+  const T = typeof POH_CHARTS !== 'undefined' && POH_CHARTS['8-16'], col = T && T.rpm2400 && T.rpm2400[String(power)];
+  if (!col || pa < -1500 || pa > T.pa[T.pa.length - 1]) return null;
+  const corr = std => 0.016 * ((oatC * 1.8 + 32) - std);   // 0.16 in per 10 °F: add above standard
+  if (pa < T.pa[0]) return typeof col[0] === 'number' ? { mp: Math.round((col[0] + corr(T.stdTempF[0] - 3.57 * pa / 1000)) * 10) / 10 } : null;
+  let i = 0; while (i < T.pa.length - 2 && pa > T.pa[i + 1]) i++;
+  const a = col[i], b = col[i + 1], t = (pa - T.pa[i]) / (T.pa[i + 1] - T.pa[i]), std = T.stdTempF[i] + (T.stdTempF[i + 1] - T.stdTempF[i]) * t;
+  if (a === 'FT' || (t === 0 && a === 'FT')) return { ft: true };
+  if (typeof a !== 'number') return null;
+  if (t > 0 && b === 'FT') {   // between the last figure and full throttle: the figure carried on, or full throttle
+    const prev = i > 0 && typeof col[i - 1] === 'number' ? col[i - 1] : a;
+    return { mp: Math.round((a + (a - prev) * t + corr(std)) * 10) / 10, orFt: true };
+  }
+  if (t > 0 && typeof b !== 'number') return null;
+  return { mp: Math.round((a + (b - a) * t + corr(std)) * 10) / 10 };
+}
+// 8-9's 45 % line starts at 140 MPH (2,800 ft); below that its straight line is carried on (down to 2,000 ft below sea level)
+function tasCarried(c, pw, da) {
+  const ln = c.panels.main.lines.filter(l => +l.power === pw && !l.reserve)[0]; if (!ln) return null;
+  const p = ln.pts.slice().sort((a, b) => a[1] - b[1]), a = p[0], b = p[1];
+  return da < a[1] && da >= -2000 ? a[0] + (b[0] - a[0]) * (da - a[1]) / (b[1] - a[1]) : null;
+}
+function planCruise(W) {
+  const C = typeof POH_CHARTS !== 'undefined' ? POH_CHARTS : null, out = { rows: [] };
+  if (!C || !C['8-9'] || !C['8-10'] || typeof PERFCHART === 'undefined') { out.missing = 'the POH charts did not load'; return out; }
+  const inRange = (v, a, b) => v !== null && v >= a && v <= b ? v : null;   // stored values outside the keypad ranges count as blank
+  const cpa = inRange(pnum('plan.cpa'), -1500, 25000);
+  if (cpa === null) { out.missing = 'cruise pressure altitude'; return out; }
+  const tIn = inRange(pnum('plan.coat'), -60, 50), isa = 15 - 1.98 * cpa / 1000;
+  out.cpa = cpa; out.isa = tIn === null; out.oat = tIn !== null ? tIn : Math.round(isa * 10) / 10;
+  out.da = PERFCHART.densityAltitude(cpa, tIn !== null ? tIn : isa); out.hw = inRange(pnum('plan.chw'), -99, 99) || 0;
+  out.gal = W && W.complete ? Math.min(Math.max(0, W.toGal), USABLE_GAL - TAXI_GAL) : null;
+  const hwMph = out.hw * KT_MPH;
+  POWERS.forEach(pw => {
+    const gph = GPH[pw], row = { pw: pw, gph: gph };
+    row.tasR = PERFCHART.read(C['8-9'], { da: out.da, power: pw });
+    row.rngR = PERFCHART.read(C['8-10'], { da: out.da, power: pw, reserve: false });
+    row.unavailable = !!(row.tasR.unavailable || row.rngR.unavailable);
+    row.below = !row.unavailable && row.rngR.value === null;   // colder / lower than the charts go
+    if (!row.unavailable && !row.below) {
+      row.tas = row.tasR.value !== null ? row.tasR.raw : tasCarried(C['8-9'], pw, out.da);   // 45 % low down: its 8-9 line starts at 140 MPH
+      row.tasFrom = row.tasR.value !== null ? '8-9' : row.tas !== null ? 'carried' : null;
+      if (out.gal !== null && out.gal > 0) {
+        row.endur = out.gal / gph; row.endurRes = Math.max(0, out.gal - RES_GAL) / gph;
+        const air = row.rngR.value !== null ? row.rngR.raw * out.gal / USABLE_GAL : row.tas !== null ? row.tas * row.endur : null;   // still air
+        if (air !== null && row.tas) {
+          row.gs = row.tas - hwMph; const f = row.gs > 0 ? row.gs / row.tas : 0;
+          row.range = air * f; row.rangeRes = air * Math.max(0, out.gal - RES_GAL) / out.gal * f;
+        }
+      }
+      row.mp = mpFor(pw, cpa, out.oat);
+    }
+    out.rows.push(row);
+  });
+  return out;
+}
+const hmm = h => { const m = Math.floor(h * 60 + 1e-9); return Math.floor(m / 60) + ':' + String(m % 60).padStart(2, '0'); };
+const sm10 = v => thousands(Math.floor(v / 10 + 1e-9) * 10), nm10 = v => thousands(Math.floor(v * 0.868976 / 10 + 1e-9) * 10);
+function cruiseHtml(W) {
+  const R = planCruise(W), sel = W.power;
+  let h = `<section class="dsec">
+      <div class="dsec-head"><h2>Range &amp; endurance</h2><button class="small-btn go" data-act="planall" data-set="cruise">Enter</button></div>
+      ${planCards(PLAN_CRUISE)}`;
+  if (R.missing) return h + `<p class="pmeta">To read range and endurance, enter: <b>${esc(R.missing)}</b>.</p></section>`;
+  h += `<p class="pmeta">${R.gal !== null ? galDown(R.gal) + ' gal after taxi' : '<span class="warn">complete the weight &amp; balance for the fuel</span>'} · cruise ${sgn(R.cpa)} FT · ${sgn(R.oat)}\u00a0°C${R.isa ? ' (standard)' : ''} · density altitude ${sgn(Math.round(R.da))} · ${R.hw > 0 ? 'headwind ' + R.hw + ' KT' : R.hw < 0 ? 'tailwind ' + (-R.hw) + ' KT' : 'still air'}</p>
+    <table class="wbt rng"><tr><th>Power</th><th>TAS</th><th>Time</th><th>Range</th></tr>
+    ${R.rows.map(r => {
+      const mp = !r.mp ? '' : r.mp.ft ? ' · full throttle' : ' · ' + r.mp.mp.toFixed(1) + '\u00a0in' + (r.mp.orFt ? ' or full throttle' : '');
+      const head = `<td><b>${r.pw}%</b><small>${r.gph.toFixed(1)}\u00a0gph${mp}</small></td>`;
+      if (r.unavailable) return `<tr class="${r.pw === sel ? 'sel' : ''}">${head}<td colspan="3"><span class="warn">not available at this altitude (full throttle)</span></td></tr>`;
+      if (r.below) return `<tr class="${r.pw === sel ? 'sel' : ''}">${head}<td colspan="3"><span class="warn">below the POH charts (density altitude ${sgn(Math.round(R.da))})</span>${r.endur !== undefined ? '' : ''}</td></tr>`;
+      return `<tr class="${r.pw === sel ? 'sel' : ''}">${head}<td>${r.tas ? Math.floor(r.tas + 1e-9) : '—'}<small>MPH${r.tasFrom === 'carried' ? ' (line carried on)' : ''}</small></td>
+        <td>${r.endur !== undefined ? hmm(r.endur) : '—'}<small>${r.endurRes !== undefined ? 'reserve ' + hmm(r.endurRes) : ''}</small></td>
+        <td>${r.range !== undefined ? sm10(r.range) + '\u00a0SM' : '—'}<small>${r.range !== undefined ? nm10(r.range) + '\u00a0NM · reserve ' + sm10(r.rangeRes) + '\u00a0SM' : ''}</small></td></tr>`;
+    }).join('')}</table>
+    <p class="pmeta">Time and range use the fuel after taxi; “reserve” keeps 45 min at 55 % (12 gal). Speed from POH 8-9, range from POH 8-10 (4,200 lb, 2400 RPM best economy, leaned; the POH range is about 5 % less than speed × time, so it errs short)${R.hw ? ', in ground miles with the ' + (R.hw > 0 ? 'headwind' : 'tailwind') : ', still air'}. No separate allowance for climb or descent. Manifold pressure: POH 8-16 at 2400 RPM for this altitude and temperature. Your cruise power (W&amp;B fuel burn) is highlighted.</p>
+    <div class="actions"><button class="small-btn" data-go="#/plan/chart/8-9">POH 8-9 ›</button><button class="small-btn" data-go="#/plan/chart/8-10">POH 8-10 ›</button></div>
+  </section>`;
+  return h;
 }
 // One chart, with the reading drawn on it in red
 function renderPlanChart(id) {
   const P = planNow ? planNow.P : planPerf(), C = typeof POH_CHARTS !== 'undefined' ? POH_CHARTS : {}, c = C[id];
   let r = null;
   if (P.res) Object.keys(P.res).forEach(k => { if (P.res[k] && P.res[k].id === id) r = P.res[k]; });
-  if (!r && c && !P.missing.length) r = Object.assign(PERFCHART.read(c, c.kind === 'climb' ? { da: P.da, weight: P.W.tow } : { oatF: P.oatF, pa: P.pa, weight: P.W.tow, wind: P.dw.mph }), { id: id });
-  const inp = r && r.inputs ? r.inputs : null, unit = c && c.kind === 'climb' ? 'FPM' : 'FT';
+  let cruiseMissing = '';
+  if (!r && c && (c.kind === 'cruise' || c.kind === 'range')) {
+    const R = planCruise(P.W), row = R.rows.filter(x => x.pw === P.W.power)[0];
+    if (R.missing) cruiseMissing = R.missing;
+    if (row) {
+      r = Object.assign({}, c.kind === 'cruise' ? row.tasR : row.rngR, { id: id });
+      if (row.unavailable && r.value !== null) r = Object.assign({}, r, { value: null, segs: [], answerAt: null, notes: (r.notes || []).concat('not available at this altitude (full throttle; POH 8-9 / 8-10)') });
+      if (c.kind === 'cruise' && row.tasFrom === 'carried') r = Object.assign({}, r, { notes: (r.notes || []).concat('Planning carries the 45 % line on: ' + Math.floor(row.tas) + ' MPH') });
+    }
+  }
+  if (!r && c && c.kind !== 'cruise' && c.kind !== 'range' && !P.missing.length) r = Object.assign(PERFCHART.read(c, c.kind === 'climb' ? { da: P.da, weight: P.W.tow } : { oatF: P.oatF, pa: P.pa, weight: P.W.tow, wind: P.dw.mph }), { id: id });
+  const inp = r && r.inputs ? r.inputs : null, unit = !c ? 'FT' : { climb: 'FPM', cruise: 'MPH', range: 'SM' }[c.kind] || 'FT';
   // 8-8 also shows the single-engine service ceiling: up the 50 fpm line to the weight, across to the altitude scale
   const ceil = id === '8-8' && P.ceil && P.ceil.raw && c ? P.ceil : null;
   const scan = chartView === 'scan', dopts = { ceiling: ceil ? { raw: ceil.raw, value: ceil.value, fpm: 50 } : null };
   let pic = '';
   if (c) { try { pic = scan ? `<img src="${esc(c.img)}" alt="POH chart ${esc(id)} (scan)">${r && r.segs ? PERFCHART.overlay(c, r, dopts) : ''}` : PERFCHART.draw(c, r && r.inputs ? r : null, dopts); } catch (e) { pic = `<img src="${esc(c.img)}" alt="POH chart ${esc(id)} (scan)">`; } }
-  const desc = !inp ? (P.missing && !P.missing.length && c ? (c.kind === 'climb' ? `Density altitude ${sgn(Math.round(P.da))} FT · weight ${lbs(P.W.tow)} LB` : `${sgn(P.oatC)} °C (${sgn(Math.round(P.oatF * 10) / 10)} °F) · pressure altitude ${sgn(P.pa)} FT · weight ${lbs(/^8-1[34]$/.test(id) ? P.W.lw : P.W.tow)} LB · ${windWords(/^8-1[34]$/.test(id) ? P.aw : P.dw)}`) : '') : c.kind === 'climb'
+  const desc = cruiseMissing ? 'To read this chart, enter the ' + cruiseMissing + ' (Planning › Range & endurance)' : inp && c && (c.kind === 'cruise' || c.kind === 'range') ? `Density altitude ${sgn(Math.round(inp.da))} FT · ${inp.power}% power${c.kind === 'range' ? ' · 93 gal, no reserve' : ''}` : !inp ? (P.missing && !P.missing.length && c ? (c.kind === 'climb' ? `Density altitude ${sgn(Math.round(P.da))} FT · weight ${lbs(P.W.tow)} LB` : `${sgn(P.oatC)} °C (${sgn(Math.round(P.oatF * 10) / 10)} °F) · pressure altitude ${sgn(P.pa)} FT · weight ${lbs(/^8-1[34]$/.test(id) ? P.W.lw : P.W.tow)} LB · ${windWords(/^8-1[34]$/.test(id) ? P.aw : P.dw)}`) : '') : c.kind === 'climb'
     ? `Density altitude ${sgn(Math.round(inp.da))} FT · weight ${lbs(inp.weight)} LB${ceil ? ' · service ceiling ' + thousands(ceil.value) + ' FT (dotted line)' : ''}`
     : `${sgn(Math.round((inp.oatF - 32) / 1.8 * 10) / 10)} °C (${sgn(Math.round(inp.oatF * 10) / 10)} °F) · pressure altitude ${sgn(inp.pa)} FT · weight ${lbs(inp.weight)} LB · ${inp.wind < 0 ? 'tailwind ' + (-inp.wind) : 'headwind ' + inp.wind} MPH`;
   const factor = c && c.factorNote && r && r.value !== null && r.chartValue !== undefined
@@ -1873,7 +1976,7 @@ function renderManage() {
 }
 
 // the files the app needs in airplane mode (sw.js caches them)
-const OFFLINE_FILES = ['./', 'index.html', 'defaults.js', 'perf.js', 'charts.js'].concat(['8-2', '8-3', '8-4', '8-5', '8-6', '8-7', '8-8', '8-13', '8-14'].map(c => 'charts/' + c + '.jpg'));
+const OFFLINE_FILES = ['./', 'index.html', 'defaults.js', 'perf.js', 'charts.js'].concat(['8-2', '8-3', '8-4', '8-5', '8-6', '8-7', '8-8', '8-9', '8-10', '8-13', '8-14'].map(c => 'charts/' + c + '.jpg'));
 let draft = null;
 function renderEditor(id) {
   if (!draft || draft.id !== id) {
@@ -2010,7 +2113,7 @@ $app.addEventListener('click', e => {
       saveFd(); rerender(); break;
     case 'wakehint': write('wakehint.v1', true); renderHome(); break;
     case 'planfrom': openPad([t.dataset.k]); break;
-    case 'planall': openPad(t.dataset.set === 'wx' ? PLAN_WX.map(f => f.k) : PLAN_WB.map(x => x.k).concat(PLAN_FUEL.map(f => f.k))); break;
+    case 'planall': openPad(t.dataset.set === 'wx' ? PLAN_WX.map(f => f.k) : t.dataset.set === 'cruise' ? PLAN_CRUISE.map(f => f.k) : PLAN_WB.map(x => x.k).concat(PLAN_FUEL.map(f => f.k))); break;
     case 'planset':
       if (t.dataset.k === 'chartview') { chartView = t.dataset.v; write('chartview.v1', chartView); rerender(); break; }
       fd[t.dataset.k] = t.dataset.v; saveFd(); rerender(); break;

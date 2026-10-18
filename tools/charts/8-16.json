@@ -1,0 +1,44 @@
+{
+  "id": "8-16",
+  "page": "8-16",
+  "title": "Power setting table — Lycoming IO-360-C series, 200 HP",
+  "printedTitle": "Power Setting Table - Lycoming Model IO-360-C Series, 200 HP Engine",
+  "units": "manifold pressure, inches Hg; \"FT\" = full throttle; null = dash or blank cell",
+  "columnsPrinted": [
+    "Std. Alt Temp °F",
+    "110 HP - 55% Rated, RPM AND MAN. PRESS.: 2100, 2400",
+    "130 HP - 65% Rated, RPM AND MAN. PRESS.: 2100, 2400",
+    "150 HP - 75% Rated, RPM AND MAN. PRESS.: 2400",
+    "Press. Alt Feet"
+  ],
+  "hpByPct": { "55": 110, "65": 130, "75": 150 },
+  "has45pct": false,
+  "pa": [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000, 11000, 12000, 13000, 14000],
+  "stdTempF": [59, 55, 52, 48, 45, 41, 38, 34, 31, 27, 23, 19, 16, 12, 9],
+  "rpm2100": {
+    "55": [22.9, 22.7, 22.4, 22.2, 21.9, 21.7, 21.4, 21.2, 21.0, "FT", null, null, null, null, null],
+    "65": [25.9, 25.6, 25.4, 25.1, 24.8, "FT", null, null, null, null, null, null, null, null, null]
+  },
+  "rpm2400": {
+    "55": [20.4, 20.2, 20.0, 19.8, 19.5, 19.3, 19.1, 18.9, 18.7, 18.5, 18.3, 18.1, 17.8, 17.6, "FT"],
+    "65": [22.9, 22.7, 22.5, 22.2, 22.0, 21.7, 21.5, 21.3, 21.0, "FT", null, null, null, null, null],
+    "75": [25.5, 25.2, 25.0, 24.7, 24.4, "FT", null, null, null, null, null, null, null, null, null]
+  },
+  "nullCells": {
+    "rpm2100.55": "dash at 10,000-14,000",
+    "rpm2100.65": "dash at 6,000-9,000; blank at 10,000-14,000",
+    "rpm2400.65": "blank at 10,000-14,000",
+    "rpm2400.75": "dash at 6,000-7,000; blank at 8,000-14,000"
+  },
+  "correction": "[…]n constant power, correct manifold pressure approximately 0.16\" Hg for each 10°F variation in inlet air [...]e from standard altitude temperature. Add manifold pressure for air temperatures above standard; subtract for [...]es below standard.",
+  "correctionFull": "To maintain constant power, correct manifold pressure approximately 0.16\" Hg for each 10°F variation in inlet air temperature from standard altitude temperature. Add manifold pressure for air temperatures above standard; subtract for temperatures below standard.",
+  "correctionInHgPer10F": 0.16,
+  "uncertain": [
+    "Footnote: the left edge of the scan cuts off the start of each line of the footnote. What can be read is '…n constant power', '…e from standard altitude temperature' and '…es below standard.' The words 'To maintai[n]', '[temperatur]e' and '[temperatur]es' in correctionFull are a reconstruction, not a reading. Everything else in the sentence, including 0.16\" Hg, 10°F and 'inlet air', is clearly legible.",
+    "Table left edge: the scan also clips the table's left border (the 'S' of 'Std. Alt' is partly cut). A left-hand Press. Alt column could be out of frame, but the right-hand Press. Alt column is complete, so no data is missing.",
+    "55% / 2100 at 3,000 ft (48°F): there is a stray tick after the last digit ('22.2·'). Read as 22.2, which fits the -0.2/-0.3 steps in the column. The tick looks like a scan speck.",
+    "55% / 2100 at 12,000-14,000 ft: printed as a short double hyphen '--' rather than the long dash used above. Both treated as dash (null).",
+    "Std. Alt Temp: 31 at 8,000 ft, 19 at 11,000 ft and 12 at 13,000 ft are clearly printed, even though rounding the ISA values (30.5, 19.8, 12.6) would give 31/20/13. Transcribed as printed.",
+    "None of the manifold-pressure digits is uncertain: every cell was checked at 6x-10x zoom (6 vs 8 and 3 vs 8 included), and each column decreases smoothly in 0.2-0.3 in. steps."
+  ]
+}

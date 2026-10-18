@@ -18,6 +18,8 @@
 //               guides: [[[lb, out], ...], ...] }          // each guide line, from ref toward lighter weights
 //     wind:   { cal, x:[MPH min, MPH max] (negative = tailwind, only if the chart has tailwind lines), y:[...], ref: 0,
 //               guides: [[[mph, out], ...], ...] }
+//   panels (cruise kind = true airspeed, range kind): main: { cal, x:[MPH or statute miles], y:[DA], lines: [{ power: 65,
+//               reserve: true|false (range only), pts: [[x, DA], ...] }], limits: [{ label, pts }] (cruise: full-throttle lines) }
 //   panels (climb kind):
 //     main:  { cal, x:[fpm min, fpm max], y:[DA min, DA max], lines: [{ weight: 4200, pts: [[fpm, DA], ...] }, ...] }
 //     speed: (optional) { cal, x:[MPH min, MPH max], y:[DA min, DA max], lines: [{ weight: 4200 (or omitted), pts: [[mph, DA], ...] }] }
@@ -292,7 +294,36 @@ var PERFCHART = (function () {
     for (var n = 0; n < 60; n++) { var m = (l + h) / 2, fm = f(m); if (fm !== null && fm > 0) l = m; else h = m; }
     return { value: Math.floor(l / 100) * 100, raw: l, usedWeight: wt, note: wNote };   // ceilings rounded down
   }
-  function read(c, inp) { return c.kind === 'climb' ? readClimb(c, inp) : readDistance(c, inp); }
+  // CRUISE (true airspeed) and RANGE charts: one line per power setting (and, on the range chart, with / without the
+  // reserve); read across at the density altitude. A power is not available above the top of its line (full throttle).
+  function readPower(c, inp) {
+    var M = c.panels.main, notes = [], r = { chart: c.id, value: null, raw: null, notes: notes, outOfRange: false, segs: [] };
+    if (!inp || !num(inp.da) || !num(inp.power)) return fail(r, 'missing or invalid input');
+    var ln = M.lines.filter(function (l) { return +l.power === +inp.power && !!l.reserve === !!inp.reserve; })[0];
+    if (!ln) return fail(r, 'no ' + inp.power + ' % line on this chart');
+    var pts = ln.pts.slice().sort(function (a, b) { return a[1] - b[1]; }), da = inp.da, bottom = pts[0][1], top = pts[pts.length - 1][1], x;
+    r.inputs = { da: inp.da, power: +inp.power, reserve: !!inp.reserve, usedDa: Math.max(da, lo(M.y)) };   // drawn no lower than the chart's bottom
+    if (da > top + 1e-6) {
+      r.unavailable = true; fail(r, inp.power + ' % is not available above ' + th(Math.floor(top / 100) * 100) + ' ft density altitude (full throttle)');
+      if (da <= hi(M.y)) r.segs = [{ panel: 'main', kind: 'input', pts: [[M.x[0], da], [M.x[1], da]] }];   // the altitude line, above the end of the power line
+      return r;
+    }
+    var startsHigh = bottom > lo(M.y) + 1, leaves = 'the ' + inp.power + ' % line starts at ' + th(Math.round(bottom / 100) * 100) + ' ft (' + Math.round(pts[0][0]) + (c.kind === 'range' ? ' mi' : ' MPH') + ')';
+    if (da < bottom) {   // below where the line starts: its lowest (straight) segment carried on, at most 2,000 ft
+      if (bottom - da > 2000 || pts.length < 2) { r.below = true; return fail(r, startsHigh ? leaves + ': off the chart below that' : 'density altitude below the chart'); }
+      var a = pts[0], b = pts[1]; x = a[0] + (b[0] - a[0]) * (da - a[1]) / (b[1] - a[1]);
+      notes.push('line carried below ' + (bottom > 0 ? th(bottom) + '\u00a0ft' : 'sea level'));
+    } else x = xAt(pts, da);
+    if (x === null) return fail(r, 'outside the chart');
+    if (x < lo(M.x) - 1e-9) { r.below = true; return fail(r, startsHigh ? leaves + ': off the chart below that' : 'below the chart (under ' + lo(M.x) + (c.kind === 'range' ? ' mi' : ' MPH') + ')'); }
+    r.chartValue = x; r.raw = x;
+    r.value = c.kind === 'range' ? Math.floor(x / 10 + 1e-9) * 10 : Math.floor(x + 1e-9);   // rounded down
+    var dd = r.inputs.usedDa;
+    r.segs = [{ panel: 'main', kind: 'input', pts: [[M.x[0], dd], [x, dd]] }, { panel: 'main', kind: 'path', pts: [[x, dd], [x, M.y[0]]] }];
+    r.answerAt = ['main', x, M.y[0]];
+    return r;
+  }
+  function read(c, inp) { if (!c || !c.panels) return { chart: c && c.id, value: null, raw: null, notes: ['not a chart'], outOfRange: true, segs: [] }; return c.kind === 'climb' ? readClimb(c, inp) : c.kind === 'cruise' || c.kind === 'range' ? readPower(c, inp) : readDistance(c, inp); }
 
   // ---------- Drawing ----------
   // The reading is drawn either over the POH scan (overlay, image pixels) or on a clean redraw of the same traced
@@ -354,7 +385,7 @@ var PERFCHART = (function () {
       return { minX: Math.min(a[0], b[0]) + fs * 0.15, maxX: Math.max(a[0], b[0]) - fs * 0.15, minY: Math.min(a[1], b[1]), maxY: Math.max(a[1], b[1]) };
     };
     var opt = function (pn, extra) { return Object.assign(bounds(pn), { fs: fs }, extra); };
-    if (c.kind !== 'climb') {
+    if (c.kind !== 'climb' && c.kind !== 'cruise' && c.kind !== 'range') {   // distance charts
       var W = P.weight, V = P.wind, m = r.mid || {};
       var foot = function (pn, ux) { var q = map(pn, ux, lo(P[pn].y)); return [q[0], q[1] - fs * 1.2]; };
       var b = foot('temp', inp.usedOatF); fixed.push(tag(b[0], b[1], degC(inp.oatF) + ' °C · ' + th(inp.oatF) + ' °F', opt('temp', { anchor: 'middle' })));
@@ -369,6 +400,15 @@ var PERFCHART = (function () {
       if (r.answerAt && r.value !== null) {   // the answer: inside the last panel, just above the end of the red line
         var a = map(r.answerAt[0], r.answerAt[1], r.answerAt[2]);
         moving.push(tag(a[0] - fs * 0.5, a[1] - fs * 1.15, th(r.value) + ' FT', opt('wind', { fs: fs * 1.15, anchor: 'end', cls: 'pc-tag pc-ans' })));
+      }
+    } else if (c.kind === 'cruise' || c.kind === 'range') {
+      var Mp = P.main, mlp = bounds('main').minX, dp = map('main', Mp.x[0], inp.usedDa), dEndp = r.answerAt ? map('main', r.chartValue, inp.usedDa)[0] : bounds('main').maxX;
+      lineBoxes.push({ x0: mlp, w: dEndp - mlp, y: dp[1], h: c._sw * 2 });
+      fixed.push(tag(mlp + fs * 0.25, dp[1] - fs * 1.05, 'DA ' + th(inp.da), opt('main', { anchor: 'start' })));
+      if (r.answerAt && r.value !== null) {
+        var botp = map('main', r.chartValue, lo(Mp.y)), wp = map('main', r.chartValue, inp.usedDa);
+        fixed.push(tag(botp[0], botp[1] - fs * 1.2, th(r.value) + (c.kind === 'range' ? ' SM' : ' MPH'), opt('main', { fs: fs * 1.1, anchor: 'middle', cls: 'pc-tag pc-ans' })));
+        moving.push(tag(wp[0] + fs * 0.6, wp[1] - fs * 1.1, inp.power + '%' + (inp.reserve ? ' · RESERVE' : ''), opt('main', { anchor: 'start' })));
       }
     } else {
       var M = P.main, S = P.speed, ml = bounds('main').minX;
@@ -409,7 +449,7 @@ var PERFCHART = (function () {
   // pressure-altitude curves, guide lines and climb lines, and the reading. Colours come from the page (CSS variables).
   function layout(c) {
     if (c._L) return c._L;
-    var P = c.panels, names = c.kind === 'climb' ? ['main', 'speed'] : ['temp', 'weight', 'wind'], base = P[names[0]], box = {};
+    var P = c.panels, names = c.kind === 'climb' ? ['main', 'speed'] : c.kind === 'cruise' || c.kind === 'range' ? ['main'] : ['temp', 'weight', 'wind'], base = P[names[0]], box = {};
     names.forEach(function (n) {
       var p = P[n]; if (!p) return;
       var a = toPx(p, p.x[0], lo(p.y)), b = toPx(p, p.x[1], lo(p.y));
@@ -432,6 +472,8 @@ var PERFCHART = (function () {
     else if (pn === 'weight') { g.xs = steps(xa, xb, 200); g.xl = g.xs.filter(function (w) { return Math.abs((p.ref - w) % 400) < 1e-6; }); }
     else if (pn === 'wind') { g.xs = steps(xa, xb, 5); g.xl = steps(xa, xb, 10); }
     else if (pn === 'speed') { g.xs = steps(xa, xb, 2); g.xl = steps(xa, xb, 10); }
+    else if (c.kind === 'cruise') { g.xs = steps(xa, xb, 5); g.xl = steps(xa, xb, 10); }
+    else if (c.kind === 'range') { g.xs = steps(xa, xb, 50); g.xl = steps(xa, xb, 100); }
     else { var st = xb - xa > 1000 ? 100 : 50; g.xs = steps(xa, xb, st); g.xl = steps(xa, xb, st * 2); }
     var ys = span > 6000 ? 1000 : span > 1500 ? 200 : span > 1000 ? 100 : 50, yl = span > 6000 ? 2000 : span > 1500 ? 400 : span > 1000 ? 200 : 100;
     g.ys = steps(ya, yb, ys); g.yl = g.ys.filter(function (v) { return Math.abs((v - ya) % yl) < 1e-6; });
@@ -440,7 +482,7 @@ var PERFCHART = (function () {
   var TITLE = { temp: 'OUTSIDE AIR TEMPERATURE — °F', weight: 'GROSS WEIGHT — LB', wind: 'HEADWIND — MPH', main: 'RATE OF CLIMB — FT/MIN', speed: 'BEST RATE — MPH' };
   function draw(c, r, opts) {
     opts = opts || {};
-    var L = layout(c), P = c.panels, map = L.map, out = [], obstacles = [], fs = c.w / 52, climb = c.kind === 'climb';
+    var L = layout(c), P = c.panels, map = L.map, out = [], obstacles = [], fs = c.w / 52, climb = c.kind !== 'distance';   // DA up the left side
     c._sw = Math.max(3, c.w / 330); c._fs = fs;
     var line = function (pts, pn, cls) { return '<polyline class="' + cls + '" points="' + pts.map(function (q) { var v = map(pn, q[0], q[1]); return f1(v[0]) + ',' + f1(v[1]); }).join(' ') + '"/>'; };
     var text = function (x, y, t, cls, anchor, rot) { return '<text class="' + cls + '" x="' + f1(x) + '" y="' + f1(y) + '" text-anchor="' + (anchor || 'middle') + '"' + (rot ? ' transform="rotate(' + rot + ' ' + f1(x) + ' ' + f1(y) + ')"' : '') + ' font-size="' + f1(fs * (cls === 'pc-ttl' ? 0.82 : 0.9)) + '">' + xmlText(t) + '</text>'; };
@@ -459,7 +501,7 @@ var PERFCHART = (function () {
         if (climb ? (!first && Math.abs(x - bx.left) < fs * 1.5) : (!last && Math.abs(x - bx.right) < fs)) return;   // one number per shared border, as printed
         out.push(text(x, yBot + fs * 1.05, th(v), 'pc-tick'));
       });
-      out.push(text((bx.left + bx.right) / 2, yBot + fs * (climb ? 2.25 : 3.3), TITLE[pn], 'pc-ttl'));
+      out.push(text((bx.left + bx.right) / 2, yBot + fs * (climb ? 2.25 : 3.3), pn === 'main' && c.kind === 'cruise' ? 'TRUE AIRSPEED — MPH' : pn === 'main' && c.kind === 'range' ? 'RANGE — STATUTE MILES' : TITLE[pn], 'pc-ttl'));
       if (pn === 'temp') [-10, 0, 10, 20, 30].forEach(function (cv) {   // °C under the °F scale: a tick every 10 °C, a number every 20 °C (room for them)
         var x = map(pn, cv * 1.8 + 32, 0)[0]; out.push('<line class="pc-frame" x1="' + f1(x) + '" y1="' + f1(yBot) + '" x2="' + f1(x) + '" y2="' + f1(yBot + fs * 0.3) + '"/>');
         if (cv % 20) out.push(text(x, yBot + fs * 2.1, (cv < 0 ? '−' : '') + Math.abs(cv) + ' °C', 'pc-tick pc-c'));
@@ -472,7 +514,25 @@ var PERFCHART = (function () {
         out.push(text(bx.left - fs * 0.35, yTop - fs * 0.5, 'PA (FT)', 'pc-ttl', 'end'));
       }
       if (pn === 'weight' || pn === 'wind') p.guides.forEach(function (gd) { inner.push(line(gd, pn, 'pc-guide')); });
-      if (pn === 'main') {
+      var rotLabel = function (pts, frac, lab, cls, below) {   // a label along a line, kept clear of by the tags
+        var k = Math.min(pts.length - 2, Math.max(0, Math.floor(pts.length * frac))), a = map(pn, pts[k][0], pts[k][1]), b = map(pn, pts[k + 1][0], pts[k + 1][1]);
+        var mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, ang = Math.atan2(b[1] - a[1], b[0] - a[0]) * 180 / Math.PI; if (ang > 90) ang -= 180; if (ang < -90) ang += 180;
+        var rad = ang * Math.PI / 180, nx = Math.sin(rad), ny = -Math.cos(rad), d = (below ? -1 : 1) * fs * 0.62;   // off the line, square to it
+        var lx = mx + nx * d, ly = my + ny * d; out.push(text(lx, ly + fs * 0.32, lab, cls + ' pc-lab', 'middle', ang.toFixed(1)));
+        var tw = lab.length * fs * 0.52, bw = Math.abs(tw * Math.cos(rad)) + Math.abs(fs * Math.sin(rad)), bh = Math.abs(tw * Math.sin(rad)) + Math.abs(fs * Math.cos(rad));
+        obstacles.push({ x0: lx - bw / 2, w: bw, y: ly, h: bh });
+      };
+      if (pn === 'main' && (c.kind === 'cruise' || c.kind === 'range')) {
+        var srt = function (pts) { return pts.slice().sort(function (a, b) { return a[1] - b[1]; }); };
+        (p.limits || []).forEach(function (l) { inner.push(line(srt(l.pts), pn, 'pc-guide pc-dash')); rotLabel(srt(l.pts), 0.45, l.label, 'pc-tick', true); });
+        p.lines.forEach(function (l) {
+          var pts = srt(l.pts); inner.push(line(pts, pn, 'pc-curve' + (l.reserve ? ' pc-dash' : '')));
+          rotLabel(pts, l.reserve ? 0.75 : 0.55, l.power + '%' + (l.reserve ? ' RES' : ''), 'pc-tick pc-strong', false);
+        });
+        g.yl.forEach(function (v) { if (v <= hi(p.y)) out.push(text(bx.left - fs * 0.35, L.Y(v) + (v > lo(p.y) ? fs * 0.32 : -fs * 0.15), th(v), 'pc-tick', 'end')); });
+        out.push(text(bx.left - fs * 3.3, (yTop + yBot) / 2, 'DENSITY ALTITUDE — FT', 'pc-ttl', 'middle', -90));
+      }
+      if (pn === 'main' && c.kind === 'climb') {
         p.lines.forEach(function (l) {
           inner.push(line(l.pts, pn, 'pc-curve'));
           var k = Math.floor(l.pts.length * 0.45), a = map(pn, l.pts[k][0], l.pts[k][1]), b = map(pn, l.pts[Math.min(k + 1, l.pts.length - 1)][0], l.pts[Math.min(k + 1, l.pts.length - 1)][1]);
@@ -519,7 +579,7 @@ var PERFCHART = (function () {
     return '<svg class="pc-clean" viewBox="' + [x0, y0, x1 - x0, y1 - y0].map(f1).join(' ') + '" role="img" aria-label="' + xmlText(c.title || 'POH chart') + '">' +
       '<style>.pc-bg{fill:var(--card,#fff)}.pc-grid{stroke:var(--line,#ccc);stroke-width:' + f1(c.w / 900) + '}.pc-frame{fill:none;stroke:var(--fg,#000);stroke-width:' + f1(c.w / 500) + '}' +
       '.pc-curve{fill:none;stroke:var(--fg,#000);stroke-width:' + f1(c.w / 420) + ';stroke-linejoin:round}.pc-guide{fill:none;stroke:var(--fg,#000);stroke-opacity:.5;stroke-width:' + f1(c.w / 650) + '}.pc-dash{stroke-dasharray:' + f1(c.w / 120) + ' ' + f1(c.w / 200) + '}.pc-speed{stroke-opacity:.8;stroke-width:' + f1(c.w / 520) + '}' +
-      '.pc-tick,.pc-ttl{fill:var(--muted,#555);font-family:-apple-system,Helvetica,Arial,sans-serif;font-weight:650}.pc-strong{fill:var(--fg,#000);font-weight:800}.pc-c{font-style:italic}.pc-ttl{font-weight:800;letter-spacing:.02em}</style>' +
+      '.pc-tick,.pc-ttl{fill:var(--muted,#555);font-family:-apple-system,Helvetica,Arial,sans-serif;font-weight:650}.pc-strong{fill:var(--fg,#000);font-weight:800}.pc-c{font-style:italic}.pc-lab{paint-order:stroke;stroke:var(--card,#fff);stroke-width:' + f1(fs * 0.22) + 'px;stroke-linejoin:round}.pc-ttl{font-weight:800;letter-spacing:.02em}</style>' +
       styleSvg(c._sw) + out.join('') + pathSvg(c, r || {}, map, ceilSegs(c, opts)) + (r ? labels(c, r, map, Object.assign({}, opts, { _obstacles: obstacles })) : '') + '</svg>';
   }
   // density altitude (ft) from pressure altitude (ft) and OAT (°C): standard approximation
