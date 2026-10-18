@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 28;
+const DEFAULTS_VERSION = 29;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -161,7 +161,7 @@ const DEFAULTS = [
   "title": "Short-Field Landing",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "@HIDDEN\nSpeed ... 87 MPH · FULL FLAPS\n# GUMPS\nG — Fuel Selectors & Pumps ... ON\n^ U — Gear ... 3 GREENS · MIRROR\nM — Mixture Controls ... FULL RICH\nP — Props ... FULL FORWARD\nS — Seat Belt & Switches ... CHECK\n# Short field — POH 6-11\nAim Point ... SELECTED\nThrottles ... IDLE BEFORE TOUCHDOWN\nTouchdown ... MAIN WHEELS FIRST, MIN. FLOAT\nAfter Touchdown ... FLAPS UP\nBack Pressure · Brakes ... APPLY · MAXIMUM\n! Maximum crosswind component for landing: 15 MPH (POH 6-11).\n-> GO AROUND | if needed : Go Around\n-> AFTER LANDING | after touchdown : After Landing"
+  "text": "@HIDDEN\nSpeed ... 87 MPH · FULL FLAPS\n# GUMPS\nG — Fuel Selectors & Pumps ... ON\n^ U — Gear ... 3 GREENS · MIRROR\nM — Mixture Controls ... FULL RICH\nP — Props ... FULL FORWARD\nS — Seat Belt & Switches ... CHECK\n# Short field — POH 6-11\nAim Point ... SELECTED\nThrottles ... IDLE BEFORE TOUCHDOWN\nTouchdown ... MAINS FIRST, MIN. FLOAT\nAfter Touchdown ... FLAPS UP\nBack Pressure · Brakes ... APPLY · MAXIMUM\n! Maximum crosswind component for landing: 15 MPH (POH 6-11).\n-> GO AROUND | if needed : Go Around\n-> AFTER LANDING | after touchdown : After Landing"
  },
  {
   "title": "Go Around",
