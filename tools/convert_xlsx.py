@@ -354,12 +354,12 @@ Flaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE
 -> TAKEOFF | normal takeoff : Takeoff
 -> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"""
 SFLDG="""@HIDDEN
-Final Approach Speed ... 87 MPH, FULL FLAPS (40°)
+Speed ... 87 MPH · FULL FLAPS
 # GUMPS
 G — Fuel Selectors & Pumps ... ON
-^ U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR
+^ U — Gear ... 3 GREENS · MIRROR
 M — Mixture Controls ... FULL RICH
-P — Propeller Controls ... FULL FORWARD (HIGH RPM)
+P — Props ... FULL FORWARD
 S — Seat Belt & Switches ... CHECK
 # Short field — POH 6-11
 Aim Point ... SELECTED
@@ -498,7 +498,7 @@ for l in emer:
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 for title, text in MANEUVERS: add(title, 'Maneuvers', text)
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=26
+DEFAULTS_VERSION=27
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")
