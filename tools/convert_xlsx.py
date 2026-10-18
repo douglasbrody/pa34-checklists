@@ -163,18 +163,18 @@ replace('Before Takeoff','Trims ... ELEVATOR T/O, RUDDER AS REQUIRED',['Elevator
 insert('Before Takeoff','Rudder Trim ... SET',['Wing Flaps ... SET (0°, OR 25° FOR SHORTEST ROLL)'])
 # Approach: speeds first, the pre-landing items, first notch of flaps, then GUMPS (the gear line pulses).
 by_title['Approach / GUMPS']['lines']=[
-    'Approach Speed ... 110 DWNWD · 100 BASE · 90 FINAL',
+    'Speed ... 110 DWD·100 BASE·90 FIN',
     'Brakes ... PRESSURE CHECK',
     'Strobe Lights ... ON',
     'Navigation Lights ... NIGHT ONLY',
     'Landing Light ... ON',
     'Pitot Heat ... AS REQUIRED',
-    'Flaps ... 1ST NOTCH, THEN AS REQ (OEI MAX 25°)',
+    'Flaps ... NOTCH 1 · OEI MAX 25°',
     '# GUMPS',
     'G — Fuel Selectors & Pumps ... ON',
-    '^ U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR',
+    '^ U — Gear ... 3 GREENS · MIRROR',
     'M — Mixture Controls ... FULL RICH',
-    'P — Propeller Controls ... FULL FORWARD (HIGH RPM)',
+    'P — Props ... FULL FORWARD',
     'S — Seat Belt & Switches ... CHECK',
     '-> GO AROUND | if needed : Go Around',
     '-> SHORT FIELD | full flaps · 87 MPH : Short-Field Landing']
@@ -498,7 +498,7 @@ for l in emer:
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 for title, text in MANEUVERS: add(title, 'Maneuvers', text)
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=25
+DEFAULTS_VERSION=26
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

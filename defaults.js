@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 25;
+const DEFAULTS_VERSION = 26;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -155,7 +155,7 @@ const DEFAULTS = [
   "title": "Approach / GUMPS",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "Approach Speed ... 110 DWNWD · 100 BASE · 90 FINAL\nBrakes ... PRESSURE CHECK\nStrobe Lights ... ON\nNavigation Lights ... NIGHT ONLY\nLanding Light ... ON\nPitot Heat ... AS REQUIRED\nFlaps ... 1ST NOTCH, THEN AS REQ (OEI MAX 25°)\n# GUMPS\nG — Fuel Selectors & Pumps ... ON\n^ U — Landing Gear DOWN ... 3 GREENS, 1 IN THE MIRROR\nM — Mixture Controls ... FULL RICH\nP — Propeller Controls ... FULL FORWARD (HIGH RPM)\nS — Seat Belt & Switches ... CHECK\n-> GO AROUND | if needed : Go Around\n-> SHORT FIELD | full flaps · 87 MPH : Short-Field Landing"
+  "text": "Speed ... 110 DWD·100 BASE·90 FIN\nBrakes ... PRESSURE CHECK\nStrobe Lights ... ON\nNavigation Lights ... NIGHT ONLY\nLanding Light ... ON\nPitot Heat ... AS REQUIRED\nFlaps ... NOTCH 1 · OEI MAX 25°\n# GUMPS\nG — Fuel Selectors & Pumps ... ON\n^ U — Gear ... 3 GREENS · MIRROR\nM — Mixture Controls ... FULL RICH\nP — Props ... FULL FORWARD\nS — Seat Belt & Switches ... CHECK\n-> GO AROUND | if needed : Go Around\n-> SHORT FIELD | full flaps · 87 MPH : Short-Field Landing"
  },
  {
   "title": "Short-Field Landing",
