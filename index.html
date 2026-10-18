@@ -504,7 +504,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 42;
+const APP_VERSION = 43;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -656,7 +656,11 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 const FD_KEY = 'flightdata.v1', STALE_MS = 12 * 3600e3;
 let fd = read(FD_KEY, {});
 if (!fd || typeof fd !== 'object' || Array.isArray(fd)) fd = {};
-if (fd._t && Date.now() - fd._t > STALE_MS) fd = {};   // last flight's data is more than 12 h old: start fresh
+// The weight & balance entries (seats, baggage, fuel, flight time, power) stay until the pilot clears them;
+// everything else is this flight's data.
+const WB_KEEP = /^plan\.(pilot|front|ctrl|ctrr|rear|jump|fwdbag|aftbag|fuel|time|power)$/;
+const wbOnly = o => { const w = {}; Object.keys(o).forEach(k => { if (WB_KEEP.test(k)) w[k] = o[k]; }); return w; };
+if (fd._t && Date.now() - fd._t > STALE_MS) fd = wbOnly(fd);   // last flight's data is more than 12 h old: start fresh (W&B kept)
 (function migrate() {   // older versions kept the whole ATIS, a taxi clearance and airports: keep only what is used now
   let changed = false;
   const keep = { dep: fd['dep.drwy'] || fd['dep.rwy'], arr: fd['arr.rwy'] || fd['arr.drwy'] };
@@ -975,7 +979,7 @@ function commitPad() {
   if (f.kind === 'rwy' || fld === 'wspd' || fld === 'gust' || side === 'plan' || side === 'cfg') b = b.replace(/^(-?)0+(?=\d)/, '$1');   // '08' -> '8'
   const n = parseFloat(b);
   const range = { pilot: [0, 400], front: [0, 400], ctrl: [0, 400], ctrr: [0, 400], rear: [0, 600], jump: [0, 400], fwdbag: [0, 300], aftbag: [0, 300],
-    fuel: [0, FUEL_MAX], time: [0.1, 12], oat: [-50, 55], aoat: [-50, 55], pa: [-1500, 25000], apa: [-1500, 25000], ldglen: [500, 20000], ew: [1500, 4200], em: [100000, 400000], magvar: [-30, 30] }[fld];
+    fuel: [0, FUEL_MAX], time: [0, 12], oat: [-50, 55], aoat: [-50, 55], pa: [-1500, 25000], apa: [-1500, 25000], ldglen: [500, 20000], ew: [1500, 4200], em: [100000, 400000], magvar: [-30, 30] }[fld];
   if ((side === 'plan' || side === 'cfg') && range && !(n >= range[0] && n <= range[1] && /\d/.test(b) && !/\.$/.test(b))) {
     pad.err = !/\d$/.test(b) ? 'Finish the number' : fld === 'magvar' ? 'Allowed 30° E to 30° W' : 'Allowed ' + sgn(range[0]) + ' to ' + sgn(range[1]) + (f.unit ? ' ' + f.unit : '');
     shake(); renderPad(); return false;
@@ -1016,13 +1020,14 @@ function renderPad() {
   const typing = pad.buf !== '';
   const shownV = typing ? pad.buf : fmt(k);
   const varNum = k === 'cfg.magvar' && typing && /\d/.test(pad.buf);   // the variation reads as '5° E' while it is typed
-  const shown = varNum ? esc(varText(+pad.buf)) : typing ? esc(shownV.replace('-', '−')) : (getV(k) !== undefined ? `<span class="was">${esc(shownV)}</span>` : '<span class="was">—</span>');
-  const unit = varNum ? '' : unitFor(f, shownV);
+  const wbBlank = WB_KEEP.test(k) && !typing && pnum(k) === null;   // a blank W&B entry counts as 0
+  const shown = varNum ? esc(varText(+pad.buf)) : wbBlank ? '<span class="was">0</span>' : typing ? esc(shownV.replace('-', '−')) : (getV(k) !== undefined ? `<span class="was">${esc(shownV)}</span>` : '<span class="was">—</span>');
+  const unit = varNum ? '' : wbBlank ? f.unit || '' : unitFor(f, shownV);
   const lastF = pad.i === pad.keys.length - 1;
   sheetHtml(`<div class="pad-head">
       <div class="pad-step"><span>${esc(group)} · ${pad.i + 1} of ${pad.keys.length}</span></div>
       <div class="pad-label">${esc(f.label)}${/\.wdir$/.test(k) && isTrue(side) ? ' (true)' : ''}</div>
-      <div class="pad-val">${shown}${unit && (typing || getV(k) !== undefined) ? `<span class="unit">${esc(unit)}</span>` : ''}</div>${pad.err ? `<div class="pad-err" role="alert">${esc(pad.err)}</div>` : ''}${/\.wdir$/.test(k) && isTrue(side) ? (() => { const d = typing ? pad.buf : getV(k), n = parseInt(d, 10); const mv = magVar(); return `<div class="pad-note">METAR wind is true: ${n >= 0 && n <= 360 ? pad3(n) + '°T ' + (mv >= 0 ? '+ ' : '− ') + varText(mv) + ' = ' + pad3(((n + mv) % 360 + 360) % 360 || 360) + '° magnetic' : 'converted to magnetic with ' + varText(mv) + ' variation'}</div>`; })() : ''}
+      <div class="pad-val">${shown}${unit && (typing || getV(k) !== undefined || wbBlank) ? `<span class="unit">${esc(unit)}</span>` : ''}</div>${pad.err ? `<div class="pad-err" role="alert">${esc(pad.err)}</div>` : ''}${/\.wdir$/.test(k) && isTrue(side) ? (() => { const d = typing ? pad.buf : getV(k), n = parseInt(d, 10); const mv = magVar(); return `<div class="pad-note">METAR wind is true: ${n >= 0 && n <= 360 ? pad3(n) + '°T ' + (mv >= 0 ? '+ ' : '− ') + varText(mv) + ' = ' + pad3(((n + mv) % 360 + 360) % 360 || 360) + '° magnetic' : 'converted to magnetic with ' + varText(mv) + ' variation'}</div>`; })() : ''}
     </div>
     ${padMid(body)}
     <div class="pad-act"><button data-pad="prev"${pad.i === 0 ? ' disabled' : ''}>← Back</button><button data-pad="done">Done</button><button class="go" data-pad="next">${lastF ? 'Save' : 'Next →'}</button></div>`, 'pad');
@@ -1168,7 +1173,7 @@ function renderData() {
 }
 
 /* ---------- Preflight planning: weight & balance -> POH performance charts -> takeoff briefing ---------- */
-// Before engine start the pilot enters every station weight (each one, every flight — nothing is assumed zero),
+// The pilot enters the station weights (a blank one counts as 0; they are kept from flight to flight until cleared),
 // fuel in gallons, the planned flight time, temperature and pressure altitude. The app works out weight and
 // balance, reads the POH Section 8 charts (perf.js + charts.js) and fills the takeoff briefing data.
 const PLAN_CFG_KEY = 'plan.cfg.v1';
@@ -1206,7 +1211,7 @@ const MTOW = 4200, MLW = 4000, MZFW = 4000, AFT_CG = 94.6, FUEL_MAX = 93, LB_GAL
 const GPH = { 65: 18.3, 75: 20.6 };   // both engines, POH 1-1
 // forward CG limit (POH 3-3): 80.7 in up to 2,780 lb, 82.0 at 3,400, 87.9 at 4,200, straight lines between
 function fwdCg(w) { return w <= 2780 ? 80.7 : w <= 3400 ? 80.7 + (w - 2780) * 1.3 / 620 : 82.0 + (w - 3400) * 5.9 / 800; }
-const pnum = k => { const v = getV(k); return v === undefined || v === '' || isNaN(+v) ? null : +v; };
+const pnum = k => { const v = getV(k); if (v === undefined || v === null || typeof v === 'object' || String(v).trim() === '' || !isFinite(+v)) return null; return WB_KEEP.test(k) && +v < 0 ? null : +v; };
 const lbs = v => thousands(Math.round(v));
 const lbsOver = (v, lim) => v > lim && v - lim < 10 ? thousands(v.toFixed(v - lim < 0.1 ? 2 : 1)) : lbs(v);   // just over a limit: show the decimals
 const galUp = g => +(Math.ceil(g * 10 - 1e-9) / 10).toFixed(1), galDown = g => +(Math.floor(g * 10 + 1e-9) / 10).toFixed(1);
@@ -1215,15 +1220,14 @@ function planWB() {
   if (!(ew > 0 && em > 0)) W.missing.push('empty weight');
   else W.rows.push({ label: 'Empty weight', w: ew, arm: em / ew, m: em });
   PLAN_WB.forEach(s => {
-    const v = pnum(s.k);
-    if (v === null) { W.missing.push(s.label.toLowerCase()); return; }
+    const v = pnum(s.k) || 0;   // a blank entry counts as 0
     W.rows.push({ label: s.label, w: v, arm: ARMS[s.arm], m: v * ARMS[s.arm] });
     if (s.limit && v > s.limit) W.flags.push({ bad: true, cat: 'wb', text: s.label + ' ' + lbs(v) + ' LB — limit ' + s.limit + ' LB' });
   });
-  const gal = pnum('plan.fuel'), hr = pnum('plan.time'), power = fd['plan.power'] === '75' ? 75 : 65;
-  if (gal === null) W.missing.push('fuel'); if (hr === null) W.missing.push('flight time');
+  const gal = pnum('plan.fuel') || 0, hr = pnum('plan.time') || 0, power = fd['plan.power'] === '75' ? 75 : 65;   // blank = 0
+  W.hr = hr;
   W.zfw = W.rows.reduce((a, r) => a + r.w, 0); W.zfm = W.rows.reduce((a, r) => a + r.m, 0);
-  if (gal !== null) {
+  {
     W.gal = gal; W.fuelW = gal * LB_GAL;
     W.rows.push({ label: 'Fuel ' + gal + ' gal', w: W.fuelW, arm: ARMS.fuel, m: W.fuelW * ARMS.fuel, fuel: true });
     if (gal > FUEL_MAX) W.flags.push({ bad: true, cat: 'fuel', text: 'Fuel ' + gal + ' gal — maximum usable ' + FUEL_MAX + ' gal' });
@@ -1365,6 +1369,7 @@ function perfRow(label, r, extra, chart) {
 }
 function planCards(keys) {
   return `<div class="fields">${keys.map(f => {
+    if (WB_KEEP.test(f.k) && pnum(f.k) === null) return `<button class="field" data-act="planfrom" data-k="${f.k}"><small>${esc(f.label)}</small><span class="blank">0${f.unit ? '\u00a0<small>' + esc(f.unit) + '</small>' : ''}</span></button>`;   // blank = 0
     const v = fmt(f.k), u = unitFor(f, v);
     return `<button class="field" data-act="planfrom" data-k="${f.k}"><small>${esc(f.label)}</small><span class="${v ? 'val' : 'blank'}">${v ? esc(v) + (u ? '\u00a0<small>' + esc(u) + '</small>' : '') : 'tap to enter'}</span></button>`;
   }).join('')}</div>`;
@@ -1400,7 +1405,7 @@ function renderPlan() {
       ${W.complete ? `<tr class="tot"><td>Ramp</td><td>${lbs(W.rampW)}</td><td>${(W.rampM / W.rampW).toFixed(2)}</td><td>${lbs(W.rampM)}</td></tr>
       <tr><td>Taxi fuel ${W.taxiGal} gal</td><td>${negLb(W.taxiGal * LB_GAL)}</td><td>${ARMS.fuel}</td><td>${negLb(W.taxiGal * LB_GAL * ARMS.fuel)}</td></tr>
       <tr class="tot"><td>Takeoff</td><td>${lbs(W.tow)}</td><td>${W.cgTo.toFixed(2)}</td><td>${lbs(W.tom)}</td></tr>
-      <tr><td>Fuel burn ${(+fd['plan.time']).toString()} h at ${W.power}% (${GPH[W.power]} gph = ${galUp(W.needGal)} gal${W.burnGal < W.needGal - 1e-9 ? `; only ${galDown(W.burnGal)} on board` : ''})</td><td>${negLb(W.burnGal * LB_GAL)}</td><td>${ARMS.fuel}</td><td>${negLb(W.burnGal * LB_GAL * ARMS.fuel)}</td></tr>
+      <tr><td>Fuel burn ${W.hr} h at ${W.power}% (${GPH[W.power]} gph = ${galUp(W.needGal)} gal${W.burnGal < W.needGal - 1e-9 ? `; only ${galDown(W.burnGal)} on board` : ''})</td><td>${negLb(W.burnGal * LB_GAL)}</td><td>${ARMS.fuel}</td><td>${negLb(W.burnGal * LB_GAL * ARMS.fuel)}</td></tr>
       <tr class="tot"><td>Landing</td><td>${lbs(W.lw)}</td><td>${W.cgLdg.toFixed(2)}</td><td>${lbs(W.lm)}</td></tr>` : ''}</table>` : '';
   const flags = W.flags.length ? `<ul class="flags">${W.flags.map(f => `<li class="${f.bad ? 'bad' : 'good'}">${f.bad ? '✕' : '✓'} ${esc(f.text)}</li>`).join('')}</ul>` : '';
   const lenTxt = lenOk() ? thousands(fd['tob.len']) + ' FT' : fd['tob.len'] ? `<span class="warn">${thousands(fd['tob.len'])} FT was for RWY ${esc(fd['tob.lenFor'] || '')} — re‑enter</span>` : 'not entered';
@@ -1432,9 +1437,11 @@ function renderPlan() {
     ${emptyCard}
     <section class="dsec">
       <div class="dsec-head"><h2>Weight &amp; balance</h2><button class="small-btn go" data-act="planall" data-set="wb">Enter</button></div>
+      <p class="pmeta">Kept from flight to flight until you clear it. A blank entry counts as 0.</p>
       ${planCards(PLAN_WB.map(s => FIELD[s.k]).concat(PLAN_FUEL))}
       <div class="prow"><div class="plab">Fuel burn rate (POH 1-1)</div>${toggle('plan.power', [['65', '65% · 18.3 gph'], ['75', '75% · 20.6 gph']], fd['plan.power'] === '75' ? '75' : '65')}</div>
       ${wbTable}${flags}${cgPlot(W)}
+      <div class="actions wbclear"><button class="small-btn danger" data-act="wbclear">Clear W&amp;B entries</button></div>
     </section>
     <section class="dsec">
       <div class="dsec-head"><h2>Conditions</h2><button class="small-btn go" data-act="planall" data-set="wx">Enter</button></div>
@@ -2011,9 +2018,11 @@ $app.addEventListener('click', e => {
     case 'planreset': planCfg = Object.assign({}, EMPTY_DEFAULT, planCfg.magvar !== undefined ? { magvar: planCfg.magvar } : {}); write(PLAN_CFG_KEY, planCfg); rerender(); break;
     case 'magvar': openPad(['cfg.magvar']); break;
     case 'wref': if (isTrue(t.dataset.tab)) delete fd[t.dataset.tab + '.wref']; else fd[t.dataset.tab + '.wref'] = 'T'; fd._t = Date.now(); saveFd(); rerender(); break;
+    case 'wbclear': Object.keys(fd).forEach(k => { if (WB_KEEP.test(k)) delete fd[k]; }); fd._t = Date.now(); saveFd(); rerender(); break;
     case 'newflight': {
       // keeps this flight's Hobbs/tach start times, which are recorded before the wind and takeoff data
-      const keep = {}, t0 = fd._t; ['out.hobbs', 'out.ltach', 'out.rtach'].forEach(k => { if (fd[k] !== undefined) keep[k] = fd[k]; });
+      // and the weight & balance entries, which stay until cleared on Preflight Planning
+      const keep = wbOnly(fd), t0 = fd._t; ['out.hobbs', 'out.ltach', 'out.rtach'].forEach(k => { if (fd[k] !== undefined) keep[k] = fd[k]; });
       fd = keep; if (Object.keys(keep).length) fd._t = t0 || Date.now(); saveFd();
       if (/^#\/data/.test(location.hash)) rerender(); else location.replace('#/data');
       break;
@@ -2092,10 +2101,10 @@ function reloadIfSafe() {
 applyTheme();
 route();
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});   // ask the browser not to evict saved data
-// Coming back to the app the next day: last flight's data is cleared, as on a fresh start.
+// Coming back to the app the next day: last flight's data is cleared, as on a fresh start (the W&B entries stay).
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState !== 'visible' || !fd._t || Date.now() - fd._t <= STALE_MS) return;
-  fd = {}; saveFd();
+  fd = wbOnly(fd); if (Object.keys(fd).length) fd._t = Date.now(); saveFd();
   if (!pad && !draft) rerender();
 });
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
