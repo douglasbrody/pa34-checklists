@@ -507,7 +507,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 48;
+const APP_VERSION = 49;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -1467,7 +1467,7 @@ function renderPlan() {
 // cruise power. The POH charts are for 4,200 lb, 2400 RPM best economy, leaned; a lighter airplane does a little better.
 const PLAN_CRUISE = [
   { k: 'plan.cpa', label: 'Cruise pressure altitude', max: 5, unit: 'FT', extra: '−' },
-  { k: 'plan.coat', label: 'Cruise temperature (blank = standard)', max: 2, unit: '°C', extra: '−' },
+  { k: 'plan.coat', label: 'Temperature at cruise altitude (blank = standard)', max: 2, unit: '°C', extra: '−' },
   { k: 'plan.chw', label: 'Average headwind (− = tailwind)', max: 2, unit: 'KT', extra: '−' }];
 PLAN_CRUISE.forEach(f => { FIELD[f.k] = f; });
 const POWERS = [75, 65, 55, 45], RES_GAL = 12, USABLE_GAL = 93;   // reserve: 45 min at 55 % (16.0 gph)
