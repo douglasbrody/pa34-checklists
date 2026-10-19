@@ -507,7 +507,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 49;
+const APP_VERSION = 50;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -662,8 +662,15 @@ let fd = read(FD_KEY, {});
 if (!fd || typeof fd !== 'object' || Array.isArray(fd)) fd = {};
 // The weight & balance entries (seats, baggage, fuel, flight time, power) stay until the pilot clears them;
 // everything else is this flight's data.
-const WB_KEEP = /^plan\.(pilot|front|ctrl|ctrr|rear|jump|fwdbag|aftbag|fuel|time|power)$/;
+const WB_KEEP = /^plan\.(pilot|front|ctr|rear|fwdbag|aftbag|fuel|time|power)$/;
 const wbOnly = o => { const w = {}; Object.keys(o).forEach(k => { if (WB_KEEP.test(k)) w[k] = o[k]; }); return w; };
+(function centerSeats() {   // v50: one 'Center seats' entry (there is no jump seat; it had the same 118.1 in arm)
+  const old = ['plan.ctrl', 'plan.ctrr', 'plan.jump'].filter(k => fd[k] !== undefined);
+  if (!old.length) return;
+  const nums = old.map(k => +fd[k]).filter(v => isFinite(v) && v > 0);
+  if (fd['plan.ctr'] === undefined && nums.length) fd['plan.ctr'] = String(Math.round(nums.reduce((a, v) => a + v, 0) * 10) / 10);
+  old.forEach(k => delete fd[k]); write(FD_KEY, fd);
+})();
 if (fd._t && Date.now() - fd._t > STALE_MS) fd = wbOnly(fd);   // last flight's data is more than 12 h old: start fresh (W&B kept)
 (function migrate() {   // older versions kept the whole ATIS, a taxi clearance and airports: keep only what is used now
   let changed = false;
@@ -982,7 +989,7 @@ function commitPad() {
   let b = pad.buf;
   if (f.kind === 'rwy' || fld === 'wspd' || fld === 'gust' || side === 'plan' || side === 'cfg') b = b.replace(/^(-?)0+(?=\d)/, '$1');   // '08' -> '8'
   const n = parseFloat(b);
-  const range = { pilot: [0, 400], front: [0, 400], ctrl: [0, 400], ctrr: [0, 400], rear: [0, 600], jump: [0, 400], fwdbag: [0, 300], aftbag: [0, 300],
+  const range = { pilot: [0, 400], front: [0, 400], ctr: [0, 600], rear: [0, 600], fwdbag: [0, 300], aftbag: [0, 300],
     fuel: [0, FUEL_MAX], time: [0, 12], oat: [-50, 55], aoat: [-50, 55], pa: [-1500, 25000], apa: [-1500, 25000], ldglen: [500, 20000], ew: [1500, 4200], em: [100000, 400000], magvar: [-30, 30], cpa: [-1500, 25000], coat: [-60, 50], chw: [-99, 99] }[fld];
   if ((side === 'plan' || side === 'cfg') && range && !(n >= range[0] && n <= range[1] && /\d/.test(b) && !/\.$/.test(b))) {
     pad.err = !/\d$/.test(b) ? 'Finish the number' : fld === 'magvar' ? 'Allowed 30° E to 30° W' : 'Allowed ' + sgn(range[0]) + ' to ' + sgn(range[1]) + (f.unit ? ' ' + f.unit : '');
@@ -1185,14 +1192,12 @@ const PLAN_CFG_KEY = 'plan.cfg.v1';
 const EMPTY_DEFAULT = { ew: 2831.0, em: 2831.0 * 85.00, src: 'N56307' };
 let planCfg = read(PLAN_CFG_KEY, null);
 if (!planCfg || typeof planCfg !== 'object' || !(+planCfg.ew > 0) || !(+planCfg.em > 0)) planCfg = Object.assign({}, EMPTY_DEFAULT, planCfg && typeof planCfg === 'object' && planCfg.magvar !== undefined ? { magvar: planCfg.magvar } : {});
-const ARMS = { front: 85.5, center: 118.1, rear: 155.7, jump: 118.1, fuel: 93.6, fwdbag: 22.5, aftbag: 178.7 };   // POH 4-7
+const ARMS = { front: 85.5, center: 118.1, rear: 155.7, fuel: 93.6, fwdbag: 22.5, aftbag: 178.7 };   // POH 4-7
 const PLAN_WB = [
   { k: 'plan.pilot', label: 'Pilot', arm: 'front' },
   { k: 'plan.front', label: 'Front passenger', arm: 'front' },
-  { k: 'plan.ctrl', label: 'Center seat left', arm: 'center' },
-  { k: 'plan.ctrr', label: 'Center seat right', arm: 'center' },
+  { k: 'plan.ctr', label: 'Center seats', arm: 'center' },
   { k: 'plan.rear', label: 'Rear seats', arm: 'rear' },
-  { k: 'plan.jump', label: 'Jump seat', arm: 'jump' },
   { k: 'plan.fwdbag', label: 'Forward baggage', arm: 'fwdbag', limit: 100 },
   { k: 'plan.aftbag', label: 'Aft baggage', arm: 'aftbag', limit: 100 }];
 const PLAN_FUEL = [
