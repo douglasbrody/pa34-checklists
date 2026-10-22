@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 30;
+const DEFAULTS_VERSION = 31;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -83,7 +83,7 @@ const DEFAULTS = [
   "title": "Before Taxi",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "Left Fuel Selector ... X-FEED\nRadio Master ... ON\nAvionics ... CHECK START SCREEN & DATABASE\nRAIM ... CHECK IN SYSTEM\nEngine Instruments ... CHECKED\nHeading Indicator ... CHECK VS. COMPASS\nATIS ... OBTAIN\nWind & Runway ... {dep.sum}\nAltimeter ... SET TO ATIS\nAltitude ... BUG\nHeading ... BUG\nLights ... AS REQUIRED\nLeft Fuel Selector ... ON\nRight Fuel Selector ... X-FEED"
+  "text": "Left Fuel Selector ... X-FEED\nRadio Master ... ON\nAvionics ... CHECK START SCREEN & DATABASE\nFlight Plan ... ENTER\nRAIM ... CHECK IN SYSTEM\nEngine Instruments ... CHECKED\nHeading Indicator ... CHECK VS. COMPASS\nATIS ... OBTAIN\nWind & Runway ... {dep.sum}\nAltimeter ... SET TO ATIS\nAltitude ... BUG\nHeading ... BUG\nLights ... AS REQUIRED\nLeft Fuel Selector ... ON\nRight Fuel Selector ... X-FEED"
  },
  {
   "title": "Taxi",
