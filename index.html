@@ -398,6 +398,7 @@
     .home-head .next-tile { min-width: 0; flex: 1 1 0; min-height: 66px; }
     .home-head.with-back { flex-wrap: wrap; }
     .home-head.with-back h1 { flex: 1 0 100%; margin: 8px 0 0 !important; }
+    .home-head.with-back h1 { order: 9; }   /* title on its own row below Home / Back / Next */
     .list-title { font-size: 22px; padding-top: 6px; }
     .choice { min-height: 70px; font-size: 26px; }
     .choice small { font-size: 13px; margin-top: 2px; }
@@ -1481,6 +1482,7 @@ function renderPlan() {
       ${homeTile()}
       <button class="next-tile" data-go="${esc(dataReturn)}"><small>← Back to</small><span>${esc(returnLabel())}</span></button>
       <h1 class="group-title">Preflight Planning</h1>
+      ${(() => { const n = planNext(); return n ? `<button class="next-tile" data-go="#/list/${n.id}" aria-label="Next: ${esc(n.title)}"><small>Next →</small><span>${tileLabel(n.title)}</span></button>` : ''; })()}
     </div>
     ${emptyCard}
     <section class="dsec">
@@ -1686,6 +1688,9 @@ function nextOf(l, step) {
   }
 }
 const prevOf = l => nextOf(l, -1);
+// Preflight Planning's Next: Airplane Status (or, if renamed, the first checklist of the Preflight group).
+const planNext = () => lists.find(l => /^airplane status$/i.test((l.title || '').trim()) && !meta(l).hidden)
+  || lists.find(l => /^preflight$/i.test(cleanGroup(l.group)) && !meta(l).hidden && !meta(l).branch);
 
 /* ---------- Screens ---------- */
 // Tile labels never break at a hyphen ("Run-up") or between a number and its unit ("80 MPH").
