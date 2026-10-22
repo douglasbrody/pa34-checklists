@@ -508,7 +508,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 58;
+const APP_VERSION = 59;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -680,7 +680,7 @@ if (fd._t && Date.now() - fd._t > STALE_MS) fd = wbOnly(fd);   // last flight's 
   ['dep', 'arr'].forEach(sd => {
     if (keep[sd] && fd[sd + '.rwy'] !== keep[sd]) { fd[sd + '.rwy'] = keep[sd]; changed = true; }
     Object.keys(fd).forEach(k => {
-      if (k.startsWith(sd + '.') && !/\.(wdir|wspd|gust|rwy|wref|_t)$/.test(k)) { delete fd[k]; changed = true; }
+      if (k.startsWith(sd + '.') && !/\.(wdir|wspd|gust|rwy|wref|_t|src|srcT)$/.test(k)) { delete fd[k]; changed = true; }
     });
   });
   ['taxi', 'taxiApt'].forEach(k => { if (k in fd) { delete fd[k]; changed = true; } });
@@ -955,12 +955,12 @@ function scheduleAdvance() {
   padTimerClear();
   padTimer = setTimeout(() => { padTimer = 0; if (pad === p && pad.i === i) advancePad(false, true); }, 150);
 }
-function openPad(keys, start, after) {
+function openPad(keys, start, after, src) {   // src: 'METAR' (planning) or 'ATIS' (airplane) for wind / temperature / altimeter
   keys = (keys || []).filter(k => FIELD[k]);
   if (!keys.length) return;
   padTimerClear();
   if (!document.getElementById('pad')) noteOpener();
-  pad = { keys, i: Math.min(start || 0, keys.length - 1), buf: '', after, autoT: 0, err: '' };
+  pad = { keys, i: Math.min(start || 0, keys.length - 1), buf: '', after, autoT: 0, err: '', src: src || '', refSet: false };
   renderPad();
 }
 function closePad() {
@@ -1006,7 +1006,13 @@ function commitPad() {
     || (f.kind === 'decimal' && (!/\d/.test(b) || /\.$/.test(b)))
     || (side === 'in' && fd['out.' + fld] !== undefined && n < +fd['out.' + fld]);   // shutdown reading below the start reading
   if (bad) { shake(); return false; }
+  const tr = fld === 'wdir' ? padTrue(k, side) : null;
   setField(k, b);
+  if (pad.src && (side === 'dep' || side === 'arr' || side === 'plan') && SRC_FIELDS.test(fld)) {
+    const sd = side === 'plan' ? (fld === 'aoat' || fld === 'aalt' ? 'arr' : 'dep') : side;
+    if (tr !== null) { if (tr) fd[sd + '.wref'] = 'T'; else delete fd[sd + '.wref']; }
+    fd[sd + '.src'] = pad.src; fd[sd + '.srcT'] = Date.now(); saveFd();
+  }
   return true;
 }
 function advancePad(skipCommit, auto) {
@@ -1017,11 +1023,13 @@ function advancePad(skipCommit, auto) {
   if (pad.i >= pad.keys.length) closePad(); else renderPad();
 }
 const unitFor = (f, v) => (!f.unit || v === 'VRB' || /°/.test(v)) ? '' : f.unit;
+const padTrue = (k, side) => pad && pad.src && !pad.refSet && /\.wdir$/.test(k) && (pad.buf !== '' || fd[k] === undefined) ? pad.src === 'METAR' : isTrue(side);
 function renderPad() {
   const k = pad.keys[pad.i], f = FIELD[k];
   if (!f) { pad = null; const el = document.getElementById('pad'); if (el) el.remove(); return; }
   const side = k.split('.')[0];
-  const group = atisSide(k) ? SIDE_NAME[atisSide(k)] + ' ATIS' : side === 'tob' ? 'Takeoff data' : side === 'out' ? 'Start times' : side === 'in' ? 'Shutdown times' : side === 'plan' ? 'Preflight planning' : side === 'cfg' ? 'Aircraft' : SIDE_NAME[side] + ' wind & runway';
+  const pk = PLAN_KEYS.dep.indexOf(k) >= 0 ? 'dep' : PLAN_KEYS.arr.indexOf(k) >= 0 ? 'arr' : '';
+  const group = pad.src && pk ? SIDE_NAME[pk] + (pad.src === 'METAR' ? ' METAR · planning' : ' ATIS') : side === 'tob' ? 'Takeoff data' : side === 'out' ? 'Start times' : side === 'in' ? 'Shutdown times' : side === 'plan' ? 'Preflight planning' : side === 'cfg' ? 'Aircraft' : SIDE_NAME[side] + ' wind & runway';
   const digits = '123456789'.split('').map(d => keyBtn(d, d)).join('');
   let body;
   if (f.kind === 'rwy') {
@@ -1030,7 +1038,7 @@ function renderPad() {
     body = same + `<div class="keys num">${digits}${keyBtn('XL', 'L')}${keyBtn('0', '0')}${keyBtn('XR', 'R')}${keyBtn('XC', 'C')}${keyBtn('back', '⌫', 'span2')}</div>`;
   } else {
     const extra = f.kind === 'decimal' ? '.' : f.extra || '';
-    const ref = /\.wdir$/.test(k) ? `<div class="keys two">${keyBtn('RM', 'ATIS / TOWER · MAG', isTrue(side) ? 'ref' : 'ref on')}${keyBtn('RT', 'METAR · TRUE', isTrue(side) ? 'ref on' : 'ref')}</div>` : '';
+    const tr = padTrue(k, side), ref = /\.wdir$/.test(k) ? `<div class="keys two">${keyBtn('RM', 'ATIS / TOWER · MAG', tr ? 'ref' : 'ref on')}${keyBtn('RT', 'METAR · TRUE', tr ? 'ref on' : 'ref')}</div>` : '';
     body = ref + `<div class="keys num">${digits}${extra ? keyBtn('X' + extra, esc(extra)) : '<span></span>'}${keyBtn('0', '0')}${keyBtn('back', '⌫')}</div>`;
   }
   const typing = pad.buf !== '';
@@ -1044,8 +1052,8 @@ function renderPad() {
   const lastF = pad.i === pad.keys.length - 1;
   sheetHtml(`<div class="pad-head">
       <div class="pad-step"><span>${esc(group)} · ${pad.i + 1} of ${pad.keys.length}</span></div>
-      <div class="pad-label">${esc(f.label)}${/\.wdir$/.test(k) && isTrue(side) ? ' (true)' : ''}</div>
-      <div class="pad-val">${shown}${unit && (typing || getV(k) !== undefined || wbBlank) ? `<span class="unit">${esc(unit)}</span>` : ''}</div>${pad.err ? `<div class="pad-err" role="alert">${esc(pad.err)}</div>` : ''}${/\.wdir$/.test(k) && isTrue(side) ? (() => { const d = typing ? pad.buf : getV(k), n = parseInt(d, 10); const mv = magVar(); return `<div class="pad-note">METAR wind is true: ${n >= 0 && n <= 360 ? pad3(n) + '°T ' + (mv >= 0 ? '+ ' : '− ') + varText(mv) + ' = ' + pad3(((n + mv) % 360 + 360) % 360 || 360) + '° magnetic' : 'converted to magnetic with ' + varText(mv) + ' variation'}</div>`; })() : ''}
+      <div class="pad-label">${esc(f.label)}${/\.wdir$/.test(k) && padTrue(k, side) ? ' (true)' : ''}</div>
+      <div class="pad-val">${shown}${unit && (typing || getV(k) !== undefined || wbBlank) ? `<span class="unit">${esc(unit)}</span>` : ''}</div>${pad.err ? `<div class="pad-err" role="alert">${esc(pad.err)}</div>` : ''}${/\.wdir$/.test(k) && padTrue(k, side) ? (() => { const d = typing ? pad.buf : getV(k), n = parseInt(d, 10); const mv = magVar(); return `<div class="pad-note">METAR wind is true: ${n >= 0 && n <= 360 ? pad3(n) + '°T ' + (mv >= 0 ? '+ ' : '− ') + varText(mv) + ' = ' + pad3(((n + mv) % 360 + 360) % 360 || 360) + '° magnetic' : 'converted to magnetic with ' + varText(mv) + ' variation'}</div>`; })() : ''}
     </div>
     ${padMid(body)}
     <div class="pad-act"><button data-pad="prev"${pad.i === 0 ? ' disabled' : ''}>← Back</button><button data-pad="done">Done</button><button class="go" data-pad="next">${lastF ? 'Save' : 'Next →'}</button></div>`, 'pad');
@@ -1077,7 +1085,7 @@ function padKey(a) {
     return;
   }
   if (kind === 'E') { pad.buf = val; return advancePad(false, true); }   // SAME AS DEPARTURE
-  if (kind === 'R') { const sd = pad.keys[pad.i].split('.')[0]; if (val === 'T') fd[sd + '.wref'] = 'T'; else delete fd[sd + '.wref']; fd._t = Date.now(); saveFd(); return renderPad(); }   // wind reference
+  if (kind === 'R') { const sd = pad.keys[pad.i].split('.')[0]; if (val === 'T') fd[sd + '.wref'] = 'T'; else delete fd[sd + '.wref']; pad.refSet = true; fd._t = Date.now(); saveFd(); return renderPad(); }   // wind reference
   if (kind === 'X') {
     if (val === '.') { if (!pad.buf.includes('.') && pad.buf.length < (f.max || 8) - 1) pad.buf = (pad.buf || '0') + '.'; return renderPad(); }
     if (val === '−') { pad.buf = pad.buf.charAt(0) === '-' ? pad.buf.slice(1) : '-' + pad.buf; return renderPad(); }
@@ -1156,12 +1164,14 @@ function fieldCards(tab, fields) {
   }).join('')}</div>`;
 }
 // ATIS cards. A blank arrival temperature / altimeter is the departure value, and is shown as that.
-function atisCards(sd) {
+function atisCards(sd, keys, act) {
   const same = { 'plan.aoat': 'plan.oat', 'plan.aalt': 'plan.alt' };
-  return `<div class="fields">${ATIS_KEYS[sd].map((k, i) => {
+  keys = keys || ATIS_KEYS[sd];
+  return `<div class="fields">${keys.map((k, i) => {
+    if (k === 'cfg.elev' || k === 'plan.aelev') return planCards([FIELD[k]], k === 'plan.aelev' ? { 'plan.aelev': 'departure: ' + thousands(depElev()) + ' FT' } : null).replace(/^<div class="fields">|<\/div>$/g, '');
     const f = FIELD[k], v = fmt(k), u = unitFor(f, v), d = same[k] && fmt(same[k]);
     const warn = k === 'tob.len' && tokenWarn(k);
-    return `<button class="field" data-act="padfrom" data-tab="${sd}" data-i="${i}"><small>${esc(f.label)}</small><span class="${v ? 'val' + (warn ? ' warn' : '') : 'blank'}">${v ? esc(v) + (u ? '\u00a0<small>' + esc(u) + '</small>' : '') : d ? 'departure: ' + esc(d) + (f.unit ? '\u00a0' + esc(f.unit) : '') : 'tap to enter'}</span></button>`;
+    return `<button class="field" ${act === 'plan' ? `data-act="planfrom" data-k="${k}"` : `data-act="padfrom" data-tab="${sd}" data-i="${i}"`}><small>${esc(f.label)}${/\.wdir$/.test(k) && isTrue(sd) && v ? ' (true)' : ''}</small><span class="${v ? 'val' + (warn ? ' warn' : '') : 'blank'}">${v ? esc(v) + (u ? '\u00a0<small>' + esc(u) + '</small>' : '') : d ? 'departure: ' + esc(d) + (f.unit ? '\u00a0' + esc(f.unit) : '') : 'tap to enter'}</span></button>`;
   }).join('')}</div>`;
 }
 function renderData() {
@@ -1173,6 +1183,7 @@ function renderData() {
         ${sd === 'arr' && ATIS_KEYS.dep.some(k => fd[k] !== undefined) ? '<button class="small-btn" data-act="copydep">Same as departure</button>' : ''}
         <button class="small-btn go" data-act="padall" data-tab="${sd}">${any ? 'Re-enter' : 'Enter'}</button></div>
       <div class="calc"><small>${sideRwy(sd) ? 'Runway\u00a0' + esc(sideRwy(sd)) : 'Runway —'}${windText(sd) ? SEP + esc(windText(sd)) : ''}${age > 60 ? `${SEP}<span class="warn">${ageText(age)}</span>` : ''}</small>${c ? compHtml(c) : (hasWind(sd) ? (sideRwy(sd) ? 'enter the wind' : 'enter the runway') : '—')}</div>
+      <p class="pmeta">${srcOf(sd) === 'METAR' ? srcHtml(sd) + '. Enter the ATIS to replace it.' : srcOf(sd) === 'ATIS' ? srcHtml(sd) + (sd === 'dep' ? ' — used by Preflight Planning.' : '.') : sd === 'dep' ? 'Enter the ATIS here, or the METAR on Preflight Planning.' : 'Blank temperature / altimeter = departure.'}</p>
       ${atisCards(sd)}
       <p class="pmeta">${isTrue(sd) ? `Wind from a <b>METAR (true)</b>: turned to magnetic with ${varText(magVar())} variation${fd[sd + '.wdir'] && fd[sd + '.wdir'] !== 'VRB' ? ' (' + esc(pad3(fd[sd + '.wdir'])) + '°T = ' + pad3(magDir(sd)) + '° magnetic)' : ''} <button class="link" data-act="magvar">change variation</button> <button class="link" data-act="wref" data-tab="${sd}">use ATIS / tower (magnetic)</button>` : `Wind from ATIS / tower (magnetic, like the runway numbers). <button class="link" data-act="wref" data-tab="${sd}">Wind from a METAR (true)?</button>`}</p>
     </section>`;
@@ -1187,7 +1198,7 @@ function renderData() {
     ${wind('dep')}
     <section class="dsec">
       <div class="dsec-head"><h2>Takeoff data</h2><button class="small-btn" data-go="#/plan">Planning ›</button></div>
-      ${(() => { const a = fd['tob.auto'] || {}, from = TOB_AUTO.filter(x => fd[x[0]] !== undefined && fd[x[0]] === a[x[0]]).map(x => x[1]); return `<p class="pmeta">${from.length ? 'From Preflight Planning (POH Section 8): ' + esc(from.join(', ')) + '. Tap a value to override it.' : 'Calculated on Preflight Planning from the weights and this ATIS. Tap a box to type a value instead.'}</p>`; })()}
+      ${(() => { const a = fd['tob.auto'] || {}, from = TOB_AUTO.filter(x => fd[x[0]] !== undefined && fd[x[0]] === a[x[0]]).map(x => x[1]); return `<p class="pmeta">${from.length ? 'From Preflight Planning (POH Section 8): ' + esc(from.join(', ')) + '. Tap a value to override it.' : 'Calculated on Preflight Planning from the weights and the departure weather. Tap a box to type a value instead.'}</p>`; })()}
       ${asd ? `<div class="calc"><small>Accelerate-stop vs runway available</small><span class="${tokenWarn('asd') ? 'warn' : ''}">${esc(asd)}</span></div>` : ''}
       ${fieldCards('tob', TOB_SHOWN)}
     </section>
@@ -1266,6 +1277,16 @@ const ATIS_KEYS = {
   dep: ['dep.wdir', 'dep.wspd', 'dep.gust', 'plan.oat', 'plan.alt', 'dep.rwy', 'tob.len'],
   arr: ['arr.wdir', 'arr.wspd', 'arr.gust', 'plan.aoat', 'plan.aalt', 'arr.rwy', 'plan.ldglen'] };
 const atisSide = k => ATIS_KEYS.dep.indexOf(k) >= 0 ? 'dep' : ATIS_KEYS.arr.indexOf(k) >= 0 ? 'arr' : '';
+// The same values are first entered on Preflight Planning from a METAR (at the FBO; wind TRUE), then replaced in the
+// airplane from the ATIS (wind MAGNETIC). side.src says which one is in use, side.srcT when it was entered.
+const PLAN_KEYS = { dep: ATIS_KEYS.dep.concat('cfg.elev'), arr: ATIS_KEYS.arr.concat('plan.aelev') };
+const SRC_FIELDS = /^(wdir|wspd|gust|oat|alt|aoat|aalt)$/;
+const srcOf = sd => fd[sd + '.src'] === 'ATIS' || fd[sd + '.src'] === 'METAR' ? fd[sd + '.src'] : '';
+function srcHtml(sd) {
+  const s = srcOf(sd); if (!s) return '';
+  const m = fd[sd + '.srcT'] ? Math.floor((Date.now() - fd[sd + '.srcT']) / 60000) : 0, age = m > 60 ? ` <span class="warn">${ageText(m)}</span>` : '';
+  return s === 'ATIS' ? `<b>From the ATIS</b> (wind magnetic)${age}` : `<b>From the METAR</b> on Preflight Planning${isTrue(sd) ? ' (wind true)' : ''}${age}`;
+}
 const TOB_SHOWN = TOB_FIELDS.slice(1);   // takeoff data on the screen (runway available is with the departure ATIS)
 const MTOW = 4200, MLW = 4000, MZFW = 4000, AFT_CG = 94.6, FUEL_MAX = 93, LB_GAL = 6, TAXI_GAL = 3;
 const GPH = { 45: 14.0, 55: 16.0, 65: 18.3, 75: 20.6 };   // both engines, POH 8-10 (and 1-1)
@@ -1352,7 +1373,7 @@ function planWind(side) {
 function planPerf() {
   const W = planWB(), P = { W: W, missing: W.missing.slice(), res: {} };
   const oatC = pnum('plan.oat'), D = depPA(), pa = D ? D.pa : null;
-  if (oatC === null) P.missing.push('temperature (departure ATIS)'); if (pa === null) P.missing.push('altimeter setting (departure ATIS) or pressure altitude');
+  if (oatC === null) P.missing.push('temperature'); if (pa === null) P.missing.push('altimeter setting (or pressure altitude)');
   P.D = D;
   if (P.missing.length) return P;
   const C = typeof POH_CHARTS !== 'undefined' ? POH_CHARTS : null;
@@ -1462,15 +1483,6 @@ function sentHtml(rep) {
   });
   return h;
 }
-// One line for an end's ATIS on Preflight Planning: wind & runway, temperature, altimeter, runway length.
-function atisSummary(sd) {
-  const t = sd === 'dep' ? 'plan.oat' : 'plan.aoat', a = sd === 'dep' ? 'plan.alt' : 'plan.aalt';
-  const val = (k, dk, unit, what) => fmt(k) ? esc(fmt(k)) + '\u00a0' + unit : sd === 'arr' && fmt(dk) ? what + ' as departure' : `<span class="warn">${what} —</span>`;
-  const len = sd === 'dep' ? (lenOk() ? thousands(fd['tob.len']) + '\u00a0FT available' : fd['tob.len'] ? `<span class="warn">${thousands(fd['tob.len'])} FT was for RWY ${esc(fd['tob.lenFor'] || '')} — re‑enter</span>` : 'runway length —')
-    : (fmt('plan.ldglen') ? esc(fmt('plan.ldglen')) + '\u00a0FT available' : 'runway length —');
-  return [hasWind(sd) ? esc(windSummary(sd)) : (sd === 'dep' ? '<span class="warn">wind &amp; runway —</span>' : 'wind &amp; runway —'),
-    val(t, 'plan.oat', '°C', 'temperature'), val(a, 'plan.alt', 'IN', 'altimeter'), len].join(SEP);
-}
 function renderPlan() {
   const P = planNow ? planNow.P : planPerf(), rep = planNow ? planNow.rep : null, W = P.W;
   const isDefault = +planCfg.ew === EMPTY_DEFAULT.ew && +planCfg.em === EMPTY_DEFAULT.em, emptyOk = +planCfg.ew > 0 && +planCfg.em > 0;
@@ -1486,7 +1498,8 @@ function renderPlan() {
   const flags = W.flags.length ? `<ul class="flags">${W.flags.map(f => `<li class="${f.bad ? 'bad' : 'good'}">${f.bad ? '✕' : '✓'} ${esc(f.text)}</li>`).join('')}</ul>` : '';
   let perf;
   const todo = P.missing.filter(m => m !== 'performance charts not loaded');
-  if (P.missing.length) perf = (todo.length ? `<p class="pmeta">To read the POH charts, complete: <b>${esc(todo.join(', '))}</b>.</p>` : `<p class="pmeta"><span class="warn">The POH charts did not load.</span> Open the app once with internet to finish the offline copy.</p>`) + sentHtml(rep);
+  const chartList = `<div class="actions charts">${[['8-2', 'Ground run 0°'], ['8-3', 'Ground run 25°'], ['8-5', 'Over 50 ft 0°'], ['8-4', 'Over 50 ft 25°'], ['8-6', 'Accelerate-stop'], ['8-7', 'All-engine climb'], ['8-8', 'Single-engine climb'], ['8-13', 'Landing run'], ['8-14', 'Landing over 50 ft']].map(c => `<button class="small-btn" data-go="#/plan/chart/${c[0]}">POH ${c[0]} · ${c[1]} ›</button>`).join('')}</div>`;
+  if (P.missing.length) perf = (todo.length ? `<p class="pmeta">To work out the numbers, enter: <b>${esc(todo.join(', '))}</b> (Conditions above). The charts can be opened now:</p>` : `<p class="pmeta"><span class="warn">The POH charts did not load.</span> Open the app once with internet to finish the offline copy.</p>`) + chartList + sentHtml(rep);
   else {
     const r = P.res, da = Math.round(P.da);
     perf = `<p class="pmeta">${sgn(P.oatC)}\u00a0°C = ${sgn(Math.round(P.oatF * 10) / 10)}\u00a0°F · pressure altitude ${sgn(P.pa)}${esc(paNote(P.D, 'plan.alt'))} · density altitude ${sgn(da)} · takeoff ${lbs(W.tow)} LB · flaps ${P.flaps}° · ${esc(windWords(P.dw))}</p>
@@ -1500,7 +1513,7 @@ function renderPlan() {
         <button class="small-btn" data-go="#/plan/chart/8-8">POH 8-8 ›</button></div>
       <p class="pmeta">Landing at ${lbs(W.lw)} LB · ${sgn(P.aoatC)}\u00a0°C · pressure altitude ${sgn(P.apa)}${P.A && !P.A.same ? esc(paNote(P.A, 'plan.aalt')) : ''} · ${esc(windWords(P.aw))}</p>
       ${perfRow('Landing ground run', r.lrun, '', '8-13')}
-      ${perfRow('Landing over 50 ft', P.lra ? r.l50 : Object.assign({}, r.l50, { notes: (r.l50.notes || []).concat('enter the landing runway length in the Arrival ATIS for a margin') }), P.lra ? marginHtml(P.lra, r.l50.value, 'landing runway') : '', '8-14')}
+      ${perfRow('Landing over 50 ft', P.lra ? r.l50 : Object.assign({}, r.l50, { notes: (r.l50.notes || []).concat('enter the landing runway length under Destination for a margin') }), P.lra ? marginHtml(P.lra, r.l50.value, 'landing runway') : '', '8-14')}
       ${sentHtml(rep)}`;
   }
   $app.innerHTML = `<div class="wrap data plan">
@@ -1521,12 +1534,17 @@ function renderPlan() {
     </section>
     <section class="dsec">
       <div class="dsec-head"><h2>Conditions</h2><button class="small-btn go" data-act="planall" data-set="wx">Enter</button></div>
-      <div class="prow"><div class="plab">Departure ATIS<small class="pnote">${atisSummary('dep')}</small></div><button class="small-btn" data-go="#/data">ATIS &amp; Takeoff ›</button></div>
-      ${(() => { const D = depPA(); return planCards(PLAN_WX.slice(2), { 'plan.pa': D && D.src === 'altimeter' ? sgn(D.pa) + ' FT from altimeter' : '' }); })()}
+      <p class="pmeta">Departure weather for the POH charts — from the METAR here, or later from the ATIS (which replaces it). ${srcHtml('dep')}</p>
+      <div class="calc"><small>${sideRwy('dep') ? 'Runway\u00a0' + esc(sideRwy('dep')) : 'Runway —'}${windText('dep') ? SEP + esc(windText('dep')) : ''}</small>${windComp('dep') ? compHtml(windComp('dep')) : '—'}</div>
+      ${atisCards('dep', PLAN_KEYS.dep, 'plan')}
+      ${(() => { const D = depPA(); return planCards([FIELD['plan.pa']], { 'plan.pa': D && D.src === 'altimeter' ? sgn(D.pa) + ' FT from altimeter' : '' }); })()}
+      <p class="pmeta">${isTrue('dep') ? `Wind is <b>true</b> (METAR): turned to magnetic with ${varText(magVar())} variation. <button class="link" data-act="magvar">change variation</button> <button class="link" data-act="wref" data-tab="dep">wind is magnetic</button>` : `Wind is <b>magnetic</b> (ATIS / tower). <button class="link" data-act="wref" data-tab="dep">wind is true (METAR)</button>`}</p>
       <div class="prow"><div class="plab">Takeoff flaps</div>${toggle('plan.flaps', [['0', '0°'], ['25', '25°']], fd['plan.flaps'] === '25' ? '25' : '0')}</div>
-      <details class="arrd"${['plan.aelev', 'plan.apa'].some(k => pnum(k) !== null) ? ' open' : ''}><summary>Destination (blank = same as departure)</summary>
-        <div class="prow"><div class="plab">Arrival ATIS<small class="pnote">${atisSummary('arr')}</small></div><button class="small-btn" data-go="#/data">ATIS &amp; Takeoff ›</button></div>
-        ${(() => { const A = arrPA(depPA()); return planCards(PLAN_ARR_SHOWN, { 'plan.apa': A ? sgn(A.pa) + ' FT' + (A.same ? ' (departure)' : A.src === 'standard' ? ' (standard pressure)' : ' from altimeter') : '' }); })()}</details>
+      <details class="arrd"${PLAN_KEYS.arr.concat('plan.apa').some(k => fd[k] !== undefined) ? ' open' : ''}><summary>Destination (blank = same as departure)</summary>
+        <div class="actions"><button class="small-btn go" data-act="planall" data-set="arrwx">Enter destination METAR</button></div>
+        <p class="pmeta">${srcHtml('arr')}</p>
+        ${atisCards('arr', PLAN_KEYS.arr, 'plan')}
+        ${(() => { const A = arrPA(depPA()); return planCards([FIELD['plan.apa']], { 'plan.apa': A ? sgn(A.pa) + ' FT' + (A.same ? ' (departure)' : A.src === 'standard' ? ' (standard pressure)' : ' from altimeter') : '' }); })()}</details>
     </section>
     <section class="dsec">
       <div class="dsec-head"><h2>Performance (POH Section 8)</h2></div>
@@ -2194,16 +2212,16 @@ $app.addEventListener('click', e => {
     }
     case 'padall': case 'padfrom': {
       const keys = t.dataset.tab === 'tob' ? TOB_SHOWN.map(f => f.k) : ATIS_KEYS[t.dataset.tab];
-      openPad(keys, t.dataset.act === 'padfrom' ? +t.dataset.i : 0); break;
+      openPad(keys, t.dataset.act === 'padfrom' ? +t.dataset.i : 0, null, t.dataset.tab === 'tob' ? '' : 'ATIS'); break;
     }
     case 'copydep':   // pattern work: arrival ATIS = departure (a blank temperature / altimeter already means "departure")
-      ['wdir', 'wspd', 'gust', 'rwy', 'wref', '_t'].forEach(f => { if (fd['dep.' + f] !== undefined) fd['arr.' + f] = fd['dep.' + f]; else delete fd['arr.' + f]; });
+      ['wdir', 'wspd', 'gust', 'rwy', 'wref', '_t', 'src', 'srcT'].forEach(f => { if (fd['dep.' + f] !== undefined) fd['arr.' + f] = fd['dep.' + f]; else delete fd['arr.' + f]; });
       ['plan.aoat', 'plan.aalt'].forEach(k => delete fd[k]);
       if (lenOk()) fd['plan.ldglen'] = fd['tob.len']; else delete fd['plan.ldglen'];
       fd._t = Date.now(); saveFd(); rerender(); break;
     case 'wakehint': write('wakehint.v1', true); renderHome(); break;
-    case 'planfrom': openPad([t.dataset.k]); break;
-    case 'planall': openPad(t.dataset.set === 'wx' ? ATIS_KEYS.dep.concat('cfg.elev') : t.dataset.set === 'cruise' ? PLAN_CRUISE.map(f => f.k) : PLAN_WB.map(x => x.k).concat(PLAN_FUEL.map(f => f.k))); break;
+    case 'planfrom': openPad([t.dataset.k], 0, null, 'METAR'); break;
+    case 'planall': openPad(t.dataset.set === 'wx' ? PLAN_KEYS.dep : t.dataset.set === 'arrwx' ? PLAN_KEYS.arr : t.dataset.set === 'cruise' ? PLAN_CRUISE.map(f => f.k) : PLAN_WB.map(x => x.k).concat(PLAN_FUEL.map(f => f.k)), 0, null, /wx$/.test(t.dataset.set) ? 'METAR' : ''); break;
     case 'planset':
       if (t.dataset.k === 'chartview') { chartView = t.dataset.v; write('chartview.v1', chartView); rerender(); break; }
       fd[t.dataset.k] = t.dataset.v; saveFd(); rerender(); break;
@@ -2224,7 +2242,7 @@ $app.addEventListener('click', e => {
     case 'import': document.getElementById('importFile').click(); break;
   }
 });
-function openRowEditor(row) { openPad(row.dataset.keys.split(' ')); }
+function openRowEditor(row) { openPad(row.dataset.keys.split(' '), 0, null, 'ATIS'); }   // in the airplane: the ATIS
 $app.addEventListener('keydown', e => {   // tappable data rows also work with a keyboard
   const row = e.target.closest && e.target.closest('.row.tap');
   if (pad) return;
