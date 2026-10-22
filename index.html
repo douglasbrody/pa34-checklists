@@ -508,7 +508,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 51;
+const APP_VERSION = 53;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -535,7 +535,7 @@ function freshDefaults() {
 // Checklist content updates: a device whose checklists match a published default set (i.e. were
 // never edited) picks up new defaults automatically. Edited checklists are never overwritten.
 const VER_KEY = 'defaults.version', DSIG_KEY = 'defaults.sig', IDMAP_KEY = 'idmap.v1';
-const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618'];
+const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9'];
 const isPristine = ls => { const s = sig(ls); return s === read(DSIG_KEY, '') || KNOWN_SIGS.includes(s); };
 let lists = read(KEY, null);
 function applyDefaults() {
@@ -1906,11 +1906,11 @@ function layoutList() {
     while (hi - lo > 1) { const mid = (lo + hi) >> 1; fits(cols, mid, wrap) ? lo = mid : hi = mid; }
     return lo;
   };
-  // An alternative must be clearly bigger to win. Near the minimum 2 px is enough, except for a two-column layout
-  // that squeezes more than one label onto three or more lines (bigger text wins over one-item-per-line otherwise).
+  // An alternative must be clearly bigger to win. Near the minimum 2 px is enough. A two-column layout that squeezes
+  // more than one label onto three or more lines never beats one at 18 px or more (one item per line reads faster).
   const squeezed = k => { set(k.cols, k.px, k.wrap, PAD); return items.filter(r => [...r.children].some(x => x.offsetHeight > k.px * 1.3 * 2.4)).length > 1; };
-  const bigger = (k, cur, ratio) => !!k.px && (!cur.px || k.px > cur.px * ratio
-    || (cur.px < WRAP_BELOW && k.px >= cur.px + 2 && !(k.cols === 2 && k.wrap && cur.px >= 18 && squeezed(k))));
+  const bigger = (k, cur, ratio) => !!k.px && (!cur.px || !(k.cols === 2 && k.wrap && cur.px >= 18 && squeezed(k)))
+    && (!cur.px || k.px > cur.px * ratio || (cur.px < WRAP_BELOW && k.px >= cur.px + 2));
   const pick = wrap => {
     const one = { cols: 1, px: best(1, wrap), wrap }, two = { cols: 2, px: W >= 600 && one.px * 1.2 < MAX ? best(2, wrap) : 0, wrap };
     return { pick: bigger(two, one, 1.2) ? two : one, one: one.px };

@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 29;
+const DEFAULTS_VERSION = 30;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -65,7 +65,7 @@ const DEFAULTS = [
   "title": "Starting Engine",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "Fuel Selectors ... ON\nMixture Controls ... IDLE/CUTOFF\nPropeller Controls ... FULL FORWARD\nThrottle Controls ... 1/2\" OPEN\nMaster Switch ... ON\nBeacon ... ON\nIgnition Switches (all) ... ON\n# Start left engine, then right engine\nElectric Fuel Pump ... ON\nMixture Control ... RICH / CHECK FUEL FLOW, THEN CUTOFF (priming)\nElectric Fuel Pump ... OFF\nPropeller ... CLEAR\nStarter ... ENGAGED\nMixture Control ... ADVANCE AS ENGINE STARTS\nThrottle ... ADJUST (1000 RPM)\nOil Pressure ... RISING (within 30 seconds)\nFuel Pressure ... CHECK\nAlternator ... ON / CHARGING\nVacuum Gauge ... 4.5\"–5.2\" Hg\n-> HOT START | POH 6-3 : Hot Start\n-> FLOODED START | POH 6-4 : Flooded Start"
+  "text": "Fuel Selectors ... ON\nMixture Controls ... IDLE/CUTOFF\nPropeller Controls ... FULL FORWARD\nThrottle Controls ... 1/2\" OPEN\nMaster Switch ... ON\nBeacon ... ON\nIgnition Switches (all) ... ON\n# Start left engine, then right engine\nElectric Fuel Pump ... ON\nMixture Control ... RICH / CHECK FUEL FLOW, THEN CUTOFF (priming)\nElectric Fuel Pump ... OFF\nPropeller ... CLEAR\nStarter ... ENGAGED\nMixture Control ... ADVANCE AS ENGINE STARTS\nThrottle ... ADJUST (1000 RPM)\nOil Pressure ... RISING (within 30 seconds)\nFuel Pressure ... CHECK\nAlternator ... ON / CHARGING\nVacuum Gauge ... 4.5\"–5.2\" Hg\n# Repeat for right engine\n-> HOT START | POH 6-3 : Hot Start\n-> FLOODED START | POH 6-4 : Flooded Start"
  },
  {
   "title": "Hot Start",
