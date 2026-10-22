@@ -1,5 +1,5 @@
 // Bump VERSION whenever any app file changes so iPads pick up the update.
-const VERSION = 'checklists-v56';
+const VERSION = 'checklists-v57';
 const CHARTS = ['8-2', '8-3', '8-4', '8-5', '8-6', '8-7', '8-8', '8-9', '8-10', '8-13', '8-14'].map(c => './charts/' + c + '.jpg');   // POH Section 8
 const FILES = ['./', './index.html', './manifest.webmanifest', './defaults.js', './perf.js', './charts.js', './icon-180.png', './icon-512.png'].concat(CHARTS);
 

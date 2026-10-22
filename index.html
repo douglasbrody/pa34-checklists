@@ -508,7 +508,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 56;
+const APP_VERSION = 57;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -535,7 +535,7 @@ function freshDefaults() {
 // Checklist content updates: a device whose checklists match a published default set (i.e. were
 // never edited) picks up new defaults automatically. Edited checklists are never overwritten.
 const VER_KEY = 'defaults.version', DSIG_KEY = 'defaults.sig', IDMAP_KEY = 'idmap.v1';
-const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3'];
+const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3', '2b46ef17'];
 const isPristine = ls => { const s = sig(ls); return s === read(DSIG_KEY, '') || KNOWN_SIGS.includes(s); };
 let lists = read(KEY, null);
 function applyDefaults() {
@@ -1778,10 +1778,17 @@ function layoutTiles() {
   grid.style.fontSize = lo + 'px';
 }
 
+// A button target that is not a checklist title may name a group ("Single Engine Operations"), which opens its tiles.
+function findGroup(name) {
+  const n = normTitle(name), gs = [...new Set(lists.map(l => cleanGroup(l.group)))];
+  const all = gs.reduce((a, g) => a.concat(g.split('/').map((_, i, p) => p.slice(0, i + 1).join('/'))), []);
+  return all.find(g => normTitle(g) === n) || all.find(g => normTitle(lastPart(g)) === n) || null;
+}
 function choiceButtons(choices) {
   return choices.map((c, i) => {
-    const t = findByTitle(c.target);
+    const t = findByTitle(c.target), g = t ? null : findGroup(c.target);
     return t ? `<button class="choice c${i % 4}" data-go="#/list/${t.id}">${esc(c.label)}<small>${esc(c.sub || t.title)}</small></button>`
+         : g ? `<button class="choice c${i % 4}" data-go="${groupHash(g)}">${esc(c.label)}<small>${esc(c.sub || lastPart(g))}</small></button>`
              : `<button class="choice missing" disabled>${esc(c.label)}<small>Not found: ${esc(c.target)}</small></button>`;
   }).join('');
 }
@@ -2054,7 +2061,7 @@ function renderEditor(id) {
       <code>* HOBBS/TACH Times ... {times.out}</code> highlighted line · <code>^ U — Gear ... DOWN</code> pulsing line<br>
       <code># Engine</code> section heading · <code>! Caution text</code> caution note · <code>| A | B | C</code> table row (first = header)<br>
       <code>{dep.sum}</code> shows flight data (also {arr.sum}, {dep.hw}, {dep.comp}, {tora}, {asd}, {tob.todist}, {times.out}); tap the line to enter it<br>
-      <code>-> FEATHER | Feathering procedure : Feathering Procedure</code> big button (label | subtitle : title of the checklist to open)<br>
+      <code>-> FEATHER | Feathering procedure : Feathering Procedure</code> big button (label | subtitle : title of the checklist, or name of the group, to open)<br>
       <code>@HIDDEN</code> no tile, not in Next/Previous · <code>@BRANCH</code> tile, not in Next/Previous · <code>@ATIS DEP</code> show the departure wind line
     </div>
     <div class="actions">

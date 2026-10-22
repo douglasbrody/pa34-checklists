@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 33;
+const DEFAULTS_VERSION = 34;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -221,7 +221,7 @@ const DEFAULTS = [
   "title": "Feathering Procedure",
   "group": "Emergency/Engine Failure",
   "color": "#c62828",
-  "text": "Propeller INOP Engine ... FEATHER (BFR 800 RPM)\nMixture INOP Engine ... IDLE CUT OFF\nTrim ... AS REQUIRED\nMaintain ... 5° BANK TOWARD GOOD ENGINE\nAdjust Airspeed and Power ... AS NEEDED\nFuel Pump INOP Engine ... OFF\nMagnetos INOP Engine ... OFF\nCowl Flaps INOP Engine ... CLOSE\nAlternator INOP Engine ... OFF\nElectrical Load ... REDUCE BELOW 50 AMPS\nFuel Selector INOP Engine ... OFF\nFuel Pump Operating Engine ... OFF\n-> AIR START | unfeather / restart : Air Start / Unfeathering"
+  "text": "Propeller INOP Engine ... FEATHER (BFR 800 RPM)\nMixture INOP Engine ... IDLE CUT OFF\nTrim ... AS REQUIRED\nMaintain ... 5° BANK TOWARD GOOD ENGINE\nAdjust Airspeed and Power ... AS NEEDED\nFuel Pump INOP Engine ... OFF\nMagnetos INOP Engine ... OFF\nCowl Flaps INOP Engine ... CLOSE\nAlternator INOP Engine ... OFF\nElectrical Load ... REDUCE BELOW 50 AMPS\nFuel Selector INOP Engine ... OFF\nFuel Pump Operating Engine ... OFF\n-> SINGLE ENGINE | operations : Single Engine Operations\n-> AIR START | unfeather / restart : Air Start / Unfeathering"
  },
  {
   "title": "Air Start / Unfeathering",
