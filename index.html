@@ -508,7 +508,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 57;
+const APP_VERSION = 58;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -871,7 +871,7 @@ function tokenFields(key) {
   else if (key === 'times.out' || key === 'times.in') ks = timeFields(key.split('.')[1]).map(f => f.k);
   else {
     const [side, f] = key.split('.');
-    if (SIDES.includes(side) && (f === 'sum' || f === 'comp' || f === 'hw')) ks = windFields(side).map(x => x.k);
+    if (SIDES.includes(side) && (f === 'sum' || f === 'comp' || f === 'hw')) ks = ATIS_KEYS[side].slice();
     else ks = [key];
   }
   return ks.filter(k => FIELD[k]);
@@ -907,7 +907,7 @@ function wxLine(side, prompt) {
   if (!side || side === 'none') return '';
   if (!hasWind(side)) {
     if (!prompt) return '';
-    return `<button class="wx empty" data-act="padall" data-tab="${side}"><b>${side.toUpperCase()}</b> <span class="wx-rest">Tap to enter wind &amp; runway</span></button>`;
+    return `<button class="wx empty" data-act="padall" data-tab="${side}"><b>${side.toUpperCase()}</b> <span class="wx-rest">Tap to enter the ATIS</span></button>`;
   }
   const rwy = sideRwy(side), c = windComp(side, rwy), age = windAgeMin(side), wt = c && (c.calm || c.vrb) ? '' : windText(side);
   const comp = c ? compHtml(c) : (rwy ? 'XW —' : 'XW — enter runway');
@@ -1021,7 +1021,7 @@ function renderPad() {
   const k = pad.keys[pad.i], f = FIELD[k];
   if (!f) { pad = null; const el = document.getElementById('pad'); if (el) el.remove(); return; }
   const side = k.split('.')[0];
-  const group = side === 'tob' ? 'Takeoff data' : side === 'out' ? 'Start times' : side === 'in' ? 'Shutdown times' : side === 'plan' ? 'Preflight planning' : side === 'cfg' ? 'Aircraft' : SIDE_NAME[side] + ' wind & runway';
+  const group = atisSide(k) ? SIDE_NAME[atisSide(k)] + ' ATIS' : side === 'tob' ? 'Takeoff data' : side === 'out' ? 'Start times' : side === 'in' ? 'Shutdown times' : side === 'plan' ? 'Preflight planning' : side === 'cfg' ? 'Aircraft' : SIDE_NAME[side] + ' wind & runway';
   const digits = '123456789'.split('').map(d => keyBtn(d, d)).join('');
   let body;
   if (f.kind === 'rwy') {
@@ -1132,7 +1132,7 @@ document.addEventListener('keydown', e => {
   if (code) { e.preventDefault(); padKey(code); }
 });
 
-/* ---------- Wind & Takeoff Data screen ---------- */
+/* ---------- ATIS & Takeoff screen ---------- */
 let dataReturn = '#/';
 function returnLabel() {
   const p = dataReturn.replace(/^#\/?/, '').split('/');
@@ -1155,15 +1155,25 @@ function fieldCards(tab, fields) {
     return `<button class="field" data-act="padfrom" data-tab="${tab}" data-i="${i}"><small>${esc(f.label)}</small><span class="${v ? 'val' + (tab === 'tob' && tokenWarn(f.k) ? ' warn' : '') : 'blank'}">${v ? esc(v) + (u ? '\u00a0<small>' + esc(u) + '</small>' : '') : why ? `<span class="warn why">${esc(why)}</span>` : 'tap to enter'}</span></button>`;
   }).join('')}</div>`;
 }
+// ATIS cards. A blank arrival temperature / altimeter is the departure value, and is shown as that.
+function atisCards(sd) {
+  const same = { 'plan.aoat': 'plan.oat', 'plan.aalt': 'plan.alt' };
+  return `<div class="fields">${ATIS_KEYS[sd].map((k, i) => {
+    const f = FIELD[k], v = fmt(k), u = unitFor(f, v), d = same[k] && fmt(same[k]);
+    const warn = k === 'tob.len' && tokenWarn(k);
+    return `<button class="field" data-act="padfrom" data-tab="${sd}" data-i="${i}"><small>${esc(f.label)}</small><span class="${v ? 'val' + (warn ? ' warn' : '') : 'blank'}">${v ? esc(v) + (u ? '\u00a0<small>' + esc(u) + '</small>' : '') : d ? 'departure: ' + esc(d) + (f.unit ? '\u00a0' + esc(f.unit) : '') : 'tap to enter'}</span></button>`;
+  }).join('')}</div>`;
+}
 function renderData() {
   const wind = sd => {
     const c = windComp(sd), age = windAgeMin(sd);
+    const any = ATIS_KEYS[sd].some(k => fd[k] !== undefined);
     return `<section class="dsec">
-      <div class="dsec-head"><h2>${SIDE_NAME[sd]} wind &amp; runway</h2>
-        ${sd === 'arr' && hasWind('dep') ? '<button class="small-btn" data-act="copydep">Same as departure</button>' : ''}
-        <button class="small-btn go" data-act="padall" data-tab="${sd}">Enter</button></div>
+      <div class="dsec-head"><h2>${SIDE_NAME[sd]} ATIS</h2>
+        ${sd === 'arr' && ATIS_KEYS.dep.some(k => fd[k] !== undefined) ? '<button class="small-btn" data-act="copydep">Same as departure</button>' : ''}
+        <button class="small-btn go" data-act="padall" data-tab="${sd}">${any ? 'Re-enter' : 'Enter'}</button></div>
       <div class="calc"><small>${sideRwy(sd) ? 'Runway\u00a0' + esc(sideRwy(sd)) : 'Runway —'}${windText(sd) ? SEP + esc(windText(sd)) : ''}${age > 60 ? `${SEP}<span class="warn">${ageText(age)}</span>` : ''}</small>${c ? compHtml(c) : (hasWind(sd) ? (sideRwy(sd) ? 'enter the wind' : 'enter the runway') : '—')}</div>
-      ${fieldCards(sd, windFields(sd))}
+      ${atisCards(sd)}
       <p class="pmeta">${isTrue(sd) ? `Wind from a <b>METAR (true)</b>: turned to magnetic with ${varText(magVar())} variation${fd[sd + '.wdir'] && fd[sd + '.wdir'] !== 'VRB' ? ' (' + esc(pad3(fd[sd + '.wdir'])) + '°T = ' + pad3(magDir(sd)) + '° magnetic)' : ''} <button class="link" data-act="magvar">change variation</button> <button class="link" data-act="wref" data-tab="${sd}">use ATIS / tower (magnetic)</button>` : `Wind from ATIS / tower (magnetic, like the runway numbers). <button class="link" data-act="wref" data-tab="${sd}">Wind from a METAR (true)?</button>`}</p>
     </section>`;
   };
@@ -1172,14 +1182,14 @@ function renderData() {
     <div class="home-head with-back">
       ${homeTile()}
       <button class="next-tile" data-go="${esc(dataReturn)}"><small>← Back to</small><span>${esc(returnLabel())}</span></button>
-      <h1 class="group-title">Wind &amp; Takeoff Data</h1>
+      <h1 class="group-title">ATIS &amp; Takeoff</h1>
     </div>
     ${wind('dep')}
     <section class="dsec">
-      <div class="dsec-head"><h2>Takeoff data</h2><button class="small-btn" data-go="#/plan">Planning ›</button><button class="small-btn go" data-act="padall" data-tab="tob">Enter</button></div>
-      ${(() => { const a = fd['tob.auto'] || {}, from = TOB_AUTO.filter(x => fd[x[0]] !== undefined && fd[x[0]] === a[x[0]]).map(x => x[1]); return from.length ? `<p class="pmeta">From Preflight Planning (POH Section 8): ${esc(from.join(', '))}.</p>` : ''; })()}
+      <div class="dsec-head"><h2>Takeoff data</h2><button class="small-btn" data-go="#/plan">Planning ›</button></div>
+      ${(() => { const a = fd['tob.auto'] || {}, from = TOB_AUTO.filter(x => fd[x[0]] !== undefined && fd[x[0]] === a[x[0]]).map(x => x[1]); return `<p class="pmeta">${from.length ? 'From Preflight Planning (POH Section 8): ' + esc(from.join(', ')) + '. Tap a value to override it.' : 'Calculated on Preflight Planning from the weights and this ATIS. Tap a box to type a value instead.'}</p>`; })()}
       ${asd ? `<div class="calc"><small>Accelerate-stop vs runway available</small><span class="${tokenWarn('asd') ? 'warn' : ''}">${esc(asd)}</span></div>` : ''}
-      ${fieldCards('tob', TOB_FIELDS)}
+      ${fieldCards('tob', TOB_SHOWN)}
     </section>
     ${wind('arr')}
     <div class="actions" style="margin-top:6px">
@@ -1218,11 +1228,12 @@ const PLAN_WX = [
   { k: 'cfg.elev', label: 'Departure field elevation', max: 5, unit: 'FT', extra: '−' },
   { k: 'plan.pa', label: 'Pressure altitude (blank = from altimeter)', max: 5, unit: 'FT', extra: '−' }];
 const PLAN_ARR = [
-  { k: 'plan.aoat', label: 'Destination temperature', max: 2, unit: '°C', extra: '−' },
-  { k: 'plan.aalt', label: 'Destination altimeter (blank = departure)', kind: 'decimal', max: 5, unit: 'IN' },
+  { k: 'plan.aoat', label: 'Temperature', max: 2, unit: '°C', extra: '−' },
+  { k: 'plan.aalt', label: 'Altimeter setting', kind: 'decimal', max: 5, unit: 'IN' },
   { k: 'plan.aelev', label: 'Destination field elevation (blank = departure)', max: 5, unit: 'FT', extra: '−' },
   { k: 'plan.apa', label: 'Destination pressure altitude (blank = from altimeter)', max: 5, unit: 'FT', extra: '−' },
   { k: 'plan.ldglen', label: 'Landing runway available', max: 5, unit: 'FT' }];
+const PLAN_ARR_SHOWN = PLAN_ARR.filter(f => f.k === 'plan.aelev' || f.k === 'plan.apa');   // the rest is in the Arrival ATIS
 const ELEV_DEFAULT = 9;   // KBDR
 const inRng = (v, a, b) => v !== null && v >= a && v <= b ? v : null;   // stored values outside the keypad ranges count as blank
 const altPA = (elev, alt) => Math.round(elev + (29.92 - alt) * 1000);   // 1,000 ft per inch from standard
@@ -1249,6 +1260,13 @@ const PLAN_CFG = [
 PLAN_CFG.push(PLAN_WX[2]);
 PLAN_WB.forEach(s => { FIELD[s.k] = { k: s.k, label: s.label, max: 3, unit: 'LB' }; });
 PLAN_FUEL.concat(PLAN_WX, PLAN_ARR, PLAN_CFG).forEach(f => { FIELD[f.k] = f; });
+// The ATIS for each end, in broadcast order (wind, temperature, altimeter, runway) plus the runway length:
+// entered once on ATIS & Takeoff; Preflight Planning reads the same values for the POH charts.
+const ATIS_KEYS = {
+  dep: ['dep.wdir', 'dep.wspd', 'dep.gust', 'plan.oat', 'plan.alt', 'dep.rwy', 'tob.len'],
+  arr: ['arr.wdir', 'arr.wspd', 'arr.gust', 'plan.aoat', 'plan.aalt', 'arr.rwy', 'plan.ldglen'] };
+const atisSide = k => ATIS_KEYS.dep.indexOf(k) >= 0 ? 'dep' : ATIS_KEYS.arr.indexOf(k) >= 0 ? 'arr' : '';
+const TOB_SHOWN = TOB_FIELDS.slice(1);   // takeoff data on the screen (runway available is with the departure ATIS)
 const MTOW = 4200, MLW = 4000, MZFW = 4000, AFT_CG = 94.6, FUEL_MAX = 93, LB_GAL = 6, TAXI_GAL = 3;
 const GPH = { 45: 14.0, 55: 16.0, 65: 18.3, 75: 20.6 };   // both engines, POH 8-10 (and 1-1)
 // forward CG limit (POH 3-3): 80.7 in up to 2,780 lb, 82.0 at 3,400, 87.9 at 4,200, straight lines between
@@ -1334,7 +1352,7 @@ function planWind(side) {
 function planPerf() {
   const W = planWB(), P = { W: W, missing: W.missing.slice(), res: {} };
   const oatC = pnum('plan.oat'), D = depPA(), pa = D ? D.pa : null;
-  if (oatC === null) P.missing.push('temperature'); if (pa === null) P.missing.push('altimeter setting (or pressure altitude)');
+  if (oatC === null) P.missing.push('temperature (departure ATIS)'); if (pa === null) P.missing.push('altimeter setting (departure ATIS) or pressure altitude');
   P.D = D;
   if (P.missing.length) return P;
   const C = typeof POH_CHARTS !== 'undefined' ? POH_CHARTS : null;
@@ -1444,6 +1462,15 @@ function sentHtml(rep) {
   });
   return h;
 }
+// One line for an end's ATIS on Preflight Planning: wind & runway, temperature, altimeter, runway length.
+function atisSummary(sd) {
+  const t = sd === 'dep' ? 'plan.oat' : 'plan.aoat', a = sd === 'dep' ? 'plan.alt' : 'plan.aalt';
+  const val = (k, dk, unit, what) => fmt(k) ? esc(fmt(k)) + '\u00a0' + unit : sd === 'arr' && fmt(dk) ? what + ' as departure' : `<span class="warn">${what} —</span>`;
+  const len = sd === 'dep' ? (lenOk() ? thousands(fd['tob.len']) + '\u00a0FT available' : fd['tob.len'] ? `<span class="warn">${thousands(fd['tob.len'])} FT was for RWY ${esc(fd['tob.lenFor'] || '')} — re‑enter</span>` : 'runway length —')
+    : (fmt('plan.ldglen') ? esc(fmt('plan.ldglen')) + '\u00a0FT available' : 'runway length —');
+  return [hasWind(sd) ? esc(windSummary(sd)) : (sd === 'dep' ? '<span class="warn">wind &amp; runway —</span>' : 'wind &amp; runway —'),
+    val(t, 'plan.oat', '°C', 'temperature'), val(a, 'plan.alt', 'IN', 'altimeter'), len].join(SEP);
+}
 function renderPlan() {
   const P = planNow ? planNow.P : planPerf(), rep = planNow ? planNow.rep : null, W = P.W;
   const isDefault = +planCfg.ew === EMPTY_DEFAULT.ew && +planCfg.em === EMPTY_DEFAULT.em, emptyOk = +planCfg.ew > 0 && +planCfg.em > 0;
@@ -1457,7 +1484,6 @@ function renderPlan() {
       <tr><td>Fuel burn ${W.hr} h at ${W.power}% (${GPH[W.power].toFixed(1)} gph = ${galUp(W.needGal)} gal${W.burnGal < W.needGal - 1e-9 ? `; only ${galDown(W.burnGal)} on board` : ''})</td><td>${negLb(W.burnGal * LB_GAL)}</td><td>${ARMS.fuel}</td><td>${negLb(W.burnGal * LB_GAL * ARMS.fuel)}</td></tr>
       <tr class="tot"><td>Landing</td><td>${lbs(W.lw)}</td><td>${W.cgLdg.toFixed(2)}</td><td>${lbs(W.lm)}</td></tr>` : ''}</table>` : '';
   const flags = W.flags.length ? `<ul class="flags">${W.flags.map(f => `<li class="${f.bad ? 'bad' : 'good'}">${f.bad ? '✕' : '✓'} ${esc(f.text)}</li>`).join('')}</ul>` : '';
-  const lenTxt = lenOk() ? thousands(fd['tob.len']) + ' FT' : fd['tob.len'] ? `<span class="warn">${thousands(fd['tob.len'])} FT was for RWY ${esc(fd['tob.lenFor'] || '')} — re‑enter</span>` : 'not entered';
   let perf;
   const todo = P.missing.filter(m => m !== 'performance charts not loaded');
   if (P.missing.length) perf = (todo.length ? `<p class="pmeta">To read the POH charts, complete: <b>${esc(todo.join(', '))}</b>.</p>` : `<p class="pmeta"><span class="warn">The POH charts did not load.</span> Open the app once with internet to finish the offline copy.</p>`) + sentHtml(rep);
@@ -1474,7 +1500,7 @@ function renderPlan() {
         <button class="small-btn" data-go="#/plan/chart/8-8">POH 8-8 ›</button></div>
       <p class="pmeta">Landing at ${lbs(W.lw)} LB · ${sgn(P.aoatC)}\u00a0°C · pressure altitude ${sgn(P.apa)}${P.A && !P.A.same ? esc(paNote(P.A, 'plan.aalt')) : ''} · ${esc(windWords(P.aw))}</p>
       ${perfRow('Landing ground run', r.lrun, '', '8-13')}
-      ${perfRow('Landing over 50 ft', P.lra ? r.l50 : Object.assign({}, r.l50, { notes: (r.l50.notes || []).concat('enter the landing runway length under Destination for a margin') }), P.lra ? marginHtml(P.lra, r.l50.value, 'landing runway') : '', '8-14')}
+      ${perfRow('Landing over 50 ft', P.lra ? r.l50 : Object.assign({}, r.l50, { notes: (r.l50.notes || []).concat('enter the landing runway length in the Arrival ATIS for a margin') }), P.lra ? marginHtml(P.lra, r.l50.value, 'landing runway') : '', '8-14')}
       ${sentHtml(rep)}`;
   }
   $app.innerHTML = `<div class="wrap data plan">
@@ -1495,10 +1521,12 @@ function renderPlan() {
     </section>
     <section class="dsec">
       <div class="dsec-head"><h2>Conditions</h2><button class="small-btn go" data-act="planall" data-set="wx">Enter</button></div>
-      ${(() => { const D = depPA(), A = arrPA(D); return planCards(PLAN_WX, { 'plan.pa': D && D.src === 'altimeter' ? sgn(D.pa) + ' FT from altimeter' : '' }); })()}
+      <div class="prow"><div class="plab">Departure ATIS<small class="pnote">${atisSummary('dep')}</small></div><button class="small-btn" data-go="#/data">ATIS &amp; Takeoff ›</button></div>
+      ${(() => { const D = depPA(); return planCards(PLAN_WX.slice(2), { 'plan.pa': D && D.src === 'altimeter' ? sgn(D.pa) + ' FT from altimeter' : '' }); })()}
       <div class="prow"><div class="plab">Takeoff flaps</div>${toggle('plan.flaps', [['0', '0°'], ['25', '25°']], fd['plan.flaps'] === '25' ? '25' : '0')}</div>
-      <div class="prow"><div class="plab">Departure wind &amp; runway<small class="pnote">${esc(hasWind('dep') ? windSummary('dep') : 'not entered')} · runway available ${lenTxt}</small></div><button class="small-btn" data-go="#/data">Wind &amp; Takeoff Data ›</button></div>
-      <details class="arrd"${['plan.aoat', 'plan.aalt', 'plan.aelev', 'plan.apa', 'plan.ldglen'].some(k => pnum(k) !== null) ? ' open' : ''}><summary>Destination (blank = same as departure)</summary>${(() => { const A = arrPA(depPA()); return planCards(PLAN_ARR, { 'plan.apa': A ? sgn(A.pa) + ' FT' + (A.same ? ' (departure)' : A.src === 'standard' ? ' (standard pressure)' : ' from altimeter') : '' }); })()}</details>
+      <details class="arrd"${['plan.aelev', 'plan.apa'].some(k => pnum(k) !== null) ? ' open' : ''}><summary>Destination (blank = same as departure)</summary>
+        <div class="prow"><div class="plab">Arrival ATIS<small class="pnote">${atisSummary('arr')}</small></div><button class="small-btn" data-go="#/data">ATIS &amp; Takeoff ›</button></div>
+        ${(() => { const A = arrPA(depPA()); return planCards(PLAN_ARR_SHOWN, { 'plan.apa': A ? sgn(A.pa) + ' FT' + (A.same ? ' (departure)' : A.src === 'standard' ? ' (standard pressure)' : ' from altimeter') : '' }); })()}</details>
     </section>
     <section class="dsec">
       <div class="dsec-head"><h2>Performance (POH Section 8)</h2></div>
@@ -1701,7 +1729,7 @@ const groupTile = g => g.list ? tileHtml(g.list.title, g.list.color, `#/list/${g
 const inSafariTab = () => navigator.standalone === false && !(window.matchMedia && matchMedia('(display-mode: standalone)').matches);
 
 function renderHome() {
-  const tiles = tileHtml('Preflight Planning', '#a37800', '#/plan') + groups('').map(groupTile).join('') + tileHtml('Wind & Takeoff Data', '#0f7f8a', '#/data');
+  const tiles = tileHtml('Preflight Planning', '#a37800', '#/plan') + groups('').map(groupTile).join('') + tileHtml('ATIS & Takeoff', '#0f7f8a', '#/data');
   const banner = (!isPristine(lists) && updateWaiting() ? `<div class="banner">Updated PA-34 checklists are available — Edit › Restore PA-34 defaults (your edits are kept until then).</div>` : '')
     + (inSafariTab() ? `<div class="banner">Running in Safari, not installed — for offline use: Share › Add to Home Screen (its data is kept separately from this tab).</div>` : '')
     + (wakeHint() ? `<button class="banner" data-act="wakehint">This device may let the screen lock in flight: Settings › Display &amp; Brightness › Auto-Lock › Never. (Tap to hide)</button>` : '');
@@ -2165,15 +2193,17 @@ $app.addEventListener('click', e => {
       break;
     }
     case 'padall': case 'padfrom': {
-      const keys = (t.dataset.tab === 'tob' ? TOB_FIELDS : windFields(t.dataset.tab)).map(f => f.k);
+      const keys = t.dataset.tab === 'tob' ? TOB_SHOWN.map(f => f.k) : ATIS_KEYS[t.dataset.tab];
       openPad(keys, t.dataset.act === 'padfrom' ? +t.dataset.i : 0); break;
     }
-    case 'copydep':   // pattern work: arrival wind & runway = departure
+    case 'copydep':   // pattern work: arrival ATIS = departure (a blank temperature / altimeter already means "departure")
       ['wdir', 'wspd', 'gust', 'rwy', 'wref', '_t'].forEach(f => { if (fd['dep.' + f] !== undefined) fd['arr.' + f] = fd['dep.' + f]; else delete fd['arr.' + f]; });
-      saveFd(); rerender(); break;
+      ['plan.aoat', 'plan.aalt'].forEach(k => delete fd[k]);
+      if (lenOk()) fd['plan.ldglen'] = fd['tob.len']; else delete fd['plan.ldglen'];
+      fd._t = Date.now(); saveFd(); rerender(); break;
     case 'wakehint': write('wakehint.v1', true); renderHome(); break;
     case 'planfrom': openPad([t.dataset.k]); break;
-    case 'planall': openPad(t.dataset.set === 'wx' ? ['plan.oat', 'plan.alt', 'cfg.elev'] : t.dataset.set === 'cruise' ? PLAN_CRUISE.map(f => f.k) : PLAN_WB.map(x => x.k).concat(PLAN_FUEL.map(f => f.k))); break;
+    case 'planall': openPad(t.dataset.set === 'wx' ? ATIS_KEYS.dep.concat('cfg.elev') : t.dataset.set === 'cruise' ? PLAN_CRUISE.map(f => f.k) : PLAN_WB.map(x => x.k).concat(PLAN_FUEL.map(f => f.k))); break;
     case 'planset':
       if (t.dataset.k === 'chartview') { chartView = t.dataset.v; write('chartview.v1', chartView); rerender(); break; }
       fd[t.dataset.k] = t.dataset.v; saveFd(); rerender(); break;
