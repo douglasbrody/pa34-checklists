@@ -104,6 +104,13 @@
   [data-theme="night"] .emer .list-title { color: #e0554d; }
   [data-theme="red"] .emer .list-title { color: var(--fg); }
   .group-title { font-size: 34px !important; }
+  /* Chart pages: HOME, Back and Previous / Next stay on screen while the chart scrolls; the title is below them */
+  .chart-head { position: -webkit-sticky; position: sticky; top: 0; z-index: 3; background: var(--bg); border-bottom: 2px solid var(--line);
+    margin: calc(-16px - env(safe-area-inset-top)) -16px 10px; padding: calc(16px + env(safe-area-inset-top)) 16px 10px; }
+  .chart-head .spacer { flex: 1 1 0; min-width: 0; }
+  .chart-head .chart-nav { flex: 0 1 200px; min-width: 0; max-width: none; padding: 0 12px; font-size: 22px; }
+  .chart-head .nav-ph { visibility: hidden; }
+  .chart-title { margin: 0 0 8px; line-height: 1.15; font-weight: 800; }
   .fit { flex: 1; min-height: 0; overflow: hidden; padding: 10px 16px 14px; position: relative; }
   .fit.scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
   .sheet { column-gap: 1.4em; column-rule: 2px solid var(--line); margin: 0 auto; }
@@ -399,6 +406,12 @@
     .home-head.with-back { flex-wrap: wrap; }
     .home-head.with-back h1 { flex: 1 0 100%; margin: 8px 0 0 !important; }
     .home-head.with-back h1 { order: 9; }   /* title on its own row below Home / Back / Next */
+    .chart-head { padding-left: 10px; padding-right: 10px; padding-bottom: 8px; }
+    .chart-head .spacer { display: none; }
+    .chart-head .chart-nav { flex: 1 1 0; font-size: 16px; padding: 0 6px; }
+    .chart-head .home-tile { min-height: 66px; }
+    .chart-head .next-tile small { font-size: 11px; letter-spacing: 0; }
+    .chart-title { font-size: 24px !important; }
     .list-title { font-size: 22px; padding-top: 6px; }
     .choice { min-height: 70px; font-size: 26px; }
     .choice small { font-size: 13px; margin-top: 2px; }
@@ -422,6 +435,7 @@
     .home { padding-top: 6px; }
     .home-head { margin-bottom: 8px; }
     .home-head .home-tile, .home-head .next-tile { min-height: 54px; }
+    .chart-head { padding-top: calc(6px + env(safe-area-inset-top)); padding-bottom: 6px; }
     .key { min-height: 42px; font-size: 22px; }
     .pad-label { font-size: 22px; }
     .pad-val { font-size: 32px; min-height: 40px; line-height: 40px; }
@@ -508,7 +522,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 59;
+const APP_VERSION = 60;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -1648,6 +1662,21 @@ function cruiseHtml(W) {
   </section>`;
   return h;
 }
+// The charts in flight order for Previous / Next: takeoff (the charts for the flap setting Planning uses), climb,
+// cruise, landing. Short names for the tiles; the page title has the full name.
+const CHART_FLOW = [['8-2', '8-3'], ['8-5', '8-4'], '8-6', '8-7', '8-8', '8-9', '8-10', '8-13', '8-14'];
+const CHART_NAME = { '8-2': 'Takeoff ground run', '8-3': 'Takeoff ground run', '8-4': 'Takeoff over 50 ft', '8-5': 'Takeoff over 50 ft', '8-6': 'Accelerate-stop',
+  '8-7': 'All-engine climb', '8-8': 'Single-engine climb', '8-9': 'Cruise speed', '8-10': 'Range', '8-13': 'Landing ground run', '8-14': 'Landing over 50 ft' };
+const CHART_SHORT = { '8-2': 'Takeoff roll', '8-3': 'Takeoff roll', '8-4': 'Takeoff 50 ft', '8-5': 'Takeoff 50 ft', '8-6': 'Accel stop', '8-7': 'Climb', '8-8': 'SE climb',
+  '8-9': 'Cruise speed', '8-10': 'Range', '8-13': 'Landing roll', '8-14': 'Landing 50 ft' };
+function chartStep(id) {
+  const i = CHART_FLOW.findIndex(x => Array.isArray(x) ? x.indexOf(id) >= 0 : x === id), own = i >= 0 && Array.isArray(CHART_FLOW[i]) ? CHART_FLOW[i].indexOf(id) : -1;
+  const f25 = own >= 0 ? own : fd['plan.flaps'] === '25' ? 1 : 0;
+  const at = j => j >= 0 && j < CHART_FLOW.length ? (Array.isArray(CHART_FLOW[j]) ? CHART_FLOW[j][f25] : CHART_FLOW[j]) : null;
+  return i < 0 ? { prev: null, next: null } : { prev: at(i - 1), next: at(i + 1) };
+}
+const chartTile = (id, dir) => `<button class="next-tile chart-nav" data-go="#/plan/chart/${id}" aria-label="${dir === 'next' ? 'Next' : 'Previous'} chart: POH ${id} ${esc(CHART_NAME[id])}"><small>${dir === 'next' ? 'Next →' : '← Previous'}</small><span>${esc(CHART_SHORT[id] || CHART_NAME[id])}</span></button>`;
+const NAV_PH = '<span class="next-tile chart-nav nav-ph" aria-hidden="true"></span>';   // keeps Previous / Next in their places at the ends of the flow
 // One chart, with the reading drawn on it in red
 function renderPlanChart(id) {
   const P = planNow ? planNow.P : planPerf(), C = typeof POH_CHARTS !== 'undefined' ? POH_CHARTS : {}, c = C[id];
@@ -1675,12 +1704,16 @@ function renderPlanChart(id) {
     : `${sgn(Math.round((inp.oatF - 32) / 1.8 * 10) / 10)} °C (${sgn(Math.round(inp.oatF * 10) / 10)} °F) · pressure altitude ${sgn(inp.pa)} FT · weight ${lbs(inp.weight)} LB · ${inp.wind < 0 ? 'tailwind ' + (-inp.wind) : 'headwind ' + inp.wind} MPH`;
   const factor = c && c.factorNote && r && r.value !== null && r.chartValue !== undefined
     ? `<small>chart line ${thousands(Math.round(r.chartValue))} ${unit} × ${c.factor.toFixed(3)}: this chart is scaled to give the POH's printed example (${thousands(c.example.answer)} ${unit})</small>` : '';
+  const step = chartStep(id);
   $app.innerHTML = `<div class="wrap data">
-    <div class="home-head with-back">
+    <div class="home-head chart-head">
       ${homeTile()}
       <button class="next-tile" data-go="#/plan"><small>← Back to</small><span>Planning</span></button>
-      <h1 class="group-title">POH ${esc(id)}</h1>
+      <span class="spacer"></span>
+      ${step.prev ? chartTile(step.prev, 'prev') : NAV_PH}
+      ${step.next ? chartTile(step.next, 'next') : NAV_PH}
     </div>
+    <h1 class="group-title chart-title">POH ${esc(id)}${CHART_NAME[id] ? ' · ' + esc(CHART_NAME[id]) : ''}</h1>
     ${c ? `<p class="pmeta"><b>${esc(c.title || '')}</b>${c.conditions ? ' · ' + esc(c.conditions) : ''}</p>
       <div class="calc"><small>${esc(desc)}</small>${r && r.noClimb ? '<span class="warn">NO CLIMB</span>' : r && r.value !== null ? thousands(r.value) + ' ' + unit + (r.speed ? SEP + 'best rate ' + r.speed + ' MPH' : '') : '<span class="warn">NO ANSWER</span>'}${r && r.notes && r.notes.length ? `<small>${esc(r.notes.join(' · '))}</small>` : ''}${factor}</div>
       <div class="prow chartview"><div class="plab">${scan ? 'The POH page (scan)' : 'Redrawn from the POH chart'}<small class="pnote">${scan ? 'the original page, low resolution' : 'the traced lines the numbers come from; compare with the POH scan'}</small></div>${toggle('chartview', [['clean', 'Clean'], ['scan', 'POH scan']], scan ? 'scan' : 'clean')}</div>
@@ -1688,6 +1721,7 @@ function renderPlanChart(id) {
       : `<p class="pmeta"><span class="warn">${typeof PERFCHART === 'undefined' || typeof POH_CHARTS === 'undefined' ? 'The POH charts did not load. Open the app once with internet to finish the offline copy.' : 'This chart is not available.'}</span></p>`}
     <div class="data-foot">${footer('', false)}</div>
   </div>`;
+  layoutBar();
 }
 
 /* ---------- Groups and flow ---------- */
@@ -2123,10 +2157,15 @@ const linkingTo = title => lists.filter(l => parse(l.text).some(b => b.type === 
 function go(hash) { if (location.hash === hash) route(); else location.hash = hash; }
 // Re-render the current screen in place (after a keypad closes), keeping the scroll position.
 function rerender() { const y = window.pageYOffset; route(true); window.scrollTo(0, y); }
-let lastHash = null;
+let lastHash = null, planY = 0, planAt = null;   // planY: where Planning was scrolled to when a chart was opened from it
 function route(keepScroll) {
+  const fromHash = lastHash || '';
   if (location.hash !== lastHash) { lastHash = location.hash; Object.keys(layoutKeep).forEach(k => delete layoutKeep[k]); }
   const p = location.hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  const isChart = h => /^#\/plan\/chart\//.test(h), isPlan = h => /^#\/plan\/?$/.test(h);
+  const goEl = h => Array.prototype.find.call($app.querySelectorAll('[data-go]'), e => e.getAttribute('data-go') === h);
+  if (isPlan(fromHash) && isChart(location.hash)) { planY = window.pageYOffset; const b = goEl(location.hash); planAt = b ? { go: location.hash, top: b.getBoundingClientRect().top } : null; }
+  const backToPlan = isChart(fromHash) && isPlan(location.hash);
   if (p[0] !== 'edit') draft = null;
   if (p[0] !== 'data' && p[0] !== 'plan') dataReturn = location.hash || '#/';
   let gpath = '';
@@ -2139,7 +2178,7 @@ function route(keepScroll) {
   else if (p[0] === 'edit') p[1] ? renderEditor(p[1]) : renderManage();
   else renderHome();
   setWake(p[0] !== 'edit');
-  if (!keepScroll) window.scrollTo(0, 0);
+  if (!keepScroll) { const b = backToPlan && planAt ? goEl(planAt.go) : null; window.scrollTo(0, b ? window.pageYOffset + b.getBoundingClientRect().top - Math.max(0, Math.min(planAt.top, innerHeight - 160)) : backToPlan ? planY : 0); }   // the button stays on screen after a rotation
   document.body.style.overflow = p[0] === 'edit' || p[0] === 'data' || p[0] === 'plan' ? '' : 'hidden';
   reloadIfSafe();
 }
