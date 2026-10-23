@@ -111,7 +111,7 @@ by_title['Right Wing']['lines'].insert(0,'General Condition ... CHECKED')
 by_title['Right Engine Nacelle']['lines'][0:0]=['General Condition ... CHECK','Cowling ... OPEN']
 by_title['Nose Section']['lines'].insert(0,'General Condition ... CHECKED')
 # Hot and flooded starts are separate (hidden) checklists, opened with buttons from Starting Engine.
-by_title['Starting Engine']['lines']+=['-> HOT START | POH 6-3 : Hot Start','-> FLOODED START | POH 6-4 : Flooded Start']
+by_title['Starting Engine']['lines']+=['# Repeat for right engine','-> HOT START | POH 6-3 : Hot Start','-> FLOODED START | POH 6-4 : Flooded Start']
 by_title['Before Takeoff']['lines'].insert(0,'Flight Instruments ... CHECK')
 insert('Cruise','Engine Instruments ... MONITOR',['Electric Fuel Pumps ... OFF (ONE AT A TIME) — CHECK FUEL FLOW'],after=False)
 by_title['Cruise']['lines'].append('-> POWER TABLE | MP / RPM — POH 8-16 : Cruise Power Settings')
@@ -119,7 +119,7 @@ replace('Cruise Climb (above 1000\' AGL)','Electric Fuel Pumps ... OFF (ALT? ONE
 # Before Taxi: heading indicator checked against the compass, altimeter from the ATIS, then bugs.
 replace('Before Taxi','Heading Indicator ... SET TO COMPASS',['Heading Indicator ... CHECK VS. COMPASS'])
 replace('Before Taxi','Altimeter ... SET TO ATIS or APT. ELEV.',['Altimeter ... SET TO ATIS','Altitude ... BUG','Heading ... BUG'])
-replace('Before Taxi','Avionics ... Checked Start Screen & DB',['Avionics ... CHECK START SCREEN & DATABASE'])
+replace('Before Taxi','Avionics ... Checked Start Screen & DB',['Avionics ... CHECK START SCREEN & DATABASE','Flight Plan ... ENTER'])
 replace('Before Taxi','RAIM ... Check in System',['RAIM ... CHECK IN SYSTEM'])
 # Inside Cockpit: lights and pitot heat were switched on for the walk-around check; off again before the master.
 insert('Inside Cockpit','Master Switch ... OFF',['All Light Switches, Pitot Heat ... OFF'],after=False)
@@ -203,8 +203,8 @@ by_title['Engine Failure — Memory Items']['lines'] = [
     'Mixture Controls ... RICH',
     'Propeller Controls ... FULL FORWARD',
     'Throttle Controls ... FULL FORWARD',
-    'Flaps ... UP',
     'Landing Gear ... UP',
+    'Flaps ... UP',
     'Fuel Pumps ... ON',
     'Identify INOP Engine ... DEAD FOOT, DEAD ENGINE',
     'Verify INOP Engine ... RETARD THROTTLE TO VERIFY',
@@ -212,6 +212,10 @@ by_title['Engine Failure — Memory Items']['lines'] = [
     "-> FEATHER | Feathering procedure : Feathering Procedure"]
 by_title["Engine Failure — If Altitude Permits (3,500')"]['lines'] += [
     "-> FEATHER | If the engine doesn't start : Feathering Procedure"]
+# After feathering: the single-engine checklists (a group) and the restart.
+by_title['Feathering Procedure']['lines'] += [
+    '-> SINGLE ENGINE | operations : Single Engine Operations',
+    '-> AIR START | unfeather / restart : Air Start / Unfeathering']
 # Takeoff and climb failures: always show the departure ATIS line (you may land back on the runway),
 # and the ones that end in feathering get a FEATHER button.
 for t in ['Engine Failure on Takeoff — 100 MPH or Below','Engine Failure on Takeoff — 100 MPH or Above',
@@ -281,7 +285,7 @@ Gear up ... CONTROL · CONFIGURE · CLIMB
 # Gear up — memory items
 Airspeed ... 105 MPH (BLUE LINE)
 Mixtures / props / throttles ... FULL FORWARD
-Flaps / gear · fuel pumps ... UP · ON
+Gear / flaps · fuel pumps ... UP · ON
 Identify · verify ... DEAD FOOT · RETARD THROTTLE
 Prop — inop engine ... FEATHER
 Bank ... 5° TOWARD GOOD ENGINE
@@ -498,7 +502,7 @@ for l in emer:
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 for title, text in MANEUVERS: add(title, 'Maneuvers', text)
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=29
+DEFAULTS_VERSION=34
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")
