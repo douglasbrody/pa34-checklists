@@ -143,9 +143,17 @@ var PERFCHART = (function () {
     if (oat > hi(T.x) + 1e-9) return fail(r, 'temperature above the chart (' + hi(T.x) + '\u00a0°F)');
     if (oat < lo(T.x)) { notes.push('colder than the chart: read at ' + lo(T.x) + ' °F (safe side)'); oat = lo(T.x); }
     var curves = T.curves.slice().sort(function (a, b) { return a.pa - b.pa; });
-    var pa = inp.pa;
+    var pa = inp.pa, paBelow = null;
     if (pa > curves[curves.length - 1].pa + 1e-9) return fail(r, 'pressure altitude above the chart (' + curves[curves.length - 1].pa + ' ft)');
-    if (pa < curves[0].pa) { notes.push('pressure altitude below the chart: read at ' + curves[0].pa + ' ft (safe side)'); pa = curves[0].pa; }
+    if (pa < curves[0].pa) {   // below the lowest line (a negative pressure altitude): read on that line (safe side) ...
+      var lowest = curves[0].pa === 0 ? 'sea level' : th(curves[0].pa) + ' ft';
+      notes.push('pressure altitude ' + th(pa) + ' ft is below the chart: read at ' + lowest + ' (safe side' + (curves.length > 1 ? '; ' + th(pa) + ' ft dashed on the chart' : '') + ')');
+      if (curves.length > 1) {   // ... and show where its line would be: the two lowest lines carried on downward (not used)
+        var c0 = curves[0], c1 = curves[1], k = (pa - c0.pa) / (c1.pa - c0.pa);
+        paBelow = { pa: pa, pts: c0.pts.map(function (q) { var y1v = yAt(c1.pts, q[0]); return y1v === null ? null : [q[0], Math.max(lo(T.y), q[1] + k * (y1v - q[1]))]; }).filter(Boolean) };
+      }
+      pa = curves[0].pa;
+    }
     var i = 0; while (i < curves.length - 2 && pa > curves[i + 1].pa) i++;
     var cb = curves[i + 1] || curves[i], ya = yAt(curves[i].pts, oat), yb = yAt(cb.pts, oat);
     if (ya === null || yb === null) {
@@ -199,6 +207,10 @@ var PERFCHART = (function () {
     ];
     r.answerAt = ['wind', otherEnd(V, V.ref), vy];
     r.mid = { y1: y1, wy: wy, vy: vy };   // the values between panels, for the labels
+    if (paBelow && paBelow.pts.length > 1) {   // drawn first, under the reading
+      r.segs.unshift({ panel: 'temp', kind: 'xcurve', pts: paBelow.pts });
+      r.paBelow = { pa: paBelow.pa, y: yAt(paBelow.pts, oat) };
+    }
     return r;
   }
 
@@ -338,7 +350,7 @@ var PERFCHART = (function () {
     (r.segs || []).concat(extra || []).forEach(function (s) {
       if (s.bridge) { out.push('<polyline points="' + pt(s.bridge[0][0], s.bridge[0][1], s.bridge[0][2]) + ' ' + pt(s.bridge[1][0], s.bridge[1][1], s.bridge[1][2]) + '" class="pc-path"/>'); return; }
       if (!s.pts || s.pts.length < 2) return;
-      out.push('<polyline points="' + s.pts.map(function (p) { return pt(s.panel, p[0], p[1]); }).join(' ') + '" class="' + (s.kind === 'input' ? 'pc-input' : s.kind === 'ceil' ? 'pc-ceil' : 'pc-path') + '"/>');
+      out.push('<polyline points="' + s.pts.map(function (p) { return pt(s.panel, p[0], p[1]); }).join(' ') + '" class="' + (s.kind === 'input' ? 'pc-input' : s.kind === 'ceil' ? 'pc-ceil' : s.kind === 'xcurve' ? 'pc-xcurve' : 'pc-path') + '"/>');
     });
     if (r.answerAt) { var a = map(r.answerAt[0], r.answerAt[1], r.answerAt[2]); out.push('<circle cx="' + f1(a[0]) + '" cy="' + f1(a[1]) + '" r="' + f1(c._sw * 2.2) + '" class="pc-dot"/>'); }
     return out.join('');
@@ -392,8 +404,12 @@ var PERFCHART = (function () {
       b = foot('weight', inp.usedWeight); fixed.push(tag(b[0], b[1], th(inp.weight) + ' LB', opt('weight', { anchor: 'middle' })));
       b = foot('wind', inp.usedWind); fixed.push(tag(b[0], b[1], (inp.wind < 0 ? 'TW ' : '') + (Math.round(Math.abs(inp.wind) * 10) / 10) + ' MPH', opt('wind', { anchor: 'middle' })));
       if (m.y1 !== undefined) {
-        var q = map('temp', inp.usedOatF, m.y1), pa = 'PA ' + (inp.pa === 0 ? 'SL' : th(inp.pa)), bt = bounds('temp');
+        var q = map('temp', inp.usedOatF, m.y1), pa = 'PA ' + (inp.usedPa === 0 ? 'SL' : th(inp.usedPa)), bt = bounds('temp');
         moving.push(tag(q[0] - fs * 0.5, q[1] - fs * 1.1, pa, opt('temp', { anchor: q[0] - (pa.length * fs * 0.6 + fs) > bt.minX ? 'end' : 'start' })));
+        if (r.paBelow && r.paBelow.y !== null) {   // the actual (negative) pressure altitude, on its dashed line below the reading
+          var qb = map('temp', inp.usedOatF, r.paBelow.y), pb = 'PA ' + th(r.paBelow.pa) + ' (dashed)';
+          moving.push(tag(qb[0] + fs * 0.5, qb[1] + fs * 1.1, pb, opt('temp', { fs: fs * 0.82, dir: 1, cls: 'pc-tag pc-mid', anchor: qb[0] + (pb.length * fs * 0.5 + fs) < bt.maxX ? 'start' : 'end' })));
+        }
         if (m.wy !== undefined) { var e1 = map('weight', W.ref, m.y1); moving.push(tag(e1[0] + fs * 0.3, e1[1] - fs * 1.05, th(m.y1), opt('weight', { fs: fs * 0.82, anchor: 'start', cls: 'pc-tag pc-mid' }))); }
         if (m.vy !== undefined) { var e2 = map('wind', V.ref, m.wy); moving.push(tag(e2[0] + fs * 0.3, e2[1] - fs * 1.05, th(m.wy), opt('wind', { fs: fs * 0.82, anchor: 'start', cls: 'pc-tag pc-mid' }))); }
       }
@@ -434,6 +450,7 @@ var PERFCHART = (function () {
   }
   function styleSvg(sw) {
     return '<style>.pc-path,.pc-input,.pc-ceil{fill:none;stroke:#d40000;stroke-linecap:round;stroke-linejoin:round;stroke-width:' + f1(sw) + '}.pc-input{stroke-dasharray:' + f1(sw * 3) + ' ' + f1(sw * 2) + '}.pc-ceil{stroke-dasharray:0 ' + f1(sw * 2.2) + ';stroke-width:' + f1(sw * 1.3) + '}.pc-dot{fill:#d40000}' +
+      '.pc-xcurve{fill:none;stroke:var(--fg,#000);stroke-width:' + f1(sw * 0.8) + ';stroke-dasharray:' + f1(sw * 2.6) + ' ' + f1(sw * 1.6) + ';stroke-linejoin:round}' +
       '.pc-tag rect{fill:#d40000}.pc-tag text{fill:#fff;font-family:-apple-system,Helvetica,Arial,sans-serif;font-weight:800}.pc-mid rect{fill:#fff;stroke:#d40000;stroke-width:' + f1(sw * 0.6) + '}.pc-mid text{fill:#d40000}.pc-ceiltag rect{fill:#7a0000}</style>';
   }
   // SVG overlay in image pixels (viewBox = image size), red lines and labels; place it over the chart image
