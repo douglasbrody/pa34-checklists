@@ -103,6 +103,11 @@
   .emer .list-title { color: #c62828; }
   [data-theme="night"] .emer .list-title { color: #e0554d; }
   [data-theme="red"] .emer .list-title { color: var(--fg); }
+  .list-sub { flex: none; margin: 0; padding: 2px 16px 0; text-align: center; font-size: 26px; font-weight: 850; line-height: 1.15; letter-spacing: .04em; }
+  .list-sub small { display: block; font-size: 15px; font-weight: 650; letter-spacing: .02em; opacity: .85; }
+  .emer .list-sub { color: #c62828; }
+  [data-theme="night"] .emer .list-sub { color: #e0554d; }
+  [data-theme="red"] .emer .list-sub { color: var(--fg); }
   .group-title { font-size: 34px !important; }
   /* Chart pages: HOME, Back and Previous / Next stay on screen while the chart scrolls; the title is below them */
   .chart-head { position: -webkit-sticky; position: sticky; top: 0; z-index: 3; background: var(--bg); border-bottom: 2px solid var(--line);
@@ -413,6 +418,7 @@
     .chart-head .next-tile small { font-size: 11px; letter-spacing: 0; }
     .chart-title { font-size: 24px !important; }
     .list-title { font-size: 22px; padding-top: 6px; }
+    .list-sub { font-size: 19px; } .list-sub small { font-size: 13px; }
     .choice { min-height: 70px; font-size: 26px; }
     .choice small { font-size: 13px; margin-top: 2px; }
     .small-btn .lbl { display: none; }
@@ -427,6 +433,7 @@
     .bar .home-tile, .home-head .home-tile { min-width: 66px; padding: 0 10px; }
     .home-tile svg { margin-right: 0; }
     .list-title { font-size: 20px; padding-top: 4px; }
+    .list-sub { font-size: 17px; } .list-sub small { font-size: 12px; }
     .choice { min-height: 56px; font-size: 22px; }
     .choice small { display: none; }
     .emerg-tile { min-height: 44px; font-size: 16px; }
@@ -522,7 +529,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 61;
+const APP_VERSION = 62;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -549,7 +556,7 @@ function freshDefaults() {
 // Checklist content updates: a device whose checklists match a published default set (i.e. were
 // never edited) picks up new defaults automatically. Edited checklists are never overwritten.
 const VER_KEY = 'defaults.version', DSIG_KEY = 'defaults.sig', IDMAP_KEY = 'idmap.v1';
-const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3', '2b46ef17'];
+const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3', '2b46ef17', '3c82ba64'];
 const isPristine = ls => { const s = sig(ls); return s === read(DSIG_KEY, '') || KNOWN_SIGS.includes(s); };
 let lists = read(KEY, null);
 function applyDefaults() {
@@ -630,10 +637,11 @@ const metaCache = new Map();
 function meta(l) {
   let m = metaCache.get(l.text);
   if (!m) {
-    m = { hidden: false, branch: false, atis: '' };
+    m = { hidden: false, branch: false, atis: '', subs: [] };
     String(l.text || '').split('\n').forEach(raw => {
       const t = raw.trim().toUpperCase();
-      if (t === '@HIDDEN') m.hidden = true;
+      if (t.startsWith('@SUBTITLE')) { const v = raw.trim().slice(9).trim(); if (v) m.subs.push(v); }
+      else if (t === '@HIDDEN') m.hidden = true;
       else if (t === '@BRANCH') m.branch = true;
       else if (t.startsWith('@ATIS')) m.atis = /ARR/.test(t) ? 'arr' : 'dep';
     });
@@ -930,14 +938,21 @@ function wxLine(side, prompt) {
 }
 
 // Bottom row on every screen outside the home screen and the Emergency tree:
-// the wind line plus a red EMERGENCY tile that jumps straight to the Emergency screen.
+// the wind line plus a red EMERGENCY tile that jumps straight to Engine Failure — Memory Items
+// (falls back to the Emergency screen if that checklist is missing).
 function emergencyRoot() {
   const g = groups('').find(x => !x.list && isEmergency(x.name));
   return g ? g.path : '';
 }
-function footer(wx, inEmergency) {
+function emergencyTarget() {
+  const mi = lists.find(l => isEmergency(l.group) && /memory items/i.test(l.title || ''));
+  if (mi) return `#/list/${mi.id}`;
   const root = emergencyRoot();
-  const btn = root && !inEmergency ? `<button class="emerg-tile" data-go="${groupHash(root)}">⚠ EMERGENCY</button>` : '';
+  return root ? groupHash(root) : '';
+}
+function footer(wx, inEmergency) {
+  const go = emergencyTarget();
+  const btn = go && !inEmergency ? `<button class="emerg-tile" data-go="${go}">⚠ EMERGENCY</button>` : '';
   if (!btn) return wx;
   return `<div class="foot">${wx}${btn}</div>`;
 }
@@ -1911,6 +1926,7 @@ function renderList(id) {
       ${next ? `<button class="next-tile" data-go="#/list/${next.id}" aria-label="Next: ${esc(next.title)}"><small>Next →</small><span data-full="${esc(next.title)}">${tileLabel(next.title)}</span></button>` : ''}
     </div>
     <h2 class="list-title">${nob(l.title).replace(/(\d) (MPH|AGL|FT)/g, '$1\u00a0$2')}</h2>
+    ${m.subs.map(v => { const [a, b] = v.split('|').map(x => x.trim()); return `<p class="list-sub">${esc(a)}${b ? `<small>${esc(b)}</small>` : ''}</p>`; }).join('')}
     <div class="fit"><div class="sheet">${body || '<div class="empty-msg">This checklist is empty.</div>'}</div></div>
     ${choices.length ? `<div class="choices">${choiceButtons(choices)}</div>` : ''}
     ${footer(wx, emer)}
@@ -2142,7 +2158,7 @@ function renderEditor(id) {
       <code># Engine</code> section heading · <code>! Caution text</code> caution note · <code>| A | B | C</code> table row (first = header)<br>
       <code>{dep.sum}</code> shows flight data (also {arr.sum}, {dep.hw}, {dep.comp}, {tora}, {asd}, {tob.todist}, {times.out}); tap the line to enter it<br>
       <code>-> FEATHER | Feathering procedure : Feathering Procedure</code> big button (label | subtitle : title of the checklist, or name of the group, to open)<br>
-      <code>@HIDDEN</code> no tile, not in Next/Previous · <code>@BRANCH</code> tile, not in Next/Previous · <code>@ATIS DEP</code> show the departure wind line
+      <code>@HIDDEN</code> no tile, not in Next/Previous · <code>@BRANCH</code> tile, not in Next/Previous · <code>@SUBTITLE text | small text</code> extra line under the title · <code>@ATIS DEP</code> show the departure wind line
     </div>
     <div class="actions">
       <button class="small-btn grow" data-act="cancel">Cancel</button>

@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 34;
+const DEFAULTS_VERSION = 35;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -185,7 +185,7 @@ const DEFAULTS = [
   "title": "Engine Failure — Memory Items",
   "group": "Emergency",
   "color": "#c62828",
-  "text": "Maintain Direction and Airspeed ... BLUE LINE / 105 MPH\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\nThrottle Controls ... FULL FORWARD\nLanding Gear ... UP\nFlaps ... UP\nFuel Pumps ... ON\nIdentify INOP Engine ... DEAD FOOT, DEAD ENGINE\nVerify INOP Engine ... RETARD THROTTLE TO VERIFY\n-> FIX | Restore power (if altitude permits) : Engine Failure — If Altitude Permits (3,500')\n-> FEATHER | Feathering procedure : Feathering Procedure"
+  "text": "@SUBTITLE P – D – D – D | Performance · Drag · Determine · Decide\nMaintain Direction and Airspeed ... BLUE LINE / 105 MPH\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\nThrottle Controls ... FULL FORWARD\nLanding Gear ... UP\nFlaps ... UP\nFuel Pumps ... ON\nIdentify INOP Engine ... DEAD FOOT, DEAD ENGINE\nVerify INOP Engine ... RETARD THROTTLE TO VERIFY\n-> FIX | Restore power (if altitude permits) : Engine Failure — If Altitude Permits (3,500')\n-> FEATHER | Feathering procedure : Feathering Procedure"
  },
  {
   "title": "Engine Failure on Takeoff — 100 MPH or Below",
