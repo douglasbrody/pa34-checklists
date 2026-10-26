@@ -177,7 +177,8 @@ by_title['Approach / GUMPS']['lines']=[
     'P — Props ... FULL FORWARD',
     'S — Seat Belt & Switches ... CHECK',
     '-> GO AROUND | if needed : Go Around',
-    '-> SHORT FIELD | full flaps · 87 MPH : Short-Field Landing']
+    '-> SHORT FIELD | full flaps · 87 MPH : Short-Field Landing',
+    '-> SE LANDING | one engine · 105 MPH : Single-Engine Landing']
 # Go Around is a branch: it has a tile, but Next on Approach leads to After Landing.
 by_title['Go Around']['lines']=['@BRANCH']+by_title['Go Around']['lines']+['-> APPROACH | back to Approach / GUMPS : Approach / GUMPS',
     "-> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"]
@@ -503,7 +504,7 @@ for l in emer:
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 for title, text in MANEUVERS: add(title, 'Maneuvers', text)
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=35
+DEFAULTS_VERSION=36
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")
