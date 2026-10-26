@@ -529,7 +529,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 63;
+const APP_VERSION = 64;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -556,7 +556,7 @@ function freshDefaults() {
 // Checklist content updates: a device whose checklists match a published default set (i.e. were
 // never edited) picks up new defaults automatically. Edited checklists are never overwritten.
 const VER_KEY = 'defaults.version', DSIG_KEY = 'defaults.sig', IDMAP_KEY = 'idmap.v1';
-const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3', '2b46ef17', '3c82ba64', '493071d5'];
+const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3', '2b46ef17', '3c82ba64', '493071d5', '7891aa4f'];
 const isPristine = ls => { const s = sig(ls); return s === read(DSIG_KEY, '') || KNOWN_SIGS.includes(s); };
 let lists = read(KEY, null);
 function applyDefaults() {
@@ -637,10 +637,11 @@ const metaCache = new Map();
 function meta(l) {
   let m = metaCache.get(l.text);
   if (!m) {
-    m = { hidden: false, branch: false, atis: '', subs: [] };
+    m = { hidden: false, branch: false, atis: '', subs: [], emerg: '' };
     String(l.text || '').split('\n').forEach(raw => {
       const t = raw.trim().toUpperCase();
       if (t.startsWith('@SUBTITLE')) { const v = raw.trim().slice(9).trim(); if (v) m.subs.push(v); }
+      else if (t.startsWith('@EMERGENCY')) m.emerg = raw.trim().slice(10).trim();
       else if (t === '@HIDDEN') m.hidden = true;
       else if (t === '@BRANCH') m.branch = true;
       else if (t.startsWith('@ATIS')) m.atis = /ARR/.test(t) ? 'arr' : 'dep';
@@ -938,20 +939,32 @@ function wxLine(side, prompt) {
 }
 
 // Bottom row on every screen outside the home screen and the Emergency tree:
-// the wind line plus a red EMERGENCY tile that jumps straight to Engine Failure — Memory Items
-// (falls back to the Emergency screen if that checklist is missing).
+// the wind line plus a red EMERGENCY tile. Where it goes depends on the phase of flight: a checklist's
+// "@EMERGENCY <name>" line names an emergency checklist or emergency group screen (e.g. "Emergency" for
+// the full list). Without one, or if the name doesn't match, it opens Engine Failure — Memory Items.
 function emergencyRoot() {
   const g = groups('').find(x => !x.list && isEmergency(x.name));
   return g ? g.path : '';
 }
-function emergencyTarget() {
+function emergencyTarget(name) {
+  const want = String(name || '').trim();
+  if (want) {
+    const n = normTitle(want);
+    const l = lists.find(x => isEmergency(x.group) && normTitle(x.title) === n);
+    if (l) return `#/list/${l.id}`;
+    const paths = new Set();
+    lists.forEach(x => { const g = cleanGroup(x.group); if (!isEmergency(g)) return;
+      g.split('/').forEach((_, i, a) => paths.add(a.slice(0, i + 1).join('/'))); });
+    const g = [...paths].find(p => normTitle(p) === n || normTitle(lastPart(p)) === n);
+    if (g) return groupHash(g);
+  }
   const mi = lists.find(l => isEmergency(l.group) && /memory items/i.test(l.title || ''));
   if (mi) return `#/list/${mi.id}`;
   const root = emergencyRoot();
   return root ? groupHash(root) : '';
 }
-function footer(wx, inEmergency) {
-  const go = emergencyTarget();
+function footer(wx, inEmergency, target) {
+  const go = emergencyTarget(target);
   const btn = go && !inEmergency ? `<button class="emerg-tile" data-go="${go}">⚠ EMERGENCY</button>` : '';
   if (!btn) return wx;
   return `<div class="foot">${wx}${btn}</div>`;
@@ -1826,7 +1839,7 @@ function renderGroup(path) {
       <h1 class="group-title">${esc(lastPart(path))}</h1>
     </div>
     <div class="tiles">${items.map(groupTile).join('')}</div>
-    ${footer(wxLine(curPhase(), false), isEmergency(path))}
+    ${footer(wxLine(curPhase(), false), isEmergency(path), (items.find(x => x.list) || {}).list ? meta(items.find(x => x.list).list).emerg : '')}
   </div>`;
   layout();
 }
@@ -1929,7 +1942,7 @@ function renderList(id) {
     ${m.subs.map(v => { const [a, b] = v.split('|').map(x => x.trim()); return `<p class="list-sub">${esc(a)}${b ? `<small>${esc(b)}</small>` : ''}</p>`; }).join('')}
     <div class="fit"><div class="sheet">${body || '<div class="empty-msg">This checklist is empty.</div>'}</div></div>
     ${choices.length ? `<div class="choices">${choiceButtons(choices)}</div>` : ''}
-    ${footer(wx, emer)}
+    ${footer(wx, emer, m.emerg)}
     ${emer ? `<div class="scan" aria-hidden="true">${SCAN_TEXT}</div>` : ''}
   </div>`;
   layout();
@@ -2158,7 +2171,7 @@ function renderEditor(id) {
       <code># Engine</code> section heading · <code>! Caution text</code> caution note · <code>| A | B | C</code> table row (first = header)<br>
       <code>{dep.sum}</code> shows flight data (also {arr.sum}, {dep.hw}, {dep.comp}, {tora}, {asd}, {tob.todist}, {times.out}); tap the line to enter it<br>
       <code>-> FEATHER | Feathering procedure : Feathering Procedure</code> big button (label | subtitle : title of the checklist, or name of the group, to open)<br>
-      <code>@HIDDEN</code> no tile, not in Next/Previous · <code>@BRANCH</code> tile, not in Next/Previous · <code>@SUBTITLE text | small text</code> extra line under the title · <code>@ATIS DEP</code> show the departure wind line
+      <code>@HIDDEN</code> no tile, not in Next/Previous · <code>@BRANCH</code> tile, not in Next/Previous · <code>@SUBTITLE text | small text</code> extra line under the title · <code>@EMERGENCY name</code> where the EMERGENCY button goes (an emergency checklist or group) · <code>@ATIS DEP</code> show the departure wind line
     </div>
     <div class="actions">
       <button class="small-btn grow" data-act="cancel">Cancel</button>

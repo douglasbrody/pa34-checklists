@@ -1,7 +1,7 @@
 # Regenerates ../defaults.js from the PA-34 checklist spreadsheet:
 #   python3 tools/convert_xlsx.py "PA-34-200_Checklist.xlsx" defaults.js
 # Then bump VERSION in sw.js so installed iPads pick up the change.
-import zipfile, re, sys, json, xml.etree.ElementTree as ET
+import zipfile, re, sys, os, json, xml.etree.ElementTree as ET
 src, out = sys.argv[1], sys.argv[2]
 ns={'m':'http://schemas.openxmlformats.org/spreadsheetml/2006/main','r':'http://schemas.openxmlformats.org/officeDocument/2006/relationships'}
 z=zipfile.ZipFile(src)
@@ -503,8 +503,12 @@ for l in emer:
     cat=EMER_CAT[l['title']]
     out_lists.append({'title':l['title'],'group':'Emergency'+('/'+cat if cat else ''),'color':GROUP_COLOR['Emergency'],'text':'\n'.join(l['lines'])})
 for title, text in MANEUVERS: add(title, 'Maneuvers', text)
+# EMERGENCY button target by phase of flight (tools/emergency_targets.json: checklist title -> emergency checklist or group).
+EMAP=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'emergency_targets.json')))
+for l in out_lists:
+    if l['title'] in EMAP: l['text']='@EMERGENCY '+EMAP[l['title']]+'\n'+l['text']
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=36
+DEFAULTS_VERSION=37
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

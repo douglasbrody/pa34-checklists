@@ -1,0 +1,8 @@
+{"Airplane Status":"Emergency","Inside Cockpit":"Emergency","Right Wing":"Emergency","Right Engine Nacelle":"Emergency","Nose Section":"Emergency","Left Engine Nacelle":"Emergency","Left Wing":"Emergency","Empennage":"Emergency",
+"Before Starting Engine":"Engine Fire — On the Ground","Passenger Briefing":"Engine Fire — On the Ground","Starting Engine":"Engine Fire — On the Ground","Hot Start":"Engine Fire — On the Ground","Flooded Start":"Engine Fire — On the Ground","Before Taxi":"Engine Fire — On the Ground","Taxi":"Engine Fire — On the Ground","Engine Run-up":"Engine Fire — On the Ground",
+"Before Takeoff":"Takeoff & Climb Eng. Fail","Crew Takeoff Briefing":"Takeoff & Climb Eng. Fail","Takeoff":"Takeoff & Climb Eng. Fail","Short-Field Takeoff":"Takeoff & Climb Eng. Fail",
+"Climb Check (500' AGL)":"Engine Failure in Climb — Above 80 MPH","Cruise Climb (above 1000' AGL)":"Engine Failure in Climb — Above 80 MPH",
+"Cruise":"Engine Failure — Memory Items","Cruise Power Settings":"Engine Failure — Memory Items","Descent":"Engine Failure — Memory Items","Go Around":"Engine Failure — Memory Items",
+"Approach / GUMPS":"Single-Engine Landing","Short-Field Landing":"Single-Engine Landing",
+"After Landing":"Engine Fire — On the Ground","Engine Shut-down":"Engine Fire — On the Ground",
+"Pre-Maneuver Checklist":"Engine Failure — Memory Items","Steep Turns":"Engine Failure — Memory Items","Slow Flight":"Engine Failure — Memory Items","Power-Off Stall":"Engine Failure — Memory Items","Power-On Stall":"Engine Failure — Memory Items","Vmc Demo — Setup":"Engine Failure — Memory Items","Vmc Demo — Recover":"Engine Failure — Memory Items","One Engine Inoperative Approach":"Engine Failure — Memory Items"}
