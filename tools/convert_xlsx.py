@@ -230,7 +230,9 @@ for t in ['Engine Failure on Takeoff — 100 MPH or Below','Engine Failure on Ta
 insert('Before Taxi','ATIS ... OBTAIN',['Wind & Runway ... {dep.sum}'])
 insert('Descent','ATIS ... OBTAIN',['Wind & Runway ... {arr.sum}'])
 # Hobbs / tach lines: tap to record left & right tach and Hobbs (start, then shutdown with time flown).
-replace('Airplane Status','* HOBBS/TACH Times ... RECORDED',['* HOBBS/TACH Times ... {times.out}'])
+# Start times are read once seated: the line moves from Airplane Status to the top of Inside Cockpit (v38).
+by_title['Airplane Status']['lines'].remove('* HOBBS/TACH Times ... RECORDED')
+by_title['Inside Cockpit']['lines'].insert(0,'* HOBBS/TACH Times ... {times.out}')
 replace('Engine Shut-down','HOBBS/TACH Times ... RECORDED',['* HOBBS/TACH Times ... {times.in}'])
 fm=by_title['Single-Engine Fuel Management']['lines']
 fm[:]=fm[:fm.index('Electric Fuel Pump Operating Engine ... ON')+1]
@@ -508,7 +510,7 @@ EMAP=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'eme
 for l in out_lists:
     if l['title'] in EMAP: l['text']='@EMERGENCY '+EMAP[l['title']]+'\n'+l['text']
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=37
+DEFAULTS_VERSION=38
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

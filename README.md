@@ -10,4 +10,6 @@ Offline checklist viewer for iPad (also iPhone and desktop). Big tiles, text tha
 
 **Checklist text format** (Edit › a checklist): `Item ... RESPONSE`, `# Section`, `! Caution`, `* highlighted`, `^ pulsing`, `| table | row |`, `{dep.sum}`-style flight-data tokens, `-> LABEL | subtitle : Checklist title` buttons, and `@HIDDEN`, `@BRANCH`, `@ATIS DEP` directives.
 
+**Start times** are recorded at Inside Cockpit; the shutdown line shows them for reference (start→end, time run).
+
 **Updating:** edit checklists in the app (Edit button), or regenerate `defaults.js` from the spreadsheet with `tools/convert_xlsx.py` (bump `DEFAULTS_VERSION` and add the previous version's signature to `KNOWN_SIGS`); then bump `VERSION` in `sw.js` (and `APP_VERSION` in `index.html`).

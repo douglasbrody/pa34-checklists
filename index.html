@@ -531,7 +531,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 65;
+const APP_VERSION = 66;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -558,7 +558,7 @@ function freshDefaults() {
 // Checklist content updates: a device whose checklists match a published default set (i.e. were
 // never edited) picks up new defaults automatically. Edited checklists are never overwritten.
 const VER_KEY = 'defaults.version', DSIG_KEY = 'defaults.sig', IDMAP_KEY = 'idmap.v1';
-const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3', '2b46ef17', '3c82ba64', '493071d5', '7891aa4f'];
+const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3', '2b46ef17', '3c82ba64', '493071d5', '7891aa4f', 'f8970ff7'];
 const isPristine = ls => { const s = sig(ls); return s === read(DSIG_KEY, '') || KNOWN_SIGS.includes(s); };
 let lists = read(KEY, null);
 function applyDefaults() {
@@ -580,6 +580,20 @@ if (!Array.isArray(lists) || (read(VER_KEY, 1) !== DEFAULTS_VERSION && isPristin
     if (t !== l.text) { l.text = t; ch = true; }
   });
   if (ch) saveLists();
+})();
+// v66: the start Hobbs/tach line moved from Airplane Status to the top of Inside Cockpit. Edited checklists get the
+// same move once (only when Inside Cockpit doesn't already have a {times.out} line).
+(function moveStartTimes() {
+  const MV = 'times.mv66'; if (read(MV, false)) return;
+  const as = lists.find(l => normTitle(l.title) === 'airplane status'), ic = lists.find(l => normTitle(l.title) === 'inside cockpit');
+  if (as && ic && /\{times\.out\}/.test(as.text || '') && !/\{times\.out\}/.test(ic.text || '')) {
+    const al = String(as.text).split('\n'), line = al.find(x => /\{times\.out\}/.test(x));
+    as.text = al.filter(x => x !== line).join('\n');
+    const il = String(ic.text || '').split('\n'), at = il.length && /^@/.test(il[0]) ? 1 : 0;
+    il.splice(at, 0, line); ic.text = il.join('\n');
+    saveLists();
+  }
+  write(MV, true);
 })();
 const updateWaiting = () => read(VER_KEY, 1) !== DEFAULTS_VERSION;
 let theme = read(THEME_KEY, 'day');
@@ -727,7 +741,7 @@ const TOB_FIELDS = [
   { k: 'tob.asd', label: 'Accelerate-stop distance', max: 4, unit: 'FT' },
   { k: 'tob.seroc', label: 'Single-engine rate of climb', max: 3, unit: 'FPM' },
   { k: 'tob.secl', label: 'Single-engine service ceiling', max: 5, unit: 'FT' }];
-// Hobbs / tach times: recorded at Airplane Status (out) and at shutdown (in).
+// Hobbs / tach times: recorded at Inside Cockpit (out) and at shutdown (in, shown with the start times).
 const timeFields = when => [
   { k: when + '.hobbs', label: 'Hobbs', kind: 'decimal', max: 8 },
   { k: when + '.ltach', label: 'Left tach', kind: 'decimal', max: 8 },
@@ -753,8 +767,8 @@ function setField(k, v) {
 function timesText(when) {
   const parts = [['H', 'hobbs'], ['L', 'ltach'], ['R', 'rtach']].map(([tag, f]) => {
     const v = fd[when + '.' + f]; if (v === undefined || v === '') return '';
-    let txt = tag + ' ' + v;
     const start = fd['out.' + f];
+    let txt = tag + ' ' + (when === 'in' && start !== undefined && start !== '' ? start + '\u2192' + v : v);   // shutdown: start → end
     if (when === 'in' && start !== undefined && !isNaN(+start) && !isNaN(+v) && +v >= +start) {   // how long that meter ran
       const dec = Math.max((String(v).split('.')[1] || '').length, (String(start).split('.')[1] || '').length, 1);
       txt += ' (+' + (+v - +start).toFixed(dec) + ')';
@@ -858,6 +872,7 @@ function tokenValue(key) {
   if (key === 'tora') return toraText();
   if (key === 'asd') return asdText();
   if (key === 'secl') return fd['tob.secl'] ? thousands(fd['tob.secl']) + '\u00a0FT' + (fd['plan.da'] ? SEP + 'DA\u00a0' + sgn(fd['plan.da']) : '') : (fd['tob.note'] && fd['tob.note']['tob.secl']) || '';
+  if (key === 'times.in' && !timesText('in') && timesText('out')) return 'START ' + timesText('out') + SEP + 'TAP TO RECORD';   // start times for reference
   if (key === 'times.out' || key === 'times.in') return timesText(key.split('.')[1]) || 'TAP TO RECORD';
   const [side, f] = key.split('.');
   if (SIDES.includes(side)) {
@@ -1097,7 +1112,7 @@ function renderPad() {
   sheetHtml(`<div class="pad-head">
       <div class="pad-step"><span>${esc(group)} · ${pad.i + 1} of ${pad.keys.length}</span></div>
       <div class="pad-label">${esc(f.label)}${/\.wdir$/.test(k) && padTrue(k, side) ? ' (true)' : ''}</div>
-      <div class="pad-val">${shown}${unit && (typing || getV(k) !== undefined || wbBlank) ? `<span class="unit">${esc(unit)}</span>` : ''}</div>${pad.err ? `<div class="pad-err" role="alert">${esc(pad.err)}</div>` : ''}${/\.wdir$/.test(k) && padTrue(k, side) ? (() => { const d = typing ? pad.buf : getV(k), n = parseInt(d, 10); const mv = magVar(); return `<div class="pad-note">METAR wind is true: ${n >= 0 && n <= 360 ? pad3(n) + '°T ' + (mv >= 0 ? '+ ' : '− ') + varText(mv) + ' = ' + pad3(((n + mv) % 360 + 360) % 360 || 360) + '° magnetic' : 'converted to magnetic with ' + varText(mv) + ' variation'}</div>`; })() : ''}
+      <div class="pad-val">${shown}${unit && (typing || getV(k) !== undefined || wbBlank) ? `<span class="unit">${esc(unit)}</span>` : ''}</div>${pad.err ? `<div class="pad-err" role="alert">${esc(pad.err)}</div>` : ''}${side === 'in' && fd['out.' + k.slice(3)] !== undefined && fd['out.' + k.slice(3)] !== '' ? `<div class="pad-note">Start: ${esc(fd['out.' + k.slice(3)])}</div>` : ''}${/\.wdir$/.test(k) && padTrue(k, side) ? (() => { const d = typing ? pad.buf : getV(k), n = parseInt(d, 10); const mv = magVar(); return `<div class="pad-note">METAR wind is true: ${n >= 0 && n <= 360 ? pad3(n) + '°T ' + (mv >= 0 ? '+ ' : '− ') + varText(mv) + ' = ' + pad3(((n + mv) % 360 + 360) % 360 || 360) + '° magnetic' : 'converted to magnetic with ' + varText(mv) + ' variation'}</div>`; })() : ''}
     </div>
     ${padMid(body)}
     <div class="pad-act"><button data-pad="prev"${pad.i === 0 ? ' disabled' : ''}>← Back</button><button data-pad="done">Done</button><button class="go" data-pad="next">${lastF ? 'Save' : 'Next →'}</button></div>`, 'pad');

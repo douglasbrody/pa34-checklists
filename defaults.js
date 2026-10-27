@@ -1,17 +1,17 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 37;
+const DEFAULTS_VERSION = 38;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "@EMERGENCY Emergency\nBaggage Door ... OPEN\nAirworthiness & Registration Certificates ... CHECK\nBaggage Door, Windows, Seats ... CLOSE, CLEAN, EMPTY & SECURE\nOperating Limitations, W&B & CG ... CHECK\nRadio License (international flights only) ... CHECK\nVOR Accuracy every 30 days (IFR only) ... CHECK\nELT (battery/expiration date) ... CHECK\nCompass Deviation Card & Fluid ... CHECK\n* HOBBS/TACH Times ... {times.out}"
+  "text": "@EMERGENCY Emergency\nBaggage Door ... OPEN\nAirworthiness & Registration Certificates ... CHECK\nBaggage Door, Windows, Seats ... CLOSE, CLEAN, EMPTY & SECURE\nOperating Limitations, W&B & CG ... CHECK\nRadio License (international flights only) ... CHECK\nVOR Accuracy every 30 days (IFR only) ... CHECK\nELT (battery/expiration date) ... CHECK\nCompass Deviation Card & Fluid ... CHECK"
  },
  {
   "title": "Inside Cockpit",
   "group": "Preflight",
   "color": "#4a4f57",
-  "text": "@EMERGENCY Emergency\nAlternate Static Source ... CLOSED\nParking Brake ... SET\nAvionics Master Switch ... OFF\nElectrical Switches ... OFF\nLanding Gear Handle ... DOWN\nMixture Controls ... IDLE/CUTOFF\nIgnition Switches ... OFF\nCowl Flaps ... OPEN\nTrim Indicators ... NEUTRAL\nFuel Selectors ... ON\nMaster Switch ... ON\nLanding Gear Lights ... 3 GREEN\nFlaps ... DOWN\nFuel Quantity ... ADEQUATE + RESERVE\nAll Light Switches, Pitot Heat ... ON\nStrobe, Nav, Landing, Beacon Lights ... CHECK\nPitot Heat ... WARM\nOutboard Stall Detector (0°–10° flaps) ... HORN SOUNDS\nInboard Stall Detector (25°–40° flaps) ... HORN SOUNDS\nAll Light Switches, Pitot Heat ... OFF\nMaster Switch ... OFF\nCross Feeds ... DRAINED"
+  "text": "@EMERGENCY Emergency\n* HOBBS/TACH Times ... {times.out}\nAlternate Static Source ... CLOSED\nParking Brake ... SET\nAvionics Master Switch ... OFF\nElectrical Switches ... OFF\nLanding Gear Handle ... DOWN\nMixture Controls ... IDLE/CUTOFF\nIgnition Switches ... OFF\nCowl Flaps ... OPEN\nTrim Indicators ... NEUTRAL\nFuel Selectors ... ON\nMaster Switch ... ON\nLanding Gear Lights ... 3 GREEN\nFlaps ... DOWN\nFuel Quantity ... ADEQUATE + RESERVE\nAll Light Switches, Pitot Heat ... ON\nStrobe, Nav, Landing, Beacon Lights ... CHECK\nPitot Heat ... WARM\nOutboard Stall Detector (0°–10° flaps) ... HORN SOUNDS\nInboard Stall Detector (25°–40° flaps) ... HORN SOUNDS\nAll Light Switches, Pitot Heat ... OFF\nMaster Switch ... OFF\nCross Feeds ... DRAINED"
  },
  {
   "title": "Right Wing",
