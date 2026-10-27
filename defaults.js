@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 38;
+const DEFAULTS_VERSION = 39;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -119,7 +119,7 @@ const DEFAULTS = [
   "title": "Takeoff",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "@EMERGENCY Takeoff & Climb Eng. Fail\nContact Tower ... PATTERN / VFR / IFR\nParking Brake ... RELEASE / TAXI–HOLD SHORT\nCompass (compare against RWY heading) ... CHECKED\nThrottle Controls ... FULL RPM / CHECK ENGINE GAUGES\nRotate ... 80–85 MPH\nGear Up ... NO RWY REMAINS\nVx or Vy ... 90 / 105 MPH\n-> SHORT FIELD | POH 6-7 : Short-Field Takeoff"
+  "text": "@EMERGENCY Takeoff & Climb Eng. Fail\nMixture Controls ... RICH\nPropeller Controls ... HIGH RPM\nElectric Fuel Pumps ... ON\nLanding Light ... ON\nContact Tower ... PATTERN / VFR / IFR\nParking Brake ... RELEASE / TAXI–HOLD SHORT\nCompass (compare against RWY heading) ... CHECKED\nThrottle Controls ... FULL RPM / CHECK ENGINE GAUGES\nRotate ... 80–85 MPH\nGear Up ... POSITIVE RATE\nVx or Vy ... 90 / 105 MPH\n-> SHORT FIELD | POH 6-7 : Short-Field Takeoff"
  },
  {
   "title": "Climb Check (500' AGL)",
