@@ -254,6 +254,8 @@
   .wbt td { text-align: right; padding: 6px 8px; border-top: 1px solid var(--line); font-weight: 650; }
   .wbt th:first-child, .wbt td:first-child { text-align: left; }
   .wbt tr.tot td { font-weight: 850; background: var(--card); }
+  .wbt tr.sub td { font-weight: 650; font-style: italic; color: var(--muted); border-top: 1px dashed var(--line); }
+  .wbt tr.sub td:first-child { padding-left: 20px; }
   .flags { list-style: none; padding: 0; margin: 0 0 10px; }
   .flags li { padding: 7px 10px; margin: 0 0 6px; border-radius: 10px; font-weight: 750; font-size: 16px; background: var(--card); }
   .flags li.good { color: #138a4a; } .flags li.bad { color: #fff; background: #c62828; }
@@ -529,7 +531,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 64;
+const APP_VERSION = 65;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -1344,7 +1346,7 @@ function planWB() {
   else W.rows.push({ label: 'Empty weight', w: ew, arm: em / ew, m: em });
   PLAN_WB.forEach(s => {
     const v = pnum(s.k) || 0;   // a blank entry counts as 0
-    W.rows.push({ label: s.label, w: v, arm: ARMS[s.arm], m: v * ARMS[s.arm] });
+    W.rows.push({ k: s.k, label: s.label, w: v, arm: ARMS[s.arm], m: v * ARMS[s.arm] });
     if (s.limit && v > s.limit) W.flags.push({ bad: true, cat: 'wb', text: s.label + ' ' + lbs(v) + ' LB — limit ' + s.limit + ' LB' });
   });
   const gal = pnum('plan.fuel') || 0, hr = pnum('plan.time') || 0, power = { 45: 45, 55: 55, 65: 65, 75: 75 }[fd['plan.power']] || 65;   // blank = 0
@@ -1525,13 +1527,18 @@ function sentHtml(rep) {
   });
   return h;
 }
+// Subtotal under the two front seats (same 85.5 in arm): display only, not added into the totals a second time.
+function frontSub(W) {
+  const f = W.rows.filter(r => r.k === 'plan.pilot' || r.k === 'plan.front'), w = f.reduce((a, r) => a + r.w, 0), m = f.reduce((a, r) => a + r.m, 0);
+  return `<tr class="sub"><td>Pilot + front passenger</td><td>${lbs(w)}</td><td>${ARMS.front.toFixed(1)}</td><td>${lbs(m)}</td></tr>`;
+}
 function renderPlan() {
   const P = planNow ? planNow.P : planPerf(), rep = planNow ? planNow.rep : null, W = P.W;
   const isDefault = +planCfg.ew === EMPTY_DEFAULT.ew && +planCfg.em === EMPTY_DEFAULT.em, emptyOk = +planCfg.ew > 0 && +planCfg.em > 0;
   const emptyCard = `<p class="pmeta">${isDefault ? 'N56307 · ' : ''}${emptyOk ? `empty weight ${thousands((+planCfg.ew).toFixed(1))} LB · CG ${(planCfg.em / planCfg.ew).toFixed(2)} in · moment ${thousands((+planCfg.em).toFixed(1))}` : '<span class="warn">empty weight not set</span>'}
       <button class="link" data-act="planempty">change</button></p>${isDefault ? '' : '<p class="pmeta"><button class="link" data-act="planreset">use N56307 (2,831.0 LB at 85.00)</button></p>'}`;
   const wbTable = W.rows.length ? `<table class="wbt"><tr><th>Item</th><th>Weight</th><th>Arm</th><th>Moment</th></tr>
-      ${W.rows.map(r => `<tr><td>${esc(r.label)}</td><td>${lbs(r.w)}</td><td>${r.arm.toFixed(1)}</td><td>${lbs(r.m)}</td></tr>`).join('')}
+      ${W.rows.map(r => `<tr><td>${esc(r.label)}</td><td>${lbs(r.w)}</td><td>${r.arm.toFixed(1)}</td><td>${lbs(r.m)}</td></tr>` + (r.k === 'plan.front' ? frontSub(W) : '')).join('')}
       ${W.complete ? `<tr class="tot"><td>Ramp</td><td>${lbs(W.rampW)}</td><td>${(W.rampM / W.rampW).toFixed(2)}</td><td>${lbs(W.rampM)}</td></tr>
       <tr><td>Taxi fuel ${W.taxiGal} gal</td><td>${negLb(W.taxiGal * LB_GAL)}</td><td>${ARMS.fuel}</td><td>${negLb(W.taxiGal * LB_GAL * ARMS.fuel)}</td></tr>
       <tr class="tot"><td>Takeoff</td><td>${lbs(W.tow)}</td><td>${W.cgTo.toFixed(2)}</td><td>${lbs(W.tom)}</td></tr>
