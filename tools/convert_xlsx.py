@@ -348,9 +348,8 @@ POWER="""@HIDDEN
 
 SFTO="""@HIDDEN
 # POH 6-7
-Flaps 0° ... ROTATE 80 · 85 AT 50 FT
-Flaps 25° ... ROTATE 70 · 80 AT 50 FT
-Flaps / Trim ... 0°: T/O RANGE · 25°: SLIGHTLY NOSE UP
+Flaps 0° ... ROTATE 75–80 · 85 AT 50 FT
+Flaps / Trim ... 0° / T/O RANGE
 Fuel Pumps · Mixtures · Props ... ON · RICH (LEAN AT HIGH DA) · FULL FWD
 Position ... MAX RUNWAY, CENTERLINE
 Brakes ... HOLD
@@ -360,8 +359,6 @@ Airspeed Indicator ... ALIVE
 Climb Over Obstacle ... Vx 90 MPH
 Gear ... UP — NO RUNWAY REMAINS
 Then ... Vy 105 MPH
-Flaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE
-! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN. Don't hold it on the runway (wheelbarrowing).
 -> TAKEOFF | normal takeoff : Takeoff
 -> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"""
 SFLDG="""@HIDDEN
@@ -513,7 +510,7 @@ EMAP=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'eme
 for l in out_lists:
     if l['title'] in EMAP: l['text']='@EMERGENCY '+EMAP[l['title']]+'\n'+l['text']
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=39
+DEFAULTS_VERSION=40
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

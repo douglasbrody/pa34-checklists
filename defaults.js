@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 39;
+const DEFAULTS_VERSION = 40;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -113,7 +113,7 @@ const DEFAULTS = [
   "title": "Short-Field Takeoff",
   "group": "Flight",
   "color": "#138a4a",
-  "text": "@EMERGENCY Takeoff & Climb Eng. Fail\n@HIDDEN\n# POH 6-7\nFlaps 0° ... ROTATE 80 · 85 AT 50 FT\nFlaps 25° ... ROTATE 70 · 80 AT 50 FT\nFlaps / Trim ... 0°: T/O RANGE · 25°: SLIGHTLY NOSE UP\nFuel Pumps · Mixtures · Props ... ON · RICH (LEAN AT HIGH DA) · FULL FWD\nPosition ... MAX RUNWAY, CENTERLINE\nBrakes ... HOLD\nThrottles ... FULL — 2700 RPM, GAUGES GREEN\nBrakes ... RELEASE\nAirspeed Indicator ... ALIVE\nClimb Over Obstacle ... Vx 90 MPH\nGear ... UP — NO RUNWAY REMAINS\nThen ... Vy 105 MPH\nFlaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE\n! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN. Don't hold it on the runway (wheelbarrowing).\n-> TAKEOFF | normal takeoff : Takeoff\n-> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"
+  "text": "@EMERGENCY Takeoff & Climb Eng. Fail\n@HIDDEN\n# POH 6-7\nFlaps 0° ... ROTATE 75–80 · 85 AT 50 FT\nFlaps / Trim ... 0° / T/O RANGE\nFuel Pumps · Mixtures · Props ... ON · RICH (LEAN AT HIGH DA) · FULL FWD\nPosition ... MAX RUNWAY, CENTERLINE\nBrakes ... HOLD\nThrottles ... FULL — 2700 RPM, GAUGES GREEN\nBrakes ... RELEASE\nAirspeed Indicator ... ALIVE\nClimb Over Obstacle ... Vx 90 MPH\nGear ... UP — NO RUNWAY REMAINS\nThen ... Vy 105 MPH\n-> TAKEOFF | normal takeoff : Takeoff\n-> CLIMB CHECK | 500' AGL : Climb Check (500' AGL)"
  },
  {
   "title": "Takeoff",

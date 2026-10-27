@@ -531,7 +531,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 67;
+const APP_VERSION = 68;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -558,7 +558,7 @@ function freshDefaults() {
 // Checklist content updates: a device whose checklists match a published default set (i.e. were
 // never edited) picks up new defaults automatically. Edited checklists are never overwritten.
 const VER_KEY = 'defaults.version', DSIG_KEY = 'defaults.sig', IDMAP_KEY = 'idmap.v1';
-const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3', '2b46ef17', '3c82ba64', '493071d5', '7891aa4f', 'f8970ff7', '156f5fd5'];
+const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3', '2b46ef17', '3c82ba64', '493071d5', '7891aa4f', 'f8970ff7', '156f5fd5', 'c2eb0c7'];
 const isPristine = ls => { const s = sig(ls); return s === read(DSIG_KEY, '') || KNOWN_SIGS.includes(s); };
 let lists = read(KEY, null);
 function applyDefaults() {
@@ -608,6 +608,19 @@ if (!Array.isArray(lists) || (read(VER_KEY, 1) !== DEFAULTS_VERSION && isPristin
     ls.splice(at, 0, ...add);
     const g = ls.indexOf('Gear Up ... NO RWY REMAINS'); if (g >= 0) ls[g] = 'Gear Up ... POSITIVE RATE';
     const t = ls.join('\n'); if (t !== tk.text) { tk.text = t; saveLists(); }
+  }
+  write(MV, true);
+})();
+// v68: Short-Field Takeoff is flaps 0° only (rotate 75–80). Edited checklists get the same change once; lines the
+// pilot reworded are left as they are.
+(function shortFieldFlaps0() {
+  const MV = 'sfto.mv68'; if (read(MV, false)) return;
+  const R = [["Flaps 0° ... ROTATE 80 · 85 AT 50 FT", "Flaps 0° ... ROTATE 75–80 · 85 AT 50 FT"], ["Flaps 25° ... ROTATE 70 · 80 AT 50 FT", null], ["Flaps / Trim ... 0°: T/O RANGE · 25°: SLIGHTLY NOSE UP", "Flaps / Trim ... 0° / T/O RANGE"], ["Flaps (if 25°) ... UP ≤ 125 MPH, POSITIVE RATE", null], ["! Flaps 25° is momentarily below Vmc 80 — engine failure: RETARD GOOD THROTTLE, NOSE DOWN. Don't hold it on the runway (wheelbarrowing).", null]];
+  const l = lists.find(x => normTitle(x.title) === 'short-field takeoff');
+  if (l) {
+    const out = [];
+    String(l.text || '').split('\n').forEach(x => { const r = R.find(y => y[0] === x); if (!r) out.push(x); else if (r[1] !== null) out.push(r[1]); });
+    const t = out.join('\n'); if (t !== l.text) { l.text = t; saveLists(); }
   }
   write(MV, true);
 })();
