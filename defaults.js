@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 40;
+const DEFAULTS_VERSION = 41;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -101,13 +101,13 @@ const DEFAULTS = [
   "title": "Before Takeoff",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "@EMERGENCY Takeoff & Climb Eng. Fail\nFlight Instruments ... CHECK\nFlight Instruments/Nav Aids ... CHECKED / SET\nCowl Flaps ... OPEN\nAlternate Air ... OFF\nFuel Selectors ... ON\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\nQuadrant Friction ... ADJUSTED\nElectric Fuel Pumps ... ON\nPitot Heat ... AS REQUIRED\nStrobe, Landing, Recognition Lights ... ON\nNavigation Lights ... NIGHT ONLY\nElevator Trim ... SET FOR T/O\nRudder Trim ... SET\nWing Flaps ... SET (0°, OR 25° FOR SHORTEST ROLL)\nPanel Lights ... AS NEEDED\nDoors, Storm Window ... LOCKED, CLOSED\nSeat Belts & Back ... SECURE & ERECT\nTransponder ... ALT\n* Crew Briefing ... COMPLETED"
+  "text": "@EMERGENCY Takeoff & Climb Eng. Fail\nFlight Instruments ... CHECK\nFlight Instruments/Nav Aids ... CHECKED / SET\nCowl Flaps ... OPEN\nAlternate Air ... OFF\nFuel Selectors ... ON\nMixture Controls ... RICH\nPropeller Controls ... FULL FORWARD\nQuadrant Friction ... ADJUSTED\nElectric Fuel Pumps ... ON\nPitot Heat ... AS REQUIRED\nStrobe, Landing, Recognition Lights ... ON\nNavigation Lights ... NIGHT ONLY\nElevator Trim ... SET FOR T/O\nRudder Trim ... SET\nWing Flaps ... 0°\nPanel Lights ... AS NEEDED\nDoors, Storm Window ... LOCKED, CLOSED\nSeat Belts & Back ... SECURE & ERECT\nTransponder ... ALT\n* Crew Briefing ... COMPLETED"
  },
  {
   "title": "Crew Takeoff Briefing",
   "group": "Start & Taxi",
   "color": "#1e5bd8",
-  "text": "@EMERGENCY Takeoff & Climb Eng. Fail\n# Today\nRunway available ... {tora}\nWind (head / cross) ... {dep.hw}\nTakeoff distance over 50 ft ... {tob.todist}\nAccelerate-stop distance ... {tob.asd}\nSingle-engine rate of climb ... {tob.seroc}\nSingle-engine service ceiling ... {secl}\n# Speeds (MPH CAS)\nVr (short: 80 flaps 0° · 70 flaps 25°) ... 80–85\nVx / Vy ... 90 / 105\nVmc — red radial ... 80\nVyse — blue radial ... 105\n# If an engine fails\nOn the runway, below 100 MPH ... CLOSE BOTH — STOP\nAirborne, gear down, runway left ... CLOSE BOTH — LAND\nAirborne below Vmc 80 ... REDUCE GOOD ENG. · NOSE DOWN\nGear up ... CONTROL · CONFIGURE · CLIMB\n# Gear up — memory items\nAirspeed ... 105 MPH (BLUE LINE)\nMixtures / props / throttles ... FULL FORWARD\nGear / flaps · fuel pumps ... UP · ON\nIdentify · verify ... DEAD FOOT · RETARD THROTTLE\nProp — inop engine ... FEATHER\nBank ... 5° TOWARD GOOD ENGINE\nChecklist ... AT 400 FT AGL\nCannot climb ... HOLD 105 — LAND AHEAD\nSimulated failures ... THROTTLE ONLY, SLOWLY"
+  "text": "@EMERGENCY Takeoff & Climb Eng. Fail\n# Today\nRunway available ... {tora}\nWind (head / cross) ... {dep.hw}\nTakeoff distance over 50 ft ... {tob.todist}\nAccelerate-stop distance ... {tob.asd}\nSingle-engine rate of climb ... {tob.seroc}\nSingle-engine service ceiling ... {secl}\n# Speeds (MPH CAS)\nVr (short: 75–80 flaps 0°) ... 80–85\nVx / Vy ... 90 / 105\nVmc — red radial ... 80\nVyse — blue radial ... 105\n# If an engine fails\nOn the runway, below 100 MPH ... CLOSE BOTH — STOP\nAirborne, gear down, runway left ... CLOSE BOTH — LAND\nAirborne below Vmc 80 ... REDUCE GOOD ENG. · NOSE DOWN\nGear up ... CONTROL · CONFIGURE · CLIMB\n# Gear up — memory items\nAirspeed ... 105 MPH (BLUE LINE)\nMixtures / props / throttles ... FULL FORWARD\nGear / flaps · fuel pumps ... UP · ON\nIdentify · verify ... DEAD FOOT · RETARD THROTTLE\nProp — inop engine ... FEATHER\nBank ... 5° TOWARD GOOD ENGINE\nChecklist ... AT 400 FT AGL\nCannot climb ... HOLD 105 — LAND AHEAD\nSimulated failures ... THROTTLE ONLY, SLOWLY"
  },
  {
   "title": "Short-Field Takeoff",

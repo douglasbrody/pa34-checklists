@@ -163,7 +163,7 @@ replace('Air Start / Unfeathering',"If engine does'nt start, prime w/ Fuel Pump 
 replace('Vacuum Failure','RPM ... INCREASE 2700',['RPM ... INCREASE TO 2700'])
 replace('Before Takeoff','Trims ... ELEVATOR T/O, RUDDER AS REQUIRED',['Elevator Trim ... SET FOR T/O','Rudder Trim ... SET'])
 # Before Takeoff: the POH pre-takeoff check sets the wing flaps (the run-up only checks their travel).
-insert('Before Takeoff','Rudder Trim ... SET',['Wing Flaps ... SET (0°, OR 25° FOR SHORTEST ROLL)'])
+insert('Before Takeoff','Rudder Trim ... SET',['Wing Flaps ... 0°'])
 # Approach: speeds first, the pre-landing items, first notch of flaps, then GUMPS (the gear line pulses).
 by_title['Approach / GUMPS']['lines']=[
     'Speed ... 110 DWD·100 BASE·90 FIN',
@@ -280,7 +280,7 @@ Accelerate-stop distance ... {tob.asd}
 Single-engine rate of climb ... {tob.seroc}
 Single-engine service ceiling ... {secl}
 # Speeds (MPH CAS)
-Vr (short: 80 flaps 0° · 70 flaps 25°) ... 80–85
+Vr (short: 75–80 flaps 0°) ... 80–85
 Vx / Vy ... 90 / 105
 Vmc — red radial ... 80
 Vyse — blue radial ... 105
@@ -510,7 +510,7 @@ EMAP=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'eme
 for l in out_lists:
     if l['title'] in EMAP: l['text']='@EMERGENCY '+EMAP[l['title']]+'\n'+l['text']
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=40
+DEFAULTS_VERSION=41
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

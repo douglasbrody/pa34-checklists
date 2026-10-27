@@ -531,7 +531,7 @@
 
 const COLORS = ['#1e5bd8', '#138a4a', '#d9730d', '#6b3fc7', '#0f7f8a', '#c62828', '#4a4f57', '#a37800'];
 const COLOR_NAMES = { '#1e5bd8': 'Blue', '#138a4a': 'Green', '#d9730d': 'Orange', '#6b3fc7': 'Purple', '#0f7f8a': 'Teal', '#c62828': 'Red', '#4a4f57': 'Gray', '#a37800': 'Gold' };
-const APP_VERSION = 68;
+const APP_VERSION = 69;
 
 /* ---------- Storage ---------- */
 const KEY = 'checklists.v2', THEME_KEY = 'theme.v1';
@@ -558,7 +558,7 @@ function freshDefaults() {
 // Checklist content updates: a device whose checklists match a published default set (i.e. were
 // never edited) picks up new defaults automatically. Edited checklists are never overwritten.
 const VER_KEY = 'defaults.version', DSIG_KEY = 'defaults.sig', IDMAP_KEY = 'idmap.v1';
-const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3', '2b46ef17', '3c82ba64', '493071d5', '7891aa4f', 'f8970ff7', '156f5fd5', 'c2eb0c7'];
+const KNOWN_SIGS = ['16c8b9d0', '58b9ccbe', '7fc30338', '30d79ae9', 'bfcd586e', 'c6e366fd', 'b4f77e38', '81c48c6b', '5794fcc8', '1e3c8569', '19eba4f3', 'da9f3285', 'ac06d8ad', 'c4824058', '781a368', 'ed16cf17', 'f5d5c0a9', 'ef88dfd9', 'a5bf3b05', '98d137a0', 'ad94ec1d', 'a054decd', 'abf7cacd', '5e7c5dd4', '16794428', '3d12023c', '94b3a684', '3bb1b618', '95b82cf9', '716101e', '94879cb3', '5a5e60e3', '2b46ef17', '3c82ba64', '493071d5', '7891aa4f', 'f8970ff7', '156f5fd5', 'c2eb0c7', '4a24d940'];
 const isPristine = ls => { const s = sig(ls); return s === read(DSIG_KEY, '') || KNOWN_SIGS.includes(s); };
 let lists = read(KEY, null);
 function applyDefaults() {
@@ -622,6 +622,16 @@ if (!Array.isArray(lists) || (read(VER_KEY, 1) !== DEFAULTS_VERSION && isPristin
     String(l.text || '').split('\n').forEach(x => { const r = R.find(y => y[0] === x); if (!r) out.push(x); else if (r[1] !== null) out.push(r[1]); });
     const t = out.join('\n'); if (t !== l.text) { l.text = t; saveLists(); }
   }
+  write(MV, true);
+})();
+// v69: takeoff flaps 0° only — Before Takeoff and the crew briefing lose the 25° options. Edited checklists get
+// the same change once; reworded lines are left alone.
+(function flaps0Only() {
+  const MV = 'flaps0.mv69'; if (read(MV, false)) return;
+  const R = [["Wing Flaps ... SET (0°, OR 25° FOR SHORTEST ROLL)", "Wing Flaps ... 0°"], ["Vr (short: 80 flaps 0° · 70 flaps 25°) ... 80–85", "Vr (short: 75–80 flaps 0°) ... 80–85"]];
+  let ch = false;
+  lists.forEach(l => { const t = String(l.text || '').split('\n').map(x => { const r = R.find(y => y[0] === x); return r ? r[1] : x; }).join('\n'); if (t !== l.text) { l.text = t; ch = true; } });
+  if (ch) saveLists();
   write(MV, true);
 })();
 const updateWaiting = () => read(VER_KEY, 1) !== DEFAULTS_VERSION;
@@ -1466,7 +1476,7 @@ function planPerf() {
   if (P.missing.length) return P;
   const C = typeof POH_CHARTS !== 'undefined' ? POH_CHARTS : null;
   if (!C || typeof PERFCHART === 'undefined') { P.missing.push('performance charts not loaded'); return P; }
-  const flaps = fd['plan.flaps'] === '25' ? 25 : 0;
+  const flaps = 0;   // v69: takeoff is flaps 0° only
   P.oatC = oatC; P.oatF = oatC * 1.8 + 32; P.pa = pa; P.da = PERFCHART.densityAltitude(pa, oatC); P.flaps = flaps;
   P.dw = planWind('dep');
   const A = arrPA(D), aoatC = pnum('plan.aoat') !== null ? pnum('plan.aoat') : oatC, apa = A ? A.pa : pa;
@@ -1591,7 +1601,7 @@ function renderPlan() {
   const flags = W.flags.length ? `<ul class="flags">${W.flags.map(f => `<li class="${f.bad ? 'bad' : 'good'}">${f.bad ? '✕' : '✓'} ${esc(f.text)}</li>`).join('')}</ul>` : '';
   let perf;
   const todo = P.missing.filter(m => m !== 'performance charts not loaded');
-  const chartList = `<div class="actions charts">${[['8-2', 'Ground run 0°'], ['8-3', 'Ground run 25°'], ['8-5', 'Over 50 ft 0°'], ['8-4', 'Over 50 ft 25°'], ['8-6', 'Accelerate-stop'], ['8-7', 'All-engine climb'], ['8-8', 'Single-engine climb'], ['8-13', 'Landing run'], ['8-14', 'Landing over 50 ft']].map(c => `<button class="small-btn" data-go="#/plan/chart/${c[0]}">POH ${c[0]} · ${c[1]} ›</button>`).join('')}</div>`;
+  const chartList = `<div class="actions charts">${[['8-2', 'Ground run 0°'], ['8-5', 'Over 50 ft 0°'], ['8-6', 'Accelerate-stop'], ['8-7', 'All-engine climb'], ['8-8', 'Single-engine climb'], ['8-13', 'Landing run'], ['8-14', 'Landing over 50 ft']].map(c => `<button class="small-btn" data-go="#/plan/chart/${c[0]}">POH ${c[0]} · ${c[1]} ›</button>`).join('')}</div>`;
   if (P.missing.length) perf = (todo.length ? `<p class="pmeta">To work out the numbers, enter: <b>${esc(todo.join(', '))}</b> (Conditions above). The charts can be opened now:</p>` : `<p class="pmeta"><span class="warn">The POH charts did not load.</span> Open the app once with internet to finish the offline copy.</p>`) + chartList + sentHtml(rep);
   else {
     const r = P.res, da = Math.round(P.da);
@@ -1632,7 +1642,6 @@ function renderPlan() {
       ${atisCards('dep', PLAN_KEYS.dep, 'plan')}
       ${(() => { const D = depPA(); return planCards([FIELD['plan.pa']], { 'plan.pa': D && D.src === 'altimeter' ? sgn(D.pa) + ' FT from altimeter' : '' }); })()}
       <p class="pmeta">${isTrue('dep') ? `Wind is <b>true</b> (METAR): turned to magnetic with ${varText(magVar())} variation. <button class="link" data-act="magvar">change variation</button> <button class="link" data-act="wref" data-tab="dep">wind is magnetic</button>` : `Wind is <b>magnetic</b> (ATIS / tower). <button class="link" data-act="wref" data-tab="dep">wind is true (METAR)</button>`}</p>
-      <div class="prow"><div class="plab">Takeoff flaps</div>${toggle('plan.flaps', [['0', '0°'], ['25', '25°']], fd['plan.flaps'] === '25' ? '25' : '0')}</div>
       <details class="arrd"${PLAN_KEYS.arr.concat('plan.apa').some(k => fd[k] !== undefined) ? ' open' : ''}><summary>Destination (blank = same as departure)</summary>
         <div class="actions"><button class="small-btn go" data-act="planall" data-set="arrwx">Enter destination METAR</button></div>
         <p class="pmeta">${srcHtml('arr')}</p>
@@ -1743,14 +1752,14 @@ function cruiseHtml(W) {
 }
 // The charts in flight order for Previous / Next: takeoff (the charts for the flap setting Planning uses), climb,
 // cruise, landing. Short names for the tiles; the page title has the full name.
-const CHART_FLOW = [['8-2', '8-3'], ['8-5', '8-4'], '8-6', '8-7', '8-8', '8-9', '8-10', '8-13', '8-14'];
+const CHART_FLOW = ['8-2', '8-5', '8-6', '8-7', '8-8', '8-9', '8-10', '8-13', '8-14'];
 const CHART_NAME = { '8-2': 'Takeoff ground run', '8-3': 'Takeoff ground run', '8-4': 'Takeoff over 50 ft', '8-5': 'Takeoff over 50 ft', '8-6': 'Accelerate-stop',
   '8-7': 'All-engine climb', '8-8': 'Single-engine climb', '8-9': 'Cruise speed', '8-10': 'Range', '8-13': 'Landing ground run', '8-14': 'Landing over 50 ft' };
 const CHART_SHORT = { '8-2': 'Takeoff roll', '8-3': 'Takeoff roll', '8-4': 'Takeoff 50 ft', '8-5': 'Takeoff 50 ft', '8-6': 'Accel stop', '8-7': 'Climb', '8-8': 'SE climb',
   '8-9': 'Cruise speed', '8-10': 'Range', '8-13': 'Landing roll', '8-14': 'Landing 50 ft' };
 function chartStep(id) {
   const i = CHART_FLOW.findIndex(x => Array.isArray(x) ? x.indexOf(id) >= 0 : x === id), own = i >= 0 && Array.isArray(CHART_FLOW[i]) ? CHART_FLOW[i].indexOf(id) : -1;
-  const f25 = own >= 0 ? own : fd['plan.flaps'] === '25' ? 1 : 0;
+  const f25 = own >= 0 ? own : 0;   // flaps 0° charts only
   const at = j => j >= 0 && j < CHART_FLOW.length ? (Array.isArray(CHART_FLOW[j]) ? CHART_FLOW[j][f25] : CHART_FLOW[j]) : null;
   return i < 0 ? { prev: null, next: null } : { prev: at(i - 1), next: at(i + 1) };
 }
