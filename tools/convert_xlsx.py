@@ -228,6 +228,9 @@ for t in ['Engine Failure on Takeoff — 100 MPH or Below','Engine Failure on Ta
     by_title[t]['lines'].insert(0,'@ATIS DEP')
     if t!='Engine Failure on Takeoff — 100 MPH or Below':
         by_title[t]['lines'].append('-> FEATHER | Feathering procedure : Feathering Procedure')
+# v42 (pilot): the memory items come before feathering in the climb failures.
+for t in ['Engine Failure in Climb — Below 80 MPH', 'Engine Failure in Climb — Above 80 MPH']:
+    ls=by_title[t]['lines']; ls.insert(ls.index('Inoperative Engine ... FEATHER'),'Memory Items')
 # After the ATIS, the wind and runway (tap to enter them) give the crosswind / headwind: departure before taxi,
 # arrival in the descent.
 insert('Before Taxi','ATIS ... OBTAIN',['Wind & Runway ... {dep.sum}'])
@@ -510,7 +513,7 @@ EMAP=json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)),'eme
 for l in out_lists:
     if l['title'] in EMAP: l['text']='@EMERGENCY '+EMAP[l['title']]+'\n'+l['text']
 # Bump DEFAULTS_VERSION whenever the checklist content changes; unedited iPads then update automatically.
-DEFAULTS_VERSION=41
+DEFAULTS_VERSION=42
 open(out,'w').write('// Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.\n'
   +f'const DEFAULTS_VERSION = {DEFAULTS_VERSION};\nconst DEFAULTS = '+json.dumps(out_lists,ensure_ascii=False,indent=1)+';\n')
 for l in out_lists: print(f"{l['group']:14} {l['title']:50} {len([x for x in l['text'].splitlines() if x.strip()])} lines")

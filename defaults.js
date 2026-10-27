@@ -1,5 +1,5 @@
 // Generated from "PA-34-200_Checklist v2026 10 12.xlsx". Edit in the app, or regenerate.
-const DEFAULTS_VERSION = 41;
+const DEFAULTS_VERSION = 42;
 const DEFAULTS = [
  {
   "title": "Airplane Status",
@@ -203,13 +203,13 @@ const DEFAULTS = [
   "title": "Engine Failure in Climb — Below 80 MPH",
   "group": "Emergency/Takeoff & Climb Eng. Fail",
   "color": "#c62828",
-  "text": "@ATIS DEP\nPower on Operative Engine ... REDUCE, MAINTAIN DIRECTIONAL CONTROL\nNose ... LOWER TO ATTAIN Vyse 105 MPH\nInoperative Engine ... FEATHER\n-> FEATHER | Feathering procedure : Feathering Procedure"
+  "text": "@ATIS DEP\nPower on Operative Engine ... REDUCE, MAINTAIN DIRECTIONAL CONTROL\nNose ... LOWER TO ATTAIN Vyse 105 MPH\nMemory Items\nInoperative Engine ... FEATHER\n-> FEATHER | Feathering procedure : Feathering Procedure"
  },
  {
   "title": "Engine Failure in Climb — Above 80 MPH",
   "group": "Emergency/Takeoff & Climb Eng. Fail",
   "color": "#c62828",
-  "text": "@ATIS DEP\nDirectional Control ... MAINTAIN\nMinimum Airspeed ... MAINTAIN Vyse 105 MPH\nInoperative Engine ... FEATHER\n-> FEATHER | Feathering procedure : Feathering Procedure"
+  "text": "@ATIS DEP\nDirectional Control ... MAINTAIN\nMinimum Airspeed ... MAINTAIN Vyse 105 MPH\nMemory Items\nInoperative Engine ... FEATHER\n-> FEATHER | Feathering procedure : Feathering Procedure"
  },
  {
   "title": "Engine Failure — If Altitude Permits (3,500')",
