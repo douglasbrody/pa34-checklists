@@ -1,5 +1,6 @@
 // Bump VERSION whenever any app file changes so iPads pick up the update.
-const VERSION = 'checklists-v70';
+// Other apps share this origin's cache storage (douglasbrody.github.io), so activate deletes only this app's own 'checklists-' caches.
+const VERSION = 'checklists-v71';
 const CHARTS = ['8-2', '8-3', '8-4', '8-5', '8-6', '8-7', '8-8', '8-9', '8-10', '8-13', '8-14'].map(c => './charts/' + c + '.jpg');   // POH Section 8
 const FILES = ['./', './index.html', './manifest.webmanifest', './defaults.js', './perf.js', './charts.js', './icon-180.png', './icon-512.png'].concat(CHARTS);
 
@@ -15,7 +16,7 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', e => {
   e.waitUntil(
     caches.keys()
-      .then(keys => Promise.all(keys.filter(k => k !== VERSION).map(k => caches.delete(k))))
+      .then(keys => Promise.all(keys.filter(k => k.startsWith('checklists-') && k !== VERSION).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
